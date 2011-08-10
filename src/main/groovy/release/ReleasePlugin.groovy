@@ -34,12 +34,16 @@ class ReleasePlugin implements Plugin<Project> {
 
 		project.task('release') {
 			// Release task should perform the following tasks.
-			// 1. Check to see if source is out of date
-			// 2. Check to see if source needs to be checked in.
-			// 3. Check for SNAPSHOT versions if required.
-			// 3. Build && run Unit tests
-			// 4. Run any other tasks the user specifies in convention.
-			// 5. Update Snapshot version
+			//  1. Check to see if source is out of date
+			//  2. Check to see if source needs to be checked in.
+			//  3. Check for SNAPSHOT dependencies if required.
+			//  4. Build && run Unit tests
+			//  5. Run any other tasks the user specifies in convention.
+			//  6. Update Snapshot version if used
+			//  7. Commit Snapshot update (if done)
+			//  8. Create tag of release.
+			//  9. Update version to next version.
+			// 10. Commit version update.
 		}
 	}
 }
