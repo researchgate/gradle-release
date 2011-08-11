@@ -5,11 +5,11 @@ import org.gradle.api.Project
 
 /**
  * @author elberry
- * Created: Tue Aug 09 23:24:40 PDT 2011
+ * Created: Wed Aug 10 23:44:15 PDT 2011
  */
-class GitReleasePlugin implements Plugin<Project> {
+class HgReleasePlugin implements Plugin<Project> {
 	void apply(Project project) {
-		project.convention.plugins.GitReleasePlugin = new GitReleasePluginConvention()
+		project.convention.plugins.HgReleasePlugin = new HgReleasePluginConvention()
 
 		project.task('checkCommitNeeded') << {println 'checkCommitNeeded'}
 		project.task('checkUpdateNeeded') << { println 'checkUpdateNeeded'}

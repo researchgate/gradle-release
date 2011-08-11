@@ -8,6 +8,11 @@ dependencies {
    compile gradleApi()
    groovy localGroovy()
 }
+
+release {
+	failOnSnapshotDependencies = true
+}
+
 task('unversionedJar', type: Jar, dependsOn: 'jar') {
 	version = null
 	from sourceSets.main.classes
