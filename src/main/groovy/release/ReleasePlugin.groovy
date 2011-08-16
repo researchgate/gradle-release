@@ -33,7 +33,7 @@ class ReleasePlugin implements Plugin<Project> {
 			// Release task should perform the following tasks.
 			tasks = [
 					//  1. Check to see if source is out of date
-					'checkUpdateNeeded',
+					//'checkUpdateNeeded',
 					//  2. Check to see if source needs to be checked in.
 					'checkCommitNeeded',
 					//  3. Check for SNAPSHOT dependencies if required.
@@ -78,7 +78,7 @@ class ReleasePlugin implements Plugin<Project> {
 					project.apply plugin: GitReleasePlugin
 					return
 				case '.hg':
-					//project.apply plugin: HgReleasePlugin
+					project.apply plugin: HgReleasePlugin
 					return
 			}
 		}

@@ -11,8 +11,14 @@ class SvnReleasePlugin implements Plugin<Project> {
 	void apply(Project project) {
 		project.convention.plugins.SvnReleasePlugin = new SvnReleasePluginConvention()
 
-		project.task('checkCommitNeeded') << {println 'checkCommitNeeded'}
-		project.task('checkUpdateNeeded') << { println 'checkUpdateNeeded'}
+		project.task('checkCommitNeeded') << {
+			// svn status
+			println 'checkCommitNeeded'
+		}
+		project.task('checkUpdateNeeded') << {
+			// svn status -q -u
+			println 'checkUpdateNeeded'
+		}
 		project.task('commitNewVersion') << {println 'commitNewVersion'}
 		project.task('createReleaseTag') << {println 'createReleaseTag'}
 		project.task('preTagCommit') << {println 'preTagCommit'}

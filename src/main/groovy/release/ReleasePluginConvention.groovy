@@ -6,6 +6,7 @@ package release
  */
 class ReleasePluginConvention {
 	boolean failOnSnapshotDependencies = true
+	boolean failOnUnversionedFiles = true
 	def requiredTasks = []
 	def versionPatterns = [
 			/(\d+\.(\d+))-SNAPSHOT/: {

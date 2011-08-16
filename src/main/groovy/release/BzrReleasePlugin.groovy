@@ -20,9 +20,13 @@ class BzrReleasePlugin implements Plugin<Project> {
 			def xml = new XmlSlurper().parseText("$out")
 			def added = xml.added?.size() ?: 0
 			def modified = xml.modified?.size() ?: 0
+			def removed = xml.removed?.size() ?: 0
 			def unknown = xml.unknown?.size() ?: 0
-			if (added || modified || unknown) {
+			if (added || modified || removed) {
 				throw new GradleException("You have un-committed changes.")
+			}
+			if(project.convention.plugins.release.failOnUnversionedFiles && unknown) {
+				throw new GradleException("You have un-versioned files.")
 			}
 		}
 		project.task('checkUpdateNeeded') << {
