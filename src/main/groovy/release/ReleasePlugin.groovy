@@ -1,5 +1,6 @@
 package release
 
+import java.util.regex.Matcher
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -10,6 +11,24 @@ import org.gradle.api.tasks.GradleBuild
  * Created: Tue Aug 09 15:32:00 PDT 2011
  */
 class ReleasePlugin implements Plugin<Project> {
+	static final String lineSep = System.getProperty("line.separator")
+	static final String inputPrompt = "${lineSep}??>"
+
+	static String prompt(String message, String defaultValue = null) {
+		if (defaultValue) {
+			return System.console().readLine("${inputPrompt} ${message} [${defaultValue}] ") ?: defaultValue
+		}
+		return System.console().readLine("${inputPrompt} ${message} ") ?: defaultValue
+	}
+
+	static void updateVersionProperty(Project project, def newVersion) {
+		File propsFile = new File(project.rootDir, 'gradle.properties')
+		Properties gradleProps = new Properties()
+		gradleProps.load(propsFile.newReader())
+		gradleProps.version = newVersion
+		gradleProps.store(propsFile.newWriter(), "Version updated to '${newVersion}', by Gradle release plugin.")
+	}
+
 	void apply(Project project) {
 
 		project.convention.plugins.release = new ReleasePluginConvention()
@@ -35,7 +54,7 @@ class ReleasePlugin implements Plugin<Project> {
 					//  1. Check to see if source is out of date
 					//'checkUpdateNeeded',
 					//  2. Check to see if source needs to be checked in.
-					'checkCommitNeeded',
+					//'checkCommitNeeded',
 					//  3. Check for SNAPSHOT dependencies if required.
 					'checkSnapshotDependencies',
 					//  4. Build && run Unit tests
@@ -55,9 +74,40 @@ class ReleasePlugin implements Plugin<Project> {
 			].flatten()
 		}
 
-		project.task('unSnapshotVersion') << { println 'unSnaphotVersion' }
+		project.task('unSnapshotVersion') << {
+			println 'unSnaphotVersion'
+			def version = "${project.version}"
+			if (version.contains('-SNAPSHOT')) {
+				project.setProperty('usesSnapshot', true)
+				version = version.replace('-SNAPSHOT', '')
+				project.version = version
+				ReleasePlugin.updateVersionProperty(project, version)
+			} else {
+				project.setProperty('usesSnapshot', false)
+			}
+		}
 
-		project.task('updateVersion') << { println 'updateVersion' }
+		project.task('updateVersion') << {
+			println 'updateVersion'
+			def version = "${project.version}"
+			Map<String, Closure> patterns = project.convention.plugins.release.versionPatterns
+			for (Map.Entry<String, Closure> entry: patterns) {
+				String pattern = entry.key
+				Closure handler = entry.value
+				Matcher matcher = version =~ pattern
+				if (matcher.matches()) {
+					def output = handler.call(project, matcher)
+					project.setProperty('releaseTag', output.tag)
+					String next = output.next
+					if (project.hasProperty('usesSnapshot') && project.usesSnapshot) {
+						next = "${next}-SNAPSHOT"
+					}
+					next = ReleasePlugin.prompt('Enter the next version:', next)
+					ReleasePlugin.updateVersionProperty(project, next)
+					return;
+				}
+			}
+		}
 	}
 
 	/**

@@ -25,7 +25,7 @@ class BzrReleasePlugin implements Plugin<Project> {
 			if (added || modified || removed) {
 				throw new GradleException("You have un-committed changes.")
 			}
-			if(project.convention.plugins.release.failOnUnversionedFiles && unknown) {
+			if (project.convention.plugins.release.failOnUnversionedFiles && unknown) {
 				throw new GradleException("You have un-versioned files.")
 			}
 		}
@@ -44,8 +44,52 @@ class BzrReleasePlugin implements Plugin<Project> {
 				throw new GradleException("You are missing $missing changes.")
 			}
 		}
-		project.task('commitNewVersion') << {println 'commitNewVersion'}
-		project.task('createReleaseTag') << {println 'createReleaseTag'}
+		project.task('commitNewVersion') << {
+			println 'createReleaseTag'
+
+			String newVersionCommitMessage = project.convention.plugins.release.newVersionCommitMessage
+
+			StringBuilder out = new StringBuilder()
+			StringBuilder err = new StringBuilder()
+			Process process = ['bzr', 'ci', '-m', newVersionCommitMessage].execute()
+			process.waitForProcessOutput(out, err)
+			if ("${out}".contains("ERROR") || "${err}".contains("ERROR")) {
+				throw new GradleException("Error committing new version - ${out}${err}")
+			}
+			if ("${err}".contains("ERROR")) {
+				throw new GradleException("Error committing new version - ${err}")
+			}
+			/*
+			out = new StringBuilder()
+			err = new StringBuilder()
+			process = ['bzr', 'push', ':parent'].execute()
+			process.waitForProcessOutput(out, err)
+
+			if ("${out}".contains("ERROR") || "${err}".contains("ERROR")) {
+				StringBuilder _out = new StringBuilder()
+				StringBuilder _err = new StringBuilder()
+				process = ['bzr', 'push', ':parent'].execute()
+				process.waitForProcessOutput(out, err)
+				throw new GradleException("Error committing new version - ${out}${err}")
+			}
+			*/
+		}
+		project.task('createReleaseTag') << {
+			println 'createReleaseTag'
+			String newVersionCommitMessage = project.convention.plugins.release.newVersionCommitMessage
+			String tag = project.hasProperty('releaseTag') ? project.releaseTag : new Date().format('yyyymmdd_hh')
+
+			StringBuilder out = new StringBuilder()
+			StringBuilder err = new StringBuilder()
+			Process process = ['bzr', 'tag', tag, newVersionCommitMessage].execute()
+			process.waitForProcessOutput(out, err)
+			if ("${out}".contains("ERROR") || "${err}".contains("ERROR")) {
+				throw new GradleException("Error committing new version - ${out}${err}")
+			}
+			if ("${err}".contains("ERROR")) {
+				throw new GradleException("Error committing new version - ${err}")
+			}
+		}
 		project.task('preTagCommit') << {println 'preTagCommit'}
 	}
 
