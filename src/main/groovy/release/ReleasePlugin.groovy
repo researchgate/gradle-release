@@ -75,7 +75,6 @@ class ReleasePlugin implements Plugin<Project> {
 		}
 
 		project.task('unSnapshotVersion') << {
-			println 'unSnaphotVersion'
 			def version = "${project.version}"
 			if (version.contains('-SNAPSHOT')) {
 				project.setProperty('usesSnapshot', true)
@@ -88,7 +87,6 @@ class ReleasePlugin implements Plugin<Project> {
 		}
 
 		project.task('updateVersion') << {
-			println 'updateVersion'
 			def version = "${project.version}"
 			Map<String, Closure> patterns = project.convention.plugins.release.versionPatterns
 			for (Map.Entry<String, Closure> entry: patterns) {
@@ -96,14 +94,12 @@ class ReleasePlugin implements Plugin<Project> {
 				Closure handler = entry.value
 				Matcher matcher = version =~ pattern
 				if (matcher.matches()) {
-					def output = handler.call(project, matcher)
-					project.setProperty('releaseTag', output.tag)
-					String next = output.next
+					String nextVersion = handler.call(project, matcher)
 					if (project.hasProperty('usesSnapshot') && project.usesSnapshot) {
-						next = "${next}-SNAPSHOT"
+						nextVersion = "${nextVersion}-SNAPSHOT"
 					}
-					next = ReleasePlugin.prompt('Enter the next version:', next)
-					ReleasePlugin.updateVersionProperty(project, next)
+					nextVersion = ReleasePlugin.prompt('Enter the next version:', nextVersion)
+					ReleasePlugin.updateVersionProperty(project, nextVersion)
 					return;
 				}
 			}

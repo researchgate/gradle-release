@@ -9,6 +9,9 @@ import org.gradle.api.Project
  * Created: Tue Aug 09 23:26:04 PDT 2011
  */
 class BzrReleasePlugin implements Plugin<Project> {
+
+	private static final String ERROR = 'ERROR'
+
 	void apply(Project project) {
 		checkForXmlOutput()
 		project.convention.plugins.BzrReleasePlugin = new BzrReleasePluginConvention()
@@ -23,10 +26,10 @@ class BzrReleasePlugin implements Plugin<Project> {
 			def removed = xml.removed?.size() ?: 0
 			def unknown = xml.unknown?.size() ?: 0
 			if (added || modified || removed) {
-				throw new GradleException("You have un-committed changes.")
+				throw new GradleException('You have un-committed changes.')
 			}
 			if (project.convention.plugins.release.failOnUnversionedFiles && unknown) {
-				throw new GradleException("You have un-versioned files.")
+				throw new GradleException('You have un-versioned files.')
 			}
 		}
 		project.task('checkUpdateNeeded') << {
@@ -45,52 +48,30 @@ class BzrReleasePlugin implements Plugin<Project> {
 			}
 		}
 		project.task('commitNewVersion') << {
-			println 'createReleaseTag'
-
 			String newVersionCommitMessage = project.convention.plugins.release.newVersionCommitMessage
 
-			StringBuilder out = new StringBuilder()
-			StringBuilder err = new StringBuilder()
-			Process process = ['bzr', 'ci', '-m', newVersionCommitMessage].execute()
-			process.waitForProcessOutput(out, err)
-			if ("${out}".contains("ERROR") || "${err}".contains("ERROR")) {
-				throw new GradleException("Error committing new version - ${out}${err}")
-			}
-			if ("${err}".contains("ERROR")) {
-				throw new GradleException("Error committing new version - ${err}")
-			}
-			/*
-			out = new StringBuilder()
-			err = new StringBuilder()
-			process = ['bzr', 'push', ':parent'].execute()
-			process.waitForProcessOutput(out, err)
-
-			if ("${out}".contains("ERROR") || "${err}".contains("ERROR")) {
-				StringBuilder _out = new StringBuilder()
-				StringBuilder _err = new StringBuilder()
-				process = ['bzr', 'push', ':parent'].execute()
-				process.waitForProcessOutput(out, err)
-				throw new GradleException("Error committing new version - ${out}${err}")
-			}
-			*/
+			commit(newVersionCommitMessage)
 		}
 		project.task('createReleaseTag') << {
-			println 'createReleaseTag'
-			String newVersionCommitMessage = project.convention.plugins.release.newVersionCommitMessage
-			String tag = project.hasProperty('releaseTag') ? project.releaseTag : new Date().format('yyyymmdd_hh')
+			def props = project.properties
+			String tag = props['version']
 
 			StringBuilder out = new StringBuilder()
 			StringBuilder err = new StringBuilder()
-			Process process = ['bzr', 'tag', tag, newVersionCommitMessage].execute()
+			Process process = ['bzr', 'tag', tag].execute()
 			process.waitForProcessOutput(out, err)
-			if ("${out}".contains("ERROR") || "${err}".contains("ERROR")) {
-				throw new GradleException("Error committing new version - ${out}${err}")
-			}
-			if ("${err}".contains("ERROR")) {
-				throw new GradleException("Error committing new version - ${err}")
+			if ("${out}".contains(ERROR) || "${err}".contains(ERROR)) {
+				throw new GradleException("Error creating tag - ${out}${err}")
 			}
 		}
-		project.task('preTagCommit') << {println 'preTagCommit'}
+		project.task('preTagCommit') << {
+			String preTagCommitMessage = project.convention.plugins.release.preTagCommitMessage
+			def props = project.properties
+			if (props['usesSnapshot']) {
+				// should only be changes if the project was using a snapshot version.
+				commit(preTagCommitMessage)
+			}
+		}
 	}
 
 	private void checkForXmlOutput() {
@@ -105,7 +86,32 @@ class BzrReleasePlugin implements Plugin<Project> {
 			}
 		}
 		if (!hasXmlOutput) {
-			throw new IllegalStateException("The required xmloutput plugin is not installed in Bazaar, please install it.")
+			throw new IllegalStateException('The required xmloutput plugin is not installed in Bazaar, please install it.')
 		}
 	}
+
+	private void commit(String message) {
+		StringBuilder out = new StringBuilder()
+		StringBuilder err = new StringBuilder()
+		Process process = ['bzr', 'ci', '-m', message].execute()
+		process.waitForProcessOutput(out, err)
+		if ("${out}".contains(ERROR) || "${err}".contains(ERROR)) {
+			throw new GradleException("Error committing new version - ${out}${err}")
+		}
+		/*
+		out = new StringBuilder()
+		err = new StringBuilder()
+		process = ['bzr', 'push', ':parent'].execute()
+		process.waitForProcessOutput(out, err)
+
+		if ("${out}".contains("ERROR") || "${err}".contains("ERROR")) {
+			StringBuilder _out = new StringBuilder()
+			StringBuilder _err = new StringBuilder()
+			process = ['bzr', 'push', ':parent'].execute()
+			process.waitForProcessOutput(out, err)
+			throw new GradleException("Error committing new version - ${out}${err}")
+		}
+		*/
+	}
+
 }

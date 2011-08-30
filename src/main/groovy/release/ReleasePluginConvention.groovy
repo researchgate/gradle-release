@@ -1,7 +1,7 @@
 package release
 
-import org.gradle.api.Project
 import java.util.regex.Matcher
+import org.gradle.api.Project
 
 /**
  * @author elberry
@@ -18,17 +18,15 @@ class ReleasePluginConvention {
 			/(.*[^\d])(\d*)/: { Project project, Matcher matcher ->
 				String tag = matcher.group(0)
 				int lastDigit = matcher.group(2) as Integer
-				String next = matcher.replaceAll("\$1${lastDigit + 1}")
-				[tag: tag, next: next]
+				matcher.replaceAll("\$1${lastDigit + 1}")
 			},
 			/(\d+)/: { Project project, Matcher matcher ->
 				String tag = matcher.group(0)
 				int lastDigit = matcher.group(1) as Integer
-				String next = "${lastDigit + 1}"
-				[tag: tag, next: next]
+				"${lastDigit + 1}"
 			}
 	]
-
+	
 	void release(Closure closure) {
 		closure.delegate = this
 		closure.call()
