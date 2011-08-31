@@ -52,9 +52,9 @@ class ReleasePlugin implements Plugin<Project> {
 			// Release task should perform the following tasks.
 			tasks = [
 					//  1. Check to see if source is out of date
-					//'checkUpdateNeeded',
+					'checkUpdateNeeded',
 					//  2. Check to see if source needs to be checked in.
-					//'checkCommitNeeded',
+					'checkCommitNeeded',
 					//  3. Check for SNAPSHOT dependencies if required.
 					'checkSnapshotDependencies',
 					//  4. Build && run Unit tests

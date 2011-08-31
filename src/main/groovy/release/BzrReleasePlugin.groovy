@@ -98,7 +98,6 @@ class BzrReleasePlugin implements Plugin<Project> {
 		if ("${out}".contains(ERROR) || "${err}".contains(ERROR)) {
 			throw new GradleException("Error committing new version - ${out}${err}")
 		}
-		/*
 		out = new StringBuilder()
 		err = new StringBuilder()
 		process = ['bzr', 'push', ':parent'].execute()
@@ -111,7 +110,6 @@ class BzrReleasePlugin implements Plugin<Project> {
 			process.waitForProcessOutput(out, err)
 			throw new GradleException("Error committing new version - ${out}${err}")
 		}
-		*/
 	}
 
 }

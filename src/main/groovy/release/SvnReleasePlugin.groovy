@@ -112,14 +112,12 @@ class SvnReleasePlugin implements Plugin<Project> {
 			if (matcher.matches()) {
 				String svnRoot = matcher.group(1)
 				String svnProject = matcher.group(2)
-				println "svn url: ${svnRoot}, project: ${svnProject}"
 				project.setProperty('releaseSvnRoot', svnRoot)
 				project.setProperty('releaseSvnUrl', "$svnRoot$svnProject")
 			}
 			matcher = line =~ revPattern
 			if (matcher.matches()) {
 				String revision = matcher.group(1)
-				println "svn rev: ${revision}"
 				project.setProperty('releaseSvnRev', revision)
 			}
 		}
