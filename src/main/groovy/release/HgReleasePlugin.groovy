@@ -7,7 +7,7 @@ import org.gradle.api.Project
  * @author elberry
  * Created: Wed Aug 10 23:44:15 PDT 2011
  */
-class HgReleasePlugin implements Plugin<Project> {
+class HgReleasePlugin extends PluginHelper implements Plugin<Project> {
 	void apply(Project project) {
 		project.convention.plugins.HgReleasePlugin = new HgReleasePluginConvention()
 

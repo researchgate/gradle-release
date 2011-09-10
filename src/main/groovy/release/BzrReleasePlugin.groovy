@@ -8,7 +8,7 @@ import org.gradle.api.Project
  * @author elberry
  * Created: Tue Aug 09 23:26:04 PDT 2011
  */
-class BzrReleasePlugin implements Plugin<Project> {
+class BzrReleasePlugin extends PluginHelper implements Plugin<Project> {
 
 	private static final String ERROR = 'ERROR'
 
@@ -28,7 +28,7 @@ class BzrReleasePlugin implements Plugin<Project> {
 			if (added || modified || removed) {
 				throw new GradleException('You have un-committed changes.')
 			}
-			if (project.convention.plugins.release.failOnUnversionedFiles && unknown) {
+			if ( releaseConvention( project ).failOnUnversionedFiles && unknown) {
 				throw new GradleException('You have un-versioned files.')
 			}
 		}
@@ -48,7 +48,7 @@ class BzrReleasePlugin implements Plugin<Project> {
 			}
 		}
 		project.task('commitNewVersion') << {
-			String newVersionCommitMessage = project.convention.plugins.release.newVersionCommitMessage
+			String newVersionCommitMessage = releaseConvention( project ).newVersionCommitMessage
 
 			commit(newVersionCommitMessage)
 		}
@@ -65,7 +65,7 @@ class BzrReleasePlugin implements Plugin<Project> {
 			}
 		}
 		project.task('preTagCommit') << {
-			String preTagCommitMessage = project.convention.plugins.release.preTagCommitMessage
+			String preTagCommitMessage = releaseConvention( project ).preTagCommitMessage
 			def props = project.properties
 			if (props['usesSnapshot']) {
 				// should only be changes if the project was using a snapshot version.
@@ -79,37 +79,31 @@ class BzrReleasePlugin implements Plugin<Project> {
 		StringBuilder err = new StringBuilder()
 		Process process = ['bzr', 'plugins'].execute()
 		process.waitForProcessOutput(out, err)
-		boolean hasXmlOutput = false
-		"$out".eachLine {
-			if (it.startsWith('xmloutput')) {
-				hasXmlOutput = true
-			}
-		}
-		if (!hasXmlOutput) {
-			throw new IllegalStateException('The required xmloutput plugin is not installed in Bazaar, please install it.')
-		}
+
+		assert "$out".readLines().any{ it.startsWith( 'xmloutput' ) } , \
+		       'The required xmloutput plugin is not installed in Bazaar, please install it.'
 	}
 
-	private void commit(String message) {
-		StringBuilder out = new StringBuilder()
-		StringBuilder err = new StringBuilder()
-		Process process = ['bzr', 'ci', '-m', message].execute()
-		process.waitForProcessOutput(out, err)
-		if ("${out}".contains(ERROR) || "${err}".contains(ERROR)) {
-			throw new GradleException("Error committing new version - ${out}${err}")
-		}
-		out = new StringBuilder()
-		err = new StringBuilder()
-		process = ['bzr', 'push', ':parent'].execute()
-		process.waitForProcessOutput(out, err)
 
-		if ("${out}".contains("ERROR") || "${err}".contains("ERROR")) {
-			StringBuilder _out = new StringBuilder()
-			StringBuilder _err = new StringBuilder()
-			process = ['bzr', 'push', ':parent'].execute()
-			process.waitForProcessOutput(out, err)
-			throw new GradleException("Error committing new version - ${out}${err}")
-		}
-	}
+    private void commit(String message) {
+        StringBuilder out = new StringBuilder()
+        StringBuilder err = new StringBuilder()
+        Process process = ['bzr', 'ci', '-m', message].execute()
+        process.waitForProcessOutput(out, err)
+        if ("${out}".contains(ERROR) || "${err}".contains(ERROR)) {
+            throw new GradleException("Error committing new version - ${out}${err}")
+        }
+        out = new StringBuilder()
+        err = new StringBuilder()
+        process = ['bzr', 'push', ':parent'].execute()
+        process.waitForProcessOutput(out, err)
 
+        if ("${out}".contains("ERROR") || "${err}".contains("ERROR")) {
+            StringBuilder _out = new StringBuilder()
+            StringBuilder _err = new StringBuilder()
+            process = ['bzr', 'push', ':parent'].execute()
+            process.waitForProcessOutput(out, err)
+            throw new GradleException("Error committing new version - ${out}${err}")
+        }
+    }
 }

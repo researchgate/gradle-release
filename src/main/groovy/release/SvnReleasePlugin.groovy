@@ -11,7 +11,7 @@ import org.gradle.api.Project
  * Created: Tue Aug 09 23:25:18 PDT 2011
  */
 // TODO: Use SVNKit or SubversionJ
-class SvnReleasePlugin implements Plugin<Project> {
+class SvnReleasePlugin extends PluginHelper implements Plugin<Project> {
 
 	private static final String ERROR = 'Commit failed'
 
@@ -39,7 +39,7 @@ class SvnReleasePlugin implements Plugin<Project> {
 			if (changes) {
 				throw new GradleException('You have un-committed changes.')
 			}
-			if (project.convention.plugins.release.failOnUnversionedFiles && unknown) {
+			if ( releaseConvention( project ).failOnUnversionedFiles && unknown) {
 				throw new GradleException('You have un-versioned files.')
 			}
 		}
@@ -62,12 +62,12 @@ class SvnReleasePlugin implements Plugin<Project> {
 			}
 		}
 		project.task('commitNewVersion') << {
-			String newVersionCommitMessage = project.convention.plugins.release.newVersionCommitMessage
+			String newVersionCommitMessage = releaseConvention( project ).newVersionCommitMessage
 
 			commit(newVersionCommitMessage)
 		}
 		project.task('createReleaseTag') << {
-			String tagCommitMessage = project.convention.plugins.release.tagCommitMessage
+			String tagCommitMessage = releaseConvention( project ).tagCommitMessage
 			StringBuilder out = new StringBuilder()
 			StringBuilder err = new StringBuilder()
 			def props = project.properties
@@ -81,7 +81,7 @@ class SvnReleasePlugin implements Plugin<Project> {
 
 		}
 		project.task('preTagCommit') << {
-			String preTagCommitMessage = project.convention.plugins.release.preTagCommitMessage
+			String preTagCommitMessage = releaseConvention( project ).preTagCommitMessage
 			def props = project.properties
 			if (props['usesSnapshot']) {
 				// should only be changes if the project was using a snapshot version.
