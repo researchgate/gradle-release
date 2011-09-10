@@ -23,11 +23,11 @@ class PluginHelper
         Object convention = project.convention.plugins.get( pluginName )
 
         assert convention, \
-               "Current Project contains no \"$pluginName\" plugin convention"
+               "Current project contains no \"$pluginName\" plugin convention"
 
         assert conventionType.isInstance( convention ), \
-               "Current Project contains \"$pluginName\" plugin convention, " +
-               "but it's of type [${ convention.class.name }] instead of expected [${ conventionType.name }]"
+               "Current project contains \"$pluginName\" plugin convention, " +
+               "but it's of type [${ convention.class.name }] rather than expected [${ conventionType.name }]"
 
         ( T ) convention
     }
