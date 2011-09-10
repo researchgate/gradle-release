@@ -16,11 +16,8 @@ class BzrReleasePlugin extends PluginHelper implements Plugin<Project> {
 		checkForXmlOutput()
 		project.convention.plugins.BzrReleasePlugin = new BzrReleasePluginConvention()
 		project.task('checkCommitNeeded') << {
-			StringBuilder out = new StringBuilder()
-			StringBuilder err = new StringBuilder()
-			Process process = ['bzr', 'xmlstatus'].execute()
-			process.waitForProcessOutput(out, err)
-			def xml = new XmlSlurper().parseText("$out")
+			String out = exec( 'bzr', 'xmlstatus' )
+			def xml = new XmlSlurper().parseText( out )
 			def added = xml.added?.size() ?: 0
 			def modified = xml.modified?.size() ?: 0
 			def removed = xml.removed?.size() ?: 0
@@ -33,11 +30,8 @@ class BzrReleasePlugin extends PluginHelper implements Plugin<Project> {
 			}
 		}
 		project.task('checkUpdateNeeded') << {
-			StringBuilder out = new StringBuilder()
-			StringBuilder err = new StringBuilder()
-			Process process = ['bzr', 'xmlmissing'].execute()
-			process.waitForProcessOutput(out, err)
-			def xml = new XmlSlurper().parseText("$out")
+			String out = exec( 'bzr', 'xmlmissing' )
+			def xml = new XmlSlurper().parseText( out )
 			def extra = "${xml.extra_revisions?.@size}" ?: 0
 			def missing = "${xml.missing_revisions?.@size}" ?: 0
 			if (extra) {
@@ -53,17 +47,11 @@ class BzrReleasePlugin extends PluginHelper implements Plugin<Project> {
 			commit(newVersionCommitMessage)
 		}
 		project.task('createReleaseTag') << {
-			def props = project.properties
-			String tag = props['version']
+			String tag = project.properties.version
 
-			StringBuilder out = new StringBuilder()
-			StringBuilder err = new StringBuilder()
-			Process process = ['bzr', 'tag', tag].execute()
-			process.waitForProcessOutput(out, err)
-			if ("${out}".contains(ERROR) || "${err}".contains(ERROR)) {
-				throw new GradleException("Error creating tag - ${out}${err}")
-			}
+            exec( ['bzr', 'tag', tag], 'Error creating tag', ERROR )
 		}
+
 		project.task('preTagCommit') << {
 			String preTagCommitMessage = releaseConvention( project ).preTagCommitMessage
 			def props = project.properties
@@ -75,35 +63,13 @@ class BzrReleasePlugin extends PluginHelper implements Plugin<Project> {
 	}
 
 	private void checkForXmlOutput() {
-		StringBuilder out = new StringBuilder()
-		StringBuilder err = new StringBuilder()
-		Process process = ['bzr', 'plugins'].execute()
-		process.waitForProcessOutput(out, err)
-
-		assert "$out".readLines().any{ it.startsWith( 'xmloutput' ) } , \
+		assert exec( 'bzr', 'plugins' ).readLines().any{ it.startsWith( 'xmloutput' ) } , \
 		       'The required xmloutput plugin is not installed in Bazaar, please install it.'
 	}
 
 
     private void commit(String message) {
-        StringBuilder out = new StringBuilder()
-        StringBuilder err = new StringBuilder()
-        Process process = ['bzr', 'ci', '-m', message].execute()
-        process.waitForProcessOutput(out, err)
-        if ("${out}".contains(ERROR) || "${err}".contains(ERROR)) {
-            throw new GradleException("Error committing new version - ${out}${err}")
-        }
-        out = new StringBuilder()
-        err = new StringBuilder()
-        process = ['bzr', 'push', ':parent'].execute()
-        process.waitForProcessOutput(out, err)
-
-        if ("${out}".contains("ERROR") || "${err}".contains("ERROR")) {
-            StringBuilder _out = new StringBuilder()
-            StringBuilder _err = new StringBuilder()
-            process = ['bzr', 'push', ':parent'].execute()
-            process.waitForProcessOutput(out, err)
-            throw new GradleException("Error committing new version - ${out}${err}")
-        }
+        exec( ['bzr', 'ci', '-m', message], 'Error committing new version', ERROR )
+        exec( ['bzr', 'push', ':parent'],   'Error committing new version', ERROR )
     }
 }

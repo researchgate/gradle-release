@@ -20,13 +20,10 @@ class SvnReleasePlugin extends PluginHelper implements Plugin<Project> {
 		project.convention.plugins.SvnReleasePlugin = new SvnReleasePluginConvention()
 
 		project.task('checkCommitNeeded') << {
-			StringBuilder out = new StringBuilder()
-			StringBuilder err = new StringBuilder()
-			Process process = ['svn', 'status'].execute()
-			process.waitForProcessOutput(out, err)
+			String out = exec( 'svn', 'status' )
 			def changes = 0
 			def unknown = 0
-			"$out".eachLine { line ->
+			out.eachLine { line ->
 				switch (line?.trim()?.charAt(0)) {
 					case '?':
 						unknown++
@@ -45,12 +42,9 @@ class SvnReleasePlugin extends PluginHelper implements Plugin<Project> {
 		}
 		project.task('checkUpdateNeeded') << {
 			// svn status -q -u
-			StringBuilder out = new StringBuilder()
-			StringBuilder err = new StringBuilder()
-			Process process = ['svn', 'status', '-q', '-u'].execute()
-			process.waitForProcessOutput(out, err)
+			String out = exec( 'svn', 'status', '-q', '-u' )
 			def missing = 0
-			"$out".eachLine { line ->
+			out.eachLine { line ->
 				switch (line?.trim()?.charAt(0)) {
 					case '*':
 						missing++
@@ -61,25 +55,24 @@ class SvnReleasePlugin extends PluginHelper implements Plugin<Project> {
 				throw new GradleException("You are missing $missing changes.")
 			}
 		}
-		project.task('commitNewVersion') << {
+
+        project.task('commitNewVersion') << {
 			String newVersionCommitMessage = releaseConvention( project ).newVersionCommitMessage
 
 			commit(newVersionCommitMessage)
 		}
-		project.task('createReleaseTag') << {
+
+        project.task('createReleaseTag') << {
 			String tagCommitMessage = releaseConvention( project ).tagCommitMessage
-			StringBuilder out = new StringBuilder()
-			StringBuilder err = new StringBuilder()
 			def props = project.properties
 			String svnUrl = props['releaseSvnUrl']
 			String svnRev = props['releaseSvnRev']
 			String svnRoot = props['releaseSvnRoot']
 			String svnTag = props['version']
-			def proc = ['svn', 'cp', "${svnUrl}@${svnRev}", "${svnRoot}/tags/${svnTag}", '-m', tagCommitMessage]
-			Process process = proc.execute()
-			process.waitForProcessOutput(out, err)
 
+            exec( 'svn', 'cp', "${svnUrl}@${svnRev}", "${svnRoot}/tags/${svnTag}", '-m', tagCommitMessage )
 		}
+
 		project.task('preTagCommit') << {
 			String preTagCommitMessage = releaseConvention( project ).preTagCommitMessage
 			def props = project.properties
@@ -91,23 +84,14 @@ class SvnReleasePlugin extends PluginHelper implements Plugin<Project> {
 	}
 
 	private void commit(String message) {
-		StringBuilder out = new StringBuilder()
-		StringBuilder err = new StringBuilder()
-		Process process = ['svn', 'ci', '-m', message].execute()
-		process.waitForProcessOutput(out, err)
-		if ("${out}".contains(ERROR) || "${err}".contains(ERROR)) {
-			throw new GradleException("Error committing new version - ${out}${err}")
-		}
+		exec( ['svn', 'ci', '-m', message], 'Error committing new version', ERROR )
 	}
 
 	private void findSvnUrl(Project project) {
-		StringBuilder out = new StringBuilder()
-		StringBuilder err = new StringBuilder()
-		Process process = ['svn', 'info'].execute()
-		process.waitForProcessOutput(out, err)
+		String out = exec( 'svn', 'info' )
 		def urlPattern = ~/URL:\s(.*?)(\/(trunk|branches|tags).*?)$/
 		def revPattern = ~/Revision:\s(.*?)$/
-		"$out".eachLine { line ->
+		out.eachLine { line ->
 			Matcher matcher = line =~ urlPattern
 			if (matcher.matches()) {
 				String svnRoot = matcher.group(1)
