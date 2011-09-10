@@ -15,20 +15,33 @@ class BzrReleasePlugin extends PluginHelper implements Plugin<Project> {
 	void apply(Project project) {
 		checkForXmlOutput()
 		project.convention.plugins.BzrReleasePlugin = new BzrReleasePluginConvention()
-		project.task('checkCommitNeeded') << {
-			String out = exec( 'bzr', 'xmlstatus' )
-			def xml = new XmlSlurper().parseText( out )
-			def added = xml.added?.size() ?: 0
-			def modified = xml.modified?.size() ?: 0
-			def removed = xml.removed?.size() ?: 0
-			def unknown = xml.unknown?.size() ?: 0
-			if (added || modified || removed) {
-				throw new GradleException('You have un-committed changes.')
-			}
-			if ( releaseConvention( project ).failOnUnversionedFiles && unknown) {
-				throw new GradleException('You have un-versioned files.')
-			}
-		}
+        project.task('checkCommitNeeded') << {
+
+            String out   = exec( 'bzr', 'xmlstatus' )
+            def xml      = new XmlSlurper().parseText( out )
+            def added    = xml.added?.size()    ?: 0
+            def modified = xml.modified?.size() ?: 0
+            def removed  = xml.removed?.size()  ?: 0
+            def unknown  = xml.unknown?.size()  ?: 0
+
+            if ( added || modified || removed || unknown )
+            {
+                def c = { String name -> [ "${ capitalize( name )}:",
+                                           xml."$name".file.collect{ it.text().trim() },
+                                           xml."$name".directory.collect{ it.text().trim() } ].
+                                         flatten().
+                                         join( '\n\t* ' ) + '\n'
+                }
+
+                throw new GradleException(
+                    'You have un-committed or un-known files:\n' +
+                    ( added    ? c( 'added' )    : '' ) +
+                    ( modified ? c( 'modified' ) : '' ) +
+                    ( removed  ? c( 'removed' )  : '' ) +
+                    ( unknown  ? c( 'unknown' )  : '' ))
+            }
+        }
+
 		project.task('checkUpdateNeeded') << {
 			String out = exec( 'bzr', 'xmlmissing' )
 			def xml = new XmlSlurper().parseText( out )

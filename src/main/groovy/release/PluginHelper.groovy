@@ -91,4 +91,17 @@ class PluginHelper
         assert ! [ out, err ]*.toString().any{ String s -> errorPattern.any { s.contains( it ) }}, \
                "$errorMessage - [$out][$err]"
     }
+
+
+    /**
+     * Capitalizes first letter of the String specified.
+     *
+     * @param s String to capitalize
+     * @return String specified with first letter capitalized
+     */
+    String capitalize( String s )
+    {
+        assert s
+        s[ 0 ].toUpperCase() + ( s.size() > 1 ? s[ 1 .. -1 ] : '' )
+    }
 }
