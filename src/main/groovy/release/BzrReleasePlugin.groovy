@@ -47,28 +47,31 @@ class BzrReleasePlugin extends PluginHelper implements Plugin<Project> {
 		project.task('checkUpdateNeeded') << {
 			String out  = exec( 'bzr', 'xmlmissing' )
 			def xml     = new XmlSlurper().parseText( out )
-			def extra   = "${xml.extra_revisions?.@size}"   ?: 0
-			def missing = "${xml.missing_revisions?.@size}" ?: 0
+			int extra   = ( "${xml.extra_revisions?.@size}"   ?: 0 ) as int
+			int missing = ( "${xml.missing_revisions?.@size}" ?: 0 ) as int
+            def c       = {
+                int number, String name, String path ->
 
-			if (extra)
+                [ "You have $number $name revision${ number == 1 ? '' : 's' }:",
+                  xml."$path".logs.log.collect{
+                      int cutPosition = 40
+                      String message  = it.message.text()
+                      message         = message.readLines()[0].substring( 0, Math.min( cutPosition, message.size())) +
+                                        ( message.size() > cutPosition ? ' ..' : '' )
+                      "[$it.revno]: [$it.timestamp][$it.committer][$message]"
+                  } ].
+                flatten().
+                join( DELIM )
+            }
+
+			if ( extra > 0 )
             {
-				throw new GradleException(
-                    [ "You have $extra unpublished change${extra > 1 ? 's' : ''}:",
-                      xml.extra_revisions.logs.log.collect{
-                          int cutPosition = 40
-                          String message  = it.message.text()
-                          message         = message.readLines()[0].substring( 0, Math.min( cutPosition, message.size())) +
-                                            ( message.size() > cutPosition ? ' ..' : '' )
-                          "[$it.revno]: [$it.timestamp][$it.committer][$message]"
-                      } ].
-                    flatten().
-                    join( DELIM )
-                )
+				throw new GradleException( c( extra, 'unpublished', 'extra_revisions' ))
 			}
 
-			if (missing)
+			if ( missing > 0 )
             {
-				throw new GradleException("You are missing $missing changes.")
+				throw new GradleException( c( missing, 'missing', 'missing_revisions' ))
 			}
 		}
 
