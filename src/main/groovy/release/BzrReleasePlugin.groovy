@@ -11,6 +11,7 @@ import org.gradle.api.Project
 class BzrReleasePlugin extends PluginHelper implements Plugin<Project> {
 
 	private static final String ERROR = 'ERROR'
+	private static final String DELIM = '\n  * '
 
 	void apply(Project project) {
 		checkForXmlOutput()
@@ -30,7 +31,7 @@ class BzrReleasePlugin extends PluginHelper implements Plugin<Project> {
                                            xml."$name".file.collect{ it.text().trim() },
                                            xml."$name".directory.collect{ it.text().trim() } ].
                                          flatten().
-                                         join( '\n\t* ' ) + '\n'
+                                         join( DELIM ) + '\n'
                 }
 
                 throw new GradleException(
@@ -39,26 +40,44 @@ class BzrReleasePlugin extends PluginHelper implements Plugin<Project> {
                     ( modified ? c( 'modified' ) : '' ) +
                     ( removed  ? c( 'removed' )  : '' ) +
                     ( unknown  ? c( 'unknown' )  : '' ))
+
             }
         }
 
 		project.task('checkUpdateNeeded') << {
-			String out = exec( 'bzr', 'xmlmissing' )
-			def xml = new XmlSlurper().parseText( out )
-			def extra = "${xml.extra_revisions?.@size}" ?: 0
+			String out  = exec( 'bzr', 'xmlmissing' )
+			def xml     = new XmlSlurper().parseText( out )
+			def extra   = "${xml.extra_revisions?.@size}"   ?: 0
 			def missing = "${xml.missing_revisions?.@size}" ?: 0
-			if (extra) {
-				throw new GradleException("You have $extra unpublished change${extra > 1 ? 's' : ''}.")
+
+			if (extra)
+            {
+				throw new GradleException(
+                    [ "You have $extra unpublished change${extra > 1 ? 's' : ''}:",
+                      xml.extra_revisions.logs.log.collect{
+                          int cutPosition = 40
+                          String message  = it.message.text()
+                          message         = message.readLines()[0].substring( 0, Math.min( cutPosition, message.size())) +
+                                            ( message.size() > cutPosition ? ' ..' : '' )
+                          "[$it.revno]: [$it.timestamp][$it.committer][$message]"
+                      } ].
+                    flatten().
+                    join( DELIM )
+                )
 			}
-			if (missing) {
+
+			if (missing)
+            {
 				throw new GradleException("You are missing $missing changes.")
 			}
 		}
+
 		project.task('commitNewVersion') << {
 			String newVersionCommitMessage = releaseConvention( project ).newVersionCommitMessage
 
 			commit(newVersionCommitMessage)
 		}
+
 		project.task('createReleaseTag') << {
 			String tag = project.properties.version
 
