@@ -4,6 +4,8 @@ apply plugin: release.ReleasePlugin
 
 group = 'gradle-release'
 
+defaultTasks 'clean', 'build'
+
 dependencies {
    compile gradleApi()
    groovy localGroovy()
