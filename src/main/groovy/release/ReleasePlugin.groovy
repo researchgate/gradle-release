@@ -141,10 +141,11 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
                              return
                 case '.hg':  project.apply plugin: HgReleasePlugin
                              return
-                default:     throw new GradleException(
-                    'Unsupported SCM system, no .svn, .bzr, .git, or .hg found in ' +
-                    "[${ project.rootProject.projectDir.canonicalPath }]" )
             }
         }
+
+        throw new GradleException(
+            'Unsupported SCM system, no .svn, .bzr, .git, or .hg found in ' +
+            "[${ project.rootProject.projectDir.canonicalPath }]" )
     }
 }
