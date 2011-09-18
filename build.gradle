@@ -13,10 +13,15 @@ group = 'gradle-release'
 defaultTasks 'clean', 'build'
 
 
+configurations {
+    gcontracts
+    compile { extendsFrom gcontracts }
+}
+
 dependencies {
-   compile gradleApi(),
-           'org.gcontracts:gcontracts-core:1.2.4'
-   groovy  localGroovy()
+   gcontracts 'org.gcontracts:gcontracts-core:1.2.4'
+   compile    gradleApi()
+   groovy     localGroovy()
 }
 
 
@@ -25,7 +30,8 @@ task( 'unversionedJar', type: Jar, dependsOn: 'jar' ) {
     from sourceSets.main.classes
 }
 
-def installedJar = file( "${gradle.gradleHomeDir.canonicalPath}/lib/plugins/${unversionedJar.archiveName}" )
+def     installedJar = file( "${gradle.gradleHomeDir.canonicalPath}/lib/plugins/${unversionedJar.archiveName}" )
+Closure isGContracts = { it.name.contains( 'gcontracts' ) }
 
 task( 'installPlugin', type: Copy, dependsOn: 'unversionedJar' ) {
     group       = 'installation'
@@ -33,7 +39,12 @@ task( 'installPlugin', type: Copy, dependsOn: 'unversionedJar' ) {
     from unversionedJar.archivePath
     into installedJar.parentFile
     doLast {
+        copy {
+            from configurations.gcontracts.files.findAll( isGContracts )
+            into installedJar.parentFile
+        }
         assert installedJar.file
+        assert installedJar.parentFile.listFiles().findAll( isGContracts )
         println "Plugin installed as [$installedJar]"
     }
 }
@@ -44,6 +55,7 @@ task( 'uninstallPlugin', type: Delete ) {
     delete ( installedJar )
     doLast {
         assert ! installedJar.file
+        assert installedJar.parentFile.listFiles().findAll( isGContracts )[ 0 ].delete()
         println "[$installedJar] deleted"
     }
 }
