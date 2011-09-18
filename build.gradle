@@ -1,41 +1,49 @@
 apply plugin: 'groovy'
 apply plugin: 'idea'
-apply plugin: release.ReleasePlugin
+
+// Run "gradle installPlugin" first
+// apply plugin: release.ReleasePlugin
+
+codenarcRuleSetFiles = [ 'codenarc.groovy' ]
+apply from: 'https://raw.github.com/evgeny-goldin/gradle-plugins/master/src/main/groovy/CodeNarc.gradle'
+
 
 group = 'gradle-release'
 
 defaultTasks 'clean', 'build'
 
+
 dependencies {
-   compile gradleApi()
-   groovy localGroovy()
+   compile gradleApi(),
+           'org.gcontracts:gcontracts-core:1.2.4'
+   groovy  localGroovy()
 }
 
 
-sourceSets.main.groovy.srcDirs = [ 'buildSrc/src/main/groovy' ]
-
-
-task('unversionedJar', type: Jar, dependsOn: 'jar') {
-	version = null
-	from sourceSets.main.classes
+task( 'unversionedJar', type: Jar, dependsOn: 'jar' ) {
+    version = null
+    from sourceSets.main.classes
 }
 
-task('installPlugin', type: Copy, dependsOn: 'unversionedJar') {
-	def gradleInstallDir = gradle.gradleHomeDir
-	group = 'installation'
-	description = 'Installs the plugin jar in your gradle distribution.'
-	from "${buildDir}/libs/${unversionedJar.archiveName}"
-	into "/${gradleInstallDir}/lib/plugins"
+def installedJar = file( "${gradle.gradleHomeDir.canonicalPath}/lib/plugins/${unversionedJar.archiveName}" )
+
+task( 'installPlugin', type: Copy, dependsOn: 'unversionedJar' ) {
+    group       = 'installation'
+    description = 'Installs the plugin jar in your gradle distribution.'
+    from unversionedJar.archivePath
+    into installedJar.parentFile
+    doLast {
+        assert installedJar.file
+        println "Plugin installed as [$installedJar]"
+    }
 }
 
-installPlugin.doLast {
-	def gradleInstallDir = gradle.gradleHomeDir
-	println "Installed in: ${gradleInstallDir}/lib/plugins as: ${unversionedJar.archiveName}"
-}
-
-task('uninstallPlugin', type: Delete) {
-	def gradleInstallDir = gradle.gradleHomeDir
-	group = 'installation'
-	description = 'Removes the plugin from your gradle distribution.'
-	delete("/${gradleInstallDir}/lib/plugins/${unversionedJar.archiveName}")
+task( 'uninstallPlugin', type: Delete ) {
+    group       = 'installation'
+    description = 'Removes the plugin from your gradle distribution.'
+    delete ( installedJar )
+    doLast {
+        assert ! installedJar.file
+        println "[$installedJar] deleted"
+    }
 }

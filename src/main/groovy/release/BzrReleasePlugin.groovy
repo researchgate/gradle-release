@@ -1,0 +1,121 @@
+package release
+
+import org.gcontracts.annotations.Requires
+import org.gradle.api.GradleException
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+
+/**
+ * @author elberry
+ * @author evgenyg
+ * Created: Tue Aug 09 23:26:04 PDT 2011
+ */
+class BzrReleasePlugin extends PluginHelper implements Plugin<Project> {
+
+    private static final String ERROR = 'ERROR'
+    private static final String DELIM = '\n  * '
+
+    @Requires({ project })
+    void apply( Project project ) {
+        checkForXmlOutput()
+        project.convention.plugins.BzrReleasePlugin = new BzrReleasePluginConvention()
+
+        project.task( 'checkCommitNeeded' ) << { checkCommitNeeded( project ) }
+        project.task( 'checkUpdateNeeded' ) << { checkUpdateNeeded( project ) }
+        project.task( 'commitNewVersion'  ) << { commitNewVersion( project ) }
+        project.task( 'createReleaseTag'  ) << { createReleaseTag( project ) }
+        project.task( 'preTagCommit'      ) << { preTagCommit( project ) }
+    }
+
+
+    def checkCommitNeeded ( Project project ) {
+        String out   = exec( 'bzr', 'xmlstatus' )
+        def xml      = new XmlSlurper().parseText( out )
+        def added    = xml.added?.size()    ?: 0
+        def modified = xml.modified?.size() ?: 0
+        def removed  = xml.removed?.size()  ?: 0
+        def unknown  = xml.unknown?.size()  ?: 0
+
+        if ( added || modified || removed || unknown )
+        {
+            def c = { String name -> [ "${ capitalize( name )}:",
+                                       xml."$name".file.collect{ it.text().trim() },
+                                       xml."$name".directory.collect{ it.text().trim() } ].
+                                     flatten().
+                                     join( DELIM ) + '\n'
+            }
+
+            throw new GradleException(
+                'You have un-committed or un-known files:\n' +
+                ( added    ? c( 'added' )    : '' ) +
+                ( modified ? c( 'modified' ) : '' ) +
+                ( removed  ? c( 'removed' )  : '' ) +
+                ( unknown  ? c( 'unknown' )  : '' ))
+
+        }
+    }
+
+
+    def checkUpdateNeeded ( Project project ) {
+        String out  = exec( 'bzr', 'xmlmissing' )
+        def xml     = new XmlSlurper().parseText( out )
+        int extra   = ( "${xml.extra_revisions?.@size}"   ?: 0 ) as int
+        int missing = ( "${xml.missing_revisions?.@size}" ?: 0 ) as int
+
+        //noinspection GroovyUnusedAssignment
+        Closure c   = {
+            int number, String name, String path ->
+
+            [ "You have $number $name revision${ number == 1 ? '' : 's' }:",
+              xml."$path".logs.log.collect{
+                  int cutPosition = 40
+                  String message  = it.message.text()
+                  message         = message.readLines()[0].substring( 0, Math.min( cutPosition, message.size())) +
+                                    ( message.size() > cutPosition ? ' ..' : '' )
+                  "[$it.revno]: [$it.timestamp][$it.committer][$message]"
+              } ].
+            flatten().
+            join( DELIM )
+        }
+
+        if ( extra > 0 )
+        {
+            throw new GradleException( c( extra, 'unpublished', 'extra_revisions' ))
+        }
+
+        if ( missing > 0 )
+        {
+            throw new GradleException( c( missing, 'missing', 'missing_revisions' ))
+        }
+    }
+
+
+    def commitNewVersion ( Project project ) {
+        commit( releaseConvention( project ).newVersionCommitMessage )
+    }
+
+    def createReleaseTag ( Project project ) {
+        exec( [ 'bzr', 'tag', project.properties.version ], 'Error creating tag', ERROR )
+    }
+
+
+    def preTagCommit ( Project project ) {
+        if ( project.properties[ 'usesSnapshot' ] )
+        {
+            // should only be changes if the project was using a snapshot version.
+            commit( releaseConvention( project ).preTagCommitMessage )
+        }
+    }
+
+    private void checkForXmlOutput() {
+        assert exec( 'bzr', 'plugins' ).readLines().any{ it.startsWith( 'xmloutput' ) } , \
+               'The required xmloutput plugin is not installed in Bazaar, please install it.'
+    }
+
+
+    @Requires({ message })
+    private void commit( String message ) {
+        exec( ['bzr', 'ci', '-m', message], 'Error committing new version', ERROR )
+        exec( ['bzr', 'push', ':parent'],   'Error committing new version', ERROR )
+    }
+}
