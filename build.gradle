@@ -11,6 +11,10 @@ dependencies {
    groovy localGroovy()
 }
 
+
+sourceSets.main.groovy.srcDirs = [ 'buildSrc/src/main/groovy' ]
+
+
 task('unversionedJar', type: Jar, dependsOn: 'jar') {
 	version = null
 	from sourceSets.main.classes
