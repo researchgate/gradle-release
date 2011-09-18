@@ -24,22 +24,22 @@ class HgReleasePlugin extends PluginHelper implements Plugin<Project> {
 
 
     def checkCommitNeeded( Project project ) {
-
+        println( 'checkCommitNeeded' )
     }
 
     def checkUpdateNeeded( Project project ) {
-
+        println( 'checkUpdateNeeded' )
     }
 
     def commitNewVersion( Project project ) {
-
+        println( 'commitNewVersion' )
     }
 
     def createReleaseTag( Project project ) {
-
+        println( 'createReleaseTag' )
     }
 
     def preTagCommit( Project project ) {
-
+        println( 'preTagCommit' )
     }
 }

@@ -15,20 +15,20 @@ import org.gradle.api.tasks.GradleBuild
  */
 class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
-    private static final String lineSep     = System.getProperty( 'line.separator' )
-    private static final String inputPrompt = "${lineSep}??>"
+    private static final String LINE_SEP = System.getProperty( 'line.separator' )
+    private static final String PROMPT   = "${LINE_SEP}??>"
 
 
     @Requires({ message })
-    static String prompt( String message, String defaultValue = null ) {
-        System.console().readLine( "$inputPrompt $message " + ( defaultValue ? "[$defaultValue] " : '' )) ?:
+    static String readLine ( String message, String defaultValue = null ) {
+        System.console().readLine( "$PROMPT $message " + ( defaultValue ? "[$defaultValue] " : '' )) ?:
         defaultValue
     }
 
 
     @Requires({ project && newVersion })
     static void updateVersionProperty( Project project, String newVersion ) {
-        File       propsFile   = new File(project.rootDir, 'gradle.properties')
+        File       propsFile   = project.file( 'gradle.properties' )
         assert propsFile.file, "[$propsFile.canonicalPath] wasn't found, can't update it"
 
         Properties gradleProps = new Properties()
@@ -116,9 +116,9 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
                 if (project.hasProperty('usesSnapshot') && project.usesSnapshot) {
                     nextVersion = "${nextVersion}-SNAPSHOT"
                 }
-                nextVersion = prompt('Enter the next version:', nextVersion)
+                nextVersion = readLine('Enter the next version:', nextVersion)
                 updateVersionProperty(project, nextVersion)
-                return;
+                return
             }
         }
     }
@@ -141,8 +141,8 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
                              return
                 case '.hg':  project.apply plugin: HgReleasePlugin
                              return
-                default:     throw new RuntimeException(
-                    "Unsupported SCM system, no .svn, .bzr, .git, or .hg found in " +
+                default:     throw new GradleException(
+                    'Unsupported SCM system, no .svn, .bzr, .git, or .hg found in ' +
                     "[${ project.rootProject.projectDir.canonicalPath }]" )
             }
         }

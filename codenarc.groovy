@@ -7,11 +7,11 @@ ruleset {
 
         DuplicateNumberLiteral   ( enabled : false )
         DuplicateStringLiteral   ( enabled : false )
-        BracesForClass           ( enabled : true )
-        BracesForMethod          ( enabled : true )
         BracesForIfElse          ( enabled : false )
         BracesForForLoop         ( enabled : false )
         BracesForTryCatchFinally ( enabled : false )
+        Println                  ( enabled : false )
+
         LineLength               ( length  : 160   )
         MethodName               ( regex   : /[a-z][\w\s'\(\)]*/ ) // Spock method names
     }
