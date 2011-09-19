@@ -40,6 +40,7 @@ task( 'uninstallPlugin' ) {
     description = 'Removes the plugin from your gradle distribution.'
     doLast {
         delete( installedJar, *findGContracts())
+        // Sometimes delete() above doesn't work for some reason and assert fails
         assert ! ( installedJar.file || findGContracts())
         println "[$installedJar] deleted"
     }
