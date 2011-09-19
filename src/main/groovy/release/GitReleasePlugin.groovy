@@ -1,7 +1,5 @@
 package release
 
-import org.gcontracts.annotations.Requires
-import org.gradle.api.Plugin
 import org.gradle.api.Project
 
 /**
@@ -9,37 +7,38 @@ import org.gradle.api.Project
  * @author evgenyg
  * Created: Tue Aug 09 23:24:40 PDT 2011
  */
-class GitReleasePlugin extends PluginHelper implements Plugin<Project> {
+class GitReleasePlugin extends BaseScmReleasePlugin {
 
-    @Requires({ project })
-    void apply(Project project) {
+    @Override
+    void init ( Project project ) {
         project.convention.plugins.GitReleasePlugin = new GitReleasePluginConvention()
-
-        project.task( 'checkCommitNeeded' ) << { checkCommitNeeded( project ) }
-        project.task( 'checkUpdateNeeded' ) << { checkUpdateNeeded( project ) }
-        project.task( 'commitNewVersion'  ) << { commitNewVersion( project ) }
-        project.task( 'createReleaseTag'  ) << { createReleaseTag( project ) }
-        project.task( 'preTagCommit'      ) << { preTagCommit( project ) }
     }
 
-
-    def checkCommitNeeded( Project project ) {
-        println( 'checkCommitNeeded' )
+    @Override
+    void checkCommitNeeded (Project project) {
+        println( '' )
     }
 
-    def checkUpdateNeeded( Project project ) {
-        println( 'checkUpdateNeeded' )
+    @Override
+    void checkUpdateNeeded (Project project) {
+        println( '' )
+
     }
 
-    def commitNewVersion( Project project ) {
-        println( 'commitNewVersion' )
+    @Override
+    void commitNewVersion (Project project) {
+        println( '' )
+
     }
 
-    def createReleaseTag( Project project ) {
-        println( 'createReleaseTag' )
+    @Override
+    void createReleaseTag (Project project) {
+        println( '' )
+
     }
 
-    def preTagCommit( Project project ) {
-        println( 'preTagCommit' )
+    @Override
+    void preTagCommit (Project project) {
+        println( '' )
     }
 }
