@@ -7,8 +7,6 @@ ruleset {
 
         DuplicateNumberLiteral   ( enabled : false )
         DuplicateStringLiteral   ( enabled : false )
-        BracesForIfElse          ( enabled : false )
-        BracesForForLoop         ( enabled : false )
         BracesForTryCatchFinally ( enabled : false )
         Println                  ( enabled : false )
 

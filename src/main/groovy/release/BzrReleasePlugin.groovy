@@ -31,8 +31,7 @@ class BzrReleasePlugin extends BaseScmReleasePlugin {
         def removed  = xml.removed?.size()  ?: 0
         def unknown  = xml.unknown?.size()  ?: 0
 
-        if ( added || modified || removed || unknown )
-        {
+        if ( added || modified || removed || unknown ) {
             def c = { String name -> [ "${ capitalize( name )}:",
                                        xml."$name".file.collect{ it.text().trim() },
                                        xml."$name".directory.collect{ it.text().trim() } ].
@@ -73,13 +72,11 @@ class BzrReleasePlugin extends BaseScmReleasePlugin {
             join( DELIM )
         }
 
-        if ( extra > 0 )
-        {
+        if ( extra > 0 ) {
             throw new GradleException( c( extra, 'unpublished', 'extra_revisions' ))
         }
 
-        if ( missing > 0 )
-        {
+        if ( missing > 0 ) {
             throw new GradleException( c( missing, 'missing', 'missing_revisions' ))
         }
     }

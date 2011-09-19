@@ -70,8 +70,7 @@ class PluginHelper {
 
         process.waitForProcessOutput( out, err )
 
-        if ( failOnStderr )
-        {
+        if ( failOnStderr ) {
             assert err.length() < 1, "Running $commands produced an stderr output: [$err]"
         }
 

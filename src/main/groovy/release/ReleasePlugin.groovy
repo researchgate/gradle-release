@@ -21,7 +21,8 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
         project.convention.plugins.release = new ReleasePluginConvention()
 
-        applyScmPlugin(project)
+        checkPropertiesFile( project )
+        applyScmPlugin( project )
 
         project.task( 'release', type: GradleBuild ) {
             // Release task should perform the following tasks.
@@ -95,11 +96,12 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
         for ( Map.Entry<String, Closure> entry in patterns ) {
 
             String pattern  = entry.key
+            //noinspection GroovyUnusedAssignment
             Closure handler = entry.value
             Matcher matcher = version =~ pattern
 
-            if (matcher.matches()) {
-                String nextVersion = handler(project, matcher)
+            if ( matcher.find()) {
+                String nextVersion = handler( matcher )
                 if ( project.hasProperty( 'usesSnapshot' ) && project.usesSnapshot ) {
                     nextVersion += '-SNAPSHOT'
                 }
@@ -113,14 +115,27 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
     }
 
 
+    def checkPropertiesFile( Project project ) {
+        File       propertiesFile   = project.file( 'gradle.properties' )
+        assert propertiesFile.file, "[$propertiesFile.canonicalPath] not found, create it and specify version = ..."
+
+        Properties properties = new Properties()
+        propertiesFile.withReader { properties.load( it ) }
+
+        assert properties.version, "[$propertiesFile.canonicalPath] contains no 'version' property"
+        assert releaseConvention( project ).versionPatterns.keySet().any { ( properties.version =~ it ).find() }, \
+               "[$propertiesFile.canonicalPath] version [$properties.version] doesn't match any of known version patterns: " +
+               releaseConvention( project ).versionPatterns.keySet()
+    }
+
+
     /**
      * Looks for special directories in the project folder, then applies the correct SCM Release Plugin for the SCM type.
      * @param project
      */
     private void applyScmPlugin(Project project) {
         // apply scm tasks
-        for ( name in project.rootProject.projectDir.list())
-        {
+        for ( name in project.rootProject.projectDir.list()) {
             switch (name) {
                 case '.svn': project.apply plugin: SvnReleasePlugin
                              return

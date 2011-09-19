@@ -1,7 +1,6 @@
 package release
 
 import java.util.regex.Matcher
-import org.gradle.api.Project
 
 /**
  * @author elberry
@@ -16,16 +15,8 @@ class ReleasePluginConvention {
     String  newVersionCommitMessage     = 'Gradle Release Plugin - new version commit.'
     def     requiredTasks               = []
     def     versionPatterns             = [
-            /(.*[^\d])(\d*)/: {
-                Project project, Matcher matcher ->
-                int lastDigit = matcher.group(2) as int
-                matcher.replaceAll( "\$1${lastDigit + 1}" )
-            },
-            /(\d+)/: {
-                Project project, Matcher matcher ->
-                int lastDigit = matcher.group(1) as int
-                ( lastDigit + 1 ) as String
-            }
+        // Increments last number: "2.5-SNAPSHOT" => "2.6-SNAPSHOT"
+        /(\d+)([^\d]*$)/: { Matcher m -> m.replaceAll( "${ ( m[0][1] as int ) + 1 }${ m[0][2] }" ) }
     ]
 
     void release(Closure closure) {
