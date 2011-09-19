@@ -9,8 +9,8 @@ import org.gradle.api.Project
  * Base class for all SCM-specific plugins
  * @author evgenyg
  */
-abstract class BaseScmReleasePlugin extends PluginHelper implements Plugin<Project>
-{
+abstract class BaseScmReleasePlugin extends PluginHelper implements Plugin<Project> {
+
     @Requires({ project })
     final void apply( Project project ) {
 

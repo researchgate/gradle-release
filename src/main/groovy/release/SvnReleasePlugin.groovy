@@ -2,45 +2,52 @@ package release
 
 import java.util.regex.Matcher
 import org.gradle.api.GradleException
-import org.gradle.api.Plugin
 import org.gradle.api.Project
+
 
 /**
  * A command-line style SVN client. Requires user has SVN installed locally.
  * @author elberry
+ * @author evgenyg
  * Created: Tue Aug 09 23:25:18 PDT 2011
  */
 // TODO: Use SVNKit or SubversionJ
-class SvnReleasePlugin extends PluginHelper implements Plugin<Project> {
+class SvnReleasePlugin extends BaseScmReleasePlugin {
 
     private static final String ERROR = 'Commit failed'
 
-    void apply(Project project) {
-        findSvnUrl(project)
+    @Override
+    void init ( Project project ) {
+        findSvnUrl( project )
         project.convention.plugins.SvnReleasePlugin = new SvnReleasePluginConvention()
+    }
 
-        project.task('checkCommitNeeded') << {
-            String out = exec( 'svn', 'status' )
-            def changes = 0
-            def unknown = 0
-            out.eachLine { line ->
-                switch (line?.trim()?.charAt(0)) {
-                    case '?':
-                        unknown++
-                        break
-                    default:
-                        changes++
-                        break
-                }
-            }
-            if (changes) {
-                throw new GradleException('You have un-committed changes.')
-            }
-            if ( releaseConvention( project ).failOnUnversionedFiles && unknown) {
-                throw new GradleException('You have un-versioned files.')
+
+    @Override
+    void checkCommitNeeded (Project project) {
+        String out = exec( 'svn', 'status' )
+        def changes = 0
+        def unknown = 0
+        out.eachLine { line ->
+            switch (line?.trim()?.charAt(0)) {
+                case '?':
+                    unknown++
+                    break
+                default:
+                    changes++
+                    break
             }
         }
-        project.task('checkUpdateNeeded') << {
+        if (changes) {
+            throw new GradleException('You have un-committed changes.')
+        }
+        if ( releaseConvention( project ).failOnUnversionedFiles && unknown) {
+            throw new GradleException('You have un-versioned files.')
+        }
+    }
+
+    @Override
+    void checkUpdateNeeded (Project project) {
             // svn status -q -u
             String out = exec( 'svn', 'status', '-q', '-u' )
             def missing = 0
@@ -54,38 +61,42 @@ class SvnReleasePlugin extends PluginHelper implements Plugin<Project> {
             if (missing) {
                 throw new GradleException("You are missing $missing changes.")
             }
-        }
+    }
 
-        project.task('commitNewVersion') << {
-            String newVersionCommitMessage = releaseConvention( project ).newVersionCommitMessage
+    @Override
+    void commitNewVersion (Project project) {
+        String newVersionCommitMessage = releaseConvention( project ).newVersionCommitMessage
 
-            commit(newVersionCommitMessage)
-        }
+        commit(newVersionCommitMessage)
+    }
 
-        project.task('createReleaseTag') << {
-            String tagCommitMessage = releaseConvention( project ).tagCommitMessage
-            def props = project.properties
-            String svnUrl = props['releaseSvnUrl']
-            String svnRev = props['releaseSvnRev']
-            String svnRoot = props['releaseSvnRoot']
-            String svnTag = props['version']
+    @Override
+    void createReleaseTag (Project project) {
+        String tagCommitMessage = releaseConvention( project ).tagCommitMessage
+        def props = project.properties
+        String svnUrl = props['releaseSvnUrl']
+        String svnRev = props['releaseSvnRev']
+        String svnRoot = props['releaseSvnRoot']
+        String svnTag = props['version']
 
-            exec( 'svn', 'cp', "${svnUrl}@${svnRev}", "${svnRoot}/tags/${svnTag}", '-m', tagCommitMessage )
-        }
+        exec( 'svn', 'cp', "${svnUrl}@${svnRev}", "${svnRoot}/tags/${svnTag}", '-m', tagCommitMessage )
+    }
 
-        project.task('preTagCommit') << {
-            String preTagCommitMessage = releaseConvention( project ).preTagCommitMessage
-            def props = project.properties
-            if (props['usesSnapshot']) {
-                // should only be changes if the project was using a snapshot version.
-                commit(preTagCommitMessage)
-            }
+    @Override
+    void preTagCommit (Project project) {
+        String preTagCommitMessage = releaseConvention( project ).preTagCommitMessage
+        def props = project.properties
+        if (props['usesSnapshot']) {
+            // should only be changes if the project was using a snapshot version.
+            commit(preTagCommitMessage)
         }
     }
+
 
     private void commit(String message) {
         exec( ['svn', 'ci', '-m', message], 'Error committing new version', ERROR )
     }
+
 
     private void findSvnUrl(Project project) {
         String out = exec( 'svn', 'info' )

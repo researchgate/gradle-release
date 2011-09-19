@@ -2,7 +2,6 @@ package release
 
 import org.gcontracts.annotations.Requires
 import org.gradle.api.GradleException
-import org.gradle.api.Plugin
 import org.gradle.api.Project
 
 /**
@@ -10,25 +9,21 @@ import org.gradle.api.Project
  * @author evgenyg
  * Created: Tue Aug 09 23:26:04 PDT 2011
  */
-class BzrReleasePlugin extends PluginHelper implements Plugin<Project> {
+class BzrReleasePlugin extends BaseScmReleasePlugin {
 
     private static final String ERROR = 'ERROR'
     private static final String DELIM = '\n  * '
 
-    @Requires({ project })
-    void apply( Project project ) {
-        checkForXmlOutput()
-        project.convention.plugins.BzrReleasePlugin = new BzrReleasePluginConvention()
+    @Override
+    void init (Project project){
+        assert exec( 'bzr', 'plugins' ).readLines().any{ it.startsWith( 'xmloutput' ) } , \
+               'The required xmloutput plugin is not installed in Bazaar, please install it.'
 
-        project.task( 'checkCommitNeeded' ) << { checkCommitNeeded( project ) }
-        project.task( 'checkUpdateNeeded' ) << { checkUpdateNeeded( project ) }
-        project.task( 'commitNewVersion'  ) << { commitNewVersion( project ) }
-        project.task( 'createReleaseTag'  ) << { createReleaseTag( project ) }
-        project.task( 'preTagCommit'      ) << { preTagCommit( project ) }
+        project.convention.plugins.BzrReleasePlugin = new BzrReleasePluginConvention()
     }
 
 
-    def checkCommitNeeded ( Project project ) {
+    void checkCommitNeeded ( Project project ) {
         String out   = exec( 'bzr', 'xmlstatus' )
         def xml      = new XmlSlurper().parseText( out )
         def added    = xml.added?.size()    ?: 0
@@ -56,7 +51,7 @@ class BzrReleasePlugin extends PluginHelper implements Plugin<Project> {
     }
 
 
-    def checkUpdateNeeded ( Project project ) {
+    void checkUpdateNeeded ( Project project ) {
         String out  = exec( 'bzr', 'xmlmissing' )
         def xml     = new XmlSlurper().parseText( out )
         int extra   = ( "${xml.extra_revisions?.@size}"   ?: 0 ) as int
@@ -90,26 +85,20 @@ class BzrReleasePlugin extends PluginHelper implements Plugin<Project> {
     }
 
 
-    def commitNewVersion ( Project project ) {
+    void commitNewVersion ( Project project ) {
         commit( releaseConvention( project ).newVersionCommitMessage )
     }
 
-    def createReleaseTag ( Project project ) {
+    void createReleaseTag ( Project project ) {
         exec( [ 'bzr', 'tag', project.properties.version ], 'Error creating tag', ERROR )
     }
 
 
-    def preTagCommit ( Project project ) {
-        if ( project.properties[ 'usesSnapshot' ] )
-        {
+    void preTagCommit ( Project project ) {
+        if ( project.properties[ 'usesSnapshot' ] ) {
             // should only be changes if the project was using a snapshot version.
             commit( releaseConvention( project ).preTagCommitMessage )
         }
-    }
-
-    private void checkForXmlOutput() {
-        assert exec( 'bzr', 'plugins' ).readLines().any{ it.startsWith( 'xmloutput' ) } , \
-               'The required xmloutput plugin is not installed in Bazaar, please install it.'
     }
 
 

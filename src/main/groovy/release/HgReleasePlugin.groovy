@@ -1,7 +1,5 @@
 package release
 
-import org.gcontracts.annotations.Requires
-import org.gradle.api.Plugin
 import org.gradle.api.Project
 
 /**
@@ -9,37 +7,31 @@ import org.gradle.api.Project
  * @author evgenyg
  * Created: Wed Aug 10 23:44:15 PDT 2011
  */
-class HgReleasePlugin extends PluginHelper implements Plugin<Project> {
+class HgReleasePlugin extends BaseScmReleasePlugin {
 
-    @Requires({ project })
-    void apply(Project project) {
+    @Override
+    void init (Project project) {
         project.convention.plugins.HgReleasePlugin = new HgReleasePluginConvention()
-
-        project.task( 'checkCommitNeeded' ) << { checkCommitNeeded( project ) }
-        project.task( 'checkUpdateNeeded' ) << { checkUpdateNeeded( project ) }
-        project.task( 'commitNewVersion'  ) << { commitNewVersion( project ) }
-        project.task( 'createReleaseTag'  ) << { createReleaseTag( project ) }
-        project.task( 'preTagCommit'      ) << { preTagCommit( project ) }
     }
 
 
-    def checkCommitNeeded( Project project ) {
+    void checkCommitNeeded( Project project ) {
         println( 'checkCommitNeeded' )
     }
 
-    def checkUpdateNeeded( Project project ) {
+    void checkUpdateNeeded( Project project ) {
         println( 'checkUpdateNeeded' )
     }
 
-    def commitNewVersion( Project project ) {
+    void commitNewVersion( Project project ) {
         println( 'commitNewVersion' )
     }
 
-    def createReleaseTag( Project project ) {
+    void createReleaseTag( Project project ) {
         println( 'createReleaseTag' )
     }
 
-    def preTagCommit( Project project ) {
+    void preTagCommit( Project project ) {
         println( 'preTagCommit' )
     }
 }
