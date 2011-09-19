@@ -59,3 +59,4 @@ task( 'uninstallPlugin', type: Delete ) {
         println "[$installedJar] deleted"
     }
 }
+
