@@ -106,7 +106,7 @@ class PluginHelper {
      * @return String specified with first letter capitalized
      */
     @Requires({ s })
-    @Ensures({ Character.isUpperCase( s[ 0 ] as char ) })
+    @Ensures({ Character.isUpperCase( result[ 0 ] as char ) })
     String capitalize( String s ) {
         s[ 0 ].toUpperCase() + ( s.size() > 1 ? s[ 1 .. -1 ] : '' )
     }
