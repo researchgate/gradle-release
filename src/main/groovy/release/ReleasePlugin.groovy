@@ -56,14 +56,18 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
 
     def checkSnapshotDependencies( Project project ) {
-        project.configurations.runtime.allDependencies.each { Dependency dependency ->
-            if (dependency?.version?.contains('SNAPSHOT')) {
-                def message = "Snapshot dependency detected: ${dependency.group ?: ''}:${dependency.name}:${dependency.version ?: ''}"
-                if ( releaseConvention( project ).failOnSnapshotDependencies ) {
-                    throw new GradleException(message)
-                } else {
-                    println "WARNING: $message"
-                }
+
+        def snapshotDependencies = project.configurations.runtime.allDependencies.
+                                   findAll { Dependency d -> d.version?.contains( 'SNAPSHOT' )}.
+                                   collect { Dependency d -> "${d.group ?: ''}:${d.name}:${d.version ?: ''}" }
+
+        if ( snapshotDependencies ) {
+            def message = "Snapshot dependencies detected: $snapshotDependencies"
+            if ( releaseConvention( project ).failOnSnapshotDependencies ) {
+                throw new GradleException( message )
+            }
+            else {
+                println "WARNING: $message"
             }
         }
     }
@@ -74,7 +78,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
         if ( version.contains( '-SNAPSHOT' )) {
             project.setProperty( 'usesSnapshot', true )
-            version = version.replace( '-SNAPSHOT', '' )
+            version -= '-SNAPSHOT'
             project.version = version
             updateVersionProperty( project, version )
         }
