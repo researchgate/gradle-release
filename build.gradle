@@ -1,8 +1,8 @@
 apply plugin: 'groovy'
 apply plugin: 'idea'
 
-// Run "gradle installPlugin" first
-// apply plugin: release.ReleasePlugin
+// Run "gradle installPlugin"
+apply plugin: release.ReleasePlugin
 
 codenarcRuleSetFiles = [ 'codenarc.groovy' ]
 apply from: 'https://raw.github.com/evgeny-goldin/gradle-plugins/master/src/main/groovy/CodeNarc.gradle'
@@ -39,8 +39,7 @@ task( 'uninstallPlugin' ) {
     group       = 'installation'
     description = 'Removes the plugin from your gradle distribution.'
     doLast {
-        delete( installedJar, *findGContracts())
-        // Sometimes delete() above doesn't work for some reason and assert fails
+        delete( installedJar, *findGContracts()) // May not delete, causing following assert to fail
         assert ! ( installedJar.file || findGContracts())
         println "[$installedJar] deleted"
     }
@@ -60,4 +59,3 @@ task( 'installPlugin', type: Copy, dependsOn: [ unversionedJar, uninstallPlugin 
         println "Plugin installed as [$installedJar]"
     }
 }
-
