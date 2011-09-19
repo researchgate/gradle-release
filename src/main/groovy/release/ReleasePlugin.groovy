@@ -105,7 +105,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
                 if ( project.hasProperty( 'usesSnapshot' ) && project.usesSnapshot ) {
                     nextVersion += '-SNAPSHOT'
                 }
-                nextVersion = readLine( 'Enter the next version:', nextVersion )
+                nextVersion = readLine( "Enter the next version (current one released as [$version]):", nextVersion )
                 updateVersionProperty( project, nextVersion )
                 return
             }
