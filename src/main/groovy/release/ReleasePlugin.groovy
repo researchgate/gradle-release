@@ -15,28 +15,6 @@ import org.gradle.api.tasks.GradleBuild
  */
 class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
-    private static final String LINE_SEP = System.getProperty( 'line.separator' )
-    private static final String PROMPT   = "${LINE_SEP}??>"
-
-
-    @Requires({ message })
-    static String readLine ( String message, String defaultValue = null ) {
-        System.console().readLine( "$PROMPT $message " + ( defaultValue ? "[$defaultValue] " : '' )) ?:
-        defaultValue
-    }
-
-
-    @Requires({ project && newVersion })
-    static void updateVersionProperty( Project project, String newVersion ) {
-        File       propsFile   = project.file( 'gradle.properties' )
-        assert propsFile.file, "[$propsFile.canonicalPath] wasn't found, can't update it"
-
-        Properties gradleProps = new Properties()
-        gradleProps.load(propsFile.newReader())
-        gradleProps.version = newVersion
-        gradleProps.store( propsFile.newWriter(), "Version updated to '${newVersion}', by Gradle release plugin." )
-    }
-
 
     @Requires({ project })
     void apply( Project project ) {
@@ -92,35 +70,42 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
 
     def unSnapshotVersion( Project project ) {
-        def version = "${project.version}"
-        if (version.contains('-SNAPSHOT')) {
-            project.setProperty('usesSnapshot', true)
-            version = version.replace('-SNAPSHOT', '')
+        def version = project.version.toString()
+
+        if ( version.contains( '-SNAPSHOT' )) {
+            project.setProperty( 'usesSnapshot', true )
+            version = version.replace( '-SNAPSHOT', '' )
             project.version = version
-            updateVersionProperty(project, version)
-        } else {
-            project.setProperty('usesSnapshot', false)
+            updateVersionProperty( project, version )
+        }
+        else {
+            project.setProperty( 'usesSnapshot', false )
         }
     }
 
 
     def updateVersion( Project project ) {
-        def version = "${project.version}"
+        def version = project.version.toString()
         Map<String, Closure> patterns = releaseConvention( project ).versionPatterns
-        for (Map.Entry<String, Closure> entry: patterns) {
-            String pattern = entry.key
+
+        for ( Map.Entry<String, Closure> entry in patterns ) {
+
+            String pattern  = entry.key
             Closure handler = entry.value
             Matcher matcher = version =~ pattern
+
             if (matcher.matches()) {
-                String nextVersion = handler.call(project, matcher)
-                if (project.hasProperty('usesSnapshot') && project.usesSnapshot) {
-                    nextVersion = "${nextVersion}-SNAPSHOT"
+                String nextVersion = handler(project, matcher)
+                if ( project.hasProperty( 'usesSnapshot' ) && project.usesSnapshot ) {
+                    nextVersion += '-SNAPSHOT'
                 }
-                nextVersion = readLine('Enter the next version:', nextVersion)
-                updateVersionProperty(project, nextVersion)
+                nextVersion = readLine( 'Enter the next version:', nextVersion )
+                updateVersionProperty( project, nextVersion )
                 return
             }
         }
+
+        throw new GradleException( "Failed to increase version [$version] - unknown pattern" )
     }
 
 

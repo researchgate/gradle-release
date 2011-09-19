@@ -1,5 +1,7 @@
 package release
 
+import org.gcontracts.annotations.Ensures
+import org.gcontracts.annotations.Requires
 import org.gradle.api.Project
 
 /**
@@ -7,6 +9,11 @@ import org.gradle.api.Project
  * @author evgenyg
  */
 class PluginHelper {
+
+    private static final String LINE_SEP = System.getProperty( 'line.separator' )
+    private static final String PROMPT   = "${LINE_SEP}>"
+
+
    /**
     * Retrieves plugin convention of the type specified.
     *
@@ -16,6 +23,8 @@ class PluginHelper {
     * @return               plugin convention of the type specified
     */
     @SuppressWarnings( 'UnnecessaryPublicModifier' )
+    @Requires({ project && pluginName && conventionType })
+    @Ensures({ conventionType.isInstance( result ) })
     public <T> T convention( Project project, String pluginName, Class<T> conventionType ) {
         assert project && pluginName && conventionType
 
@@ -38,6 +47,8 @@ class PluginHelper {
      * @param project current Gradle project
      * @return        current {@link ReleasePluginConvention}.
      */
+    @Requires({ project })
+    @Ensures({ result })
     ReleasePluginConvention releaseConvention( Project project ) {
         convention( project, 'release', ReleasePluginConvention )
     }
@@ -47,21 +58,21 @@ class PluginHelper {
      * Executes command specified and retrieves its "stdout" output.
      *
      * @param failOnStderr whether execution should fail if there's any "stderr" output produced, "true" by default.
-     * @param command      command to execute
+     * @param commands     commands to execute
      * @return command "stdout" output
      */
-    String exec ( boolean failOnStderr = true, String ... command ) {
-        assert command
-
+    @Requires({ commands })
+    @Ensures({ result != null })
+    String exec ( boolean failOnStderr = true, String ... commands ) {
         def out     = new StringBuffer()
         def err     = new StringBuffer()
-        def process = ( command as List ).execute()
+        def process = ( commands as List ).execute()
 
         process.waitForProcessOutput( out, err )
 
         if ( failOnStderr )
         {
-            assert err.length() < 1, "Running $command produced an stderr output: [$err]"
+            assert err.length() < 1, "Running $commands produced an stderr output: [$err]"
         }
 
         out.toString()
@@ -71,16 +82,15 @@ class PluginHelper {
     /**
      * Executes command specified and verifies neither "stdout" or "stderr" contain an error pattern specified.
      *
-     * @param command      command to execute
+     * @param commands     commands to execute
      * @param errorMessage error message to throw
      * @param errorPattern error pattern to look for
      */
-    void exec( List<String> command, String errorMessage, String ... errorPattern ) {
-        assert command && errorMessage && errorPattern
-
+    @Requires({ commands && errorMessage && errorPattern })
+    void exec( List<String> commands, String errorMessage, String ... errorPattern ) {
         def out     = new StringBuffer()
         def err     = new StringBuffer()
-        def process = command.execute()
+        def process = commands.execute()
 
         process.waitForProcessOutput( out, err )
 
@@ -95,8 +105,45 @@ class PluginHelper {
      * @param s String to capitalize
      * @return String specified with first letter capitalized
      */
+    @Requires({ s })
+    @Ensures({ Character.isUpperCase( s[ 0 ] as char ) })
     String capitalize( String s ) {
-        assert s
         s[ 0 ].toUpperCase() + ( s.size() > 1 ? s[ 1 .. -1 ] : '' )
+    }
+
+
+    /**
+     * Reads user input from the console.
+     *
+     * @param message      Message to display
+     * @param defaultValue (optional) default value to display
+     * @return             User input entered or default value if user enters no data
+     */
+    @Requires({ message })
+    String readLine ( String message, String defaultValue = null ) {
+        System.console().readLine( "$PROMPT $message " + ( defaultValue ? "[$defaultValue] " : '' )) ?:
+        defaultValue
+    }
+
+
+    /**
+     * Updates 'gradle.properties' file with new version specified.
+     *
+     * @param project    current project
+     * @param newVersion new version to store in the file
+     */
+    @Requires({ project && newVersion })
+    void updateVersionProperty( Project project, String newVersion ) {
+
+        File       propertiesFile   = project.file( 'gradle.properties' )
+        assert propertiesFile.file, "[$propertiesFile.canonicalPath] wasn't found, can't update it"
+
+        Properties gradleProps = new Properties()
+        propertiesFile.withReader { gradleProps.load( it ) }
+
+        gradleProps.version = newVersion
+        propertiesFile.withWriter {
+            gradleProps.store( it, "Version updated to '${newVersion}', by Gradle release plugin (http://code.launchpad.net/~gradle-plugins/gradle-release/)." )
+        }
     }
 }

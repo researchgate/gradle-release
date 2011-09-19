@@ -16,13 +16,15 @@ class ReleasePluginConvention {
     String  newVersionCommitMessage     = 'Gradle Release Plugin - new version commit.'
     def     requiredTasks               = []
     def     versionPatterns             = [
-            /(.*[^\d])(\d*)/: { Project project, Matcher matcher ->
+            /(.*[^\d])(\d*)/: {
+                Project project, Matcher matcher ->
                 int lastDigit = matcher.group(2) as int
-                matcher.replaceAll("\$1${lastDigit + 1}")
+                matcher.replaceAll( "\$1${lastDigit + 1}" )
             },
-            /(\d+)/: { Project project, Matcher matcher ->
+            /(\d+)/: {
+                Project project, Matcher matcher ->
                 int lastDigit = matcher.group(1) as int
-                "${lastDigit + 1}"
+                ( lastDigit + 1 ) as String
             }
     ]
 
