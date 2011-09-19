@@ -30,10 +30,22 @@ task( 'unversionedJar', type: Jar, dependsOn: 'jar' ) {
     from sourceSets.main.classes
 }
 
-def     installedJar = file( "${gradle.gradleHomeDir.canonicalPath}/lib/plugins/${unversionedJar.archiveName}" )
-Closure isGContracts = { it.name.contains( 'gcontracts' ) }
+def     installedJar   = file( "${gradle.gradleHomeDir.canonicalPath}/lib/plugins/${unversionedJar.archiveName}" )
+Closure isGContracts   = { it.name.contains( 'gcontracts' ) }
+def     findGContracts = { installedJar.parentFile.listFiles().findAll( isGContracts ) }
 
-task( 'installPlugin', type: Copy, dependsOn: 'unversionedJar' ) {
+
+task( 'uninstallPlugin' ) {
+    group       = 'installation'
+    description = 'Removes the plugin from your gradle distribution.'
+    doLast {
+        delete( installedJar, *findGContracts())
+        assert ! ( installedJar.file || findGContracts())
+        println "[$installedJar] deleted"
+    }
+}
+
+task( 'installPlugin', type: Copy, dependsOn: [ unversionedJar, uninstallPlugin ] ) {
     group       = 'installation'
     description = 'Installs the plugin jar in your gradle distribution.'
     from unversionedJar.archivePath
@@ -43,20 +55,8 @@ task( 'installPlugin', type: Copy, dependsOn: 'unversionedJar' ) {
             from configurations.gcontracts.files.findAll( isGContracts )
             into installedJar.parentFile
         }
-        assert installedJar.file
-        assert installedJar.parentFile.listFiles().findAll( isGContracts )
+        assert installedJar.file && findGContracts()
         println "Plugin installed as [$installedJar]"
-    }
-}
-
-task( 'uninstallPlugin', type: Delete ) {
-    group       = 'installation'
-    description = 'Removes the plugin from your gradle distribution.'
-    delete ( installedJar )
-    doLast {
-        assert ! installedJar.file
-        assert installedJar.parentFile.listFiles().findAll( isGContracts )[ 0 ].delete()
-        println "[$installedJar] deleted"
     }
 }
 
