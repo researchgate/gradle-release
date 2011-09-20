@@ -83,13 +83,12 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
         def version = project.version.toString()
 
         if ( version.contains( '-SNAPSHOT' )) {
-            project.properties[ 'usesSnapshot' ] = true
+            project.setProperty( 'usesSnapshot', true )
             version -= '-SNAPSHOT'
-            project.version = version
             updateVersionProperty( version )
         }
         else {
-            project.properties[ 'usesSnapshot' ] = false
+            project.setProperty( 'usesSnapshot', false )
         }
     }
 
@@ -97,7 +96,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
     def preTagCommit() {
         if ( project.properties[ 'usesSnapshot' ] ) {
             // should only be committed if the project was using a snapshot version.
-            commit( releaseConvention().preTagCommitMessage )
+            commit( releaseConvention().preTagCommitMessage + " \"${ project.version }\"." )
         }
     }
 
@@ -118,8 +117,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
                 if ( project.properties[ 'usesSnapshot' ] ) {
                     nextVersion += '-SNAPSHOT'
                 }
-                nextVersion = readLine( "Enter the next version (current one released as [$version]):", nextVersion )
-                updateVersionProperty( nextVersion )
+                updateVersionProperty( readLine( "Enter the next version (current one released as [$version]):", nextVersion ))
                 return
             }
         }
@@ -129,7 +127,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
 
     def commitNewVersion() {
-        commit( releaseConvention().newVersionCommitMessage )
+        commit( releaseConvention().newVersionCommitMessage + " \"${ project.version }\"." )
     }
 
 

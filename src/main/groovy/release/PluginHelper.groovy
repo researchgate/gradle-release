@@ -141,6 +141,7 @@ class PluginHelper {
     @Requires({ newVersion })
     void updateVersionProperty( String newVersion ) {
 
+        project.version             = newVersion
         File       propertiesFile   = project.file( 'gradle.properties' )
         assert propertiesFile.file, "[$propertiesFile.canonicalPath] wasn't found, can't update it"
 

@@ -45,7 +45,8 @@ class GitReleasePlugin extends BaseScmPlugin {
 
 
     void createReleaseTag () {
-        exec([ 'git', 'tag', '-a', project.properties.version, '-m', 'v' + project.properties.version ], 'aaaa', 'aaaaaa' )
+        exec([ 'git', 'tag', '-a',      project.properties.version, '-m', 'v' + project.properties.version ], 'aaaa', 'aaaaaa' )
+        exec([ 'git', 'push', 'origin', project.properties.version ], 'aaaa', 'aaaaaa' )
     }
 
 

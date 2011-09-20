@@ -67,7 +67,7 @@ class SvnReleasePlugin extends BaseScmPlugin {
         String svnRoot = props.releaseSvnRoot
         String svnTag  = props.version
 
-        exec( 'svn', 'cp', "${svnUrl}@${svnRev}", "${svnRoot}/tags/${svnTag}", '-m', releaseConvention().tagCommitMessage )
+        exec( 'svn', 'cp', "${svnUrl}@${svnRev}", "${svnRoot}/tags/${svnTag}", '-m', 'v' + svnTag )
     }
 
 

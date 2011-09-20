@@ -10,9 +10,8 @@ import java.util.regex.Matcher
 class ReleasePluginConvention {
     boolean failOnSnapshotDependencies  = true
     boolean failOnUnversionedFiles      = true
-    String  preTagCommitMessage         = 'Gradle Release Plugin - pre tag commit.'
-    String  tagCommitMessage            = 'Gradle Release Plugin - tagging commit.'
-    String  newVersionCommitMessage     = 'Gradle Release Plugin - new version commit.'
+    String  preTagCommitMessage         = 'Gradle Release Plugin - pre tag commit: '
+    String  newVersionCommitMessage     = 'Gradle Release Plugin - new version commit: '
     def     requiredTasks               = []
     def     versionPatterns             = [
         // Increments last number: "2.5-SNAPSHOT" => "2.6-SNAPSHOT"
