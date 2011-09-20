@@ -2,8 +2,6 @@ package release
 
 import java.util.regex.Matcher
 import org.gradle.api.GradleException
-import org.gradle.api.Project
-
 
 /**
  * A command-line style SVN client. Requires user has SVN installed locally.
@@ -12,19 +10,17 @@ import org.gradle.api.Project
  * Created: Tue Aug 09 23:25:18 PDT 2011
  */
 // TODO: Use SVNKit or SubversionJ
-class SvnReleasePlugin extends BaseScmReleasePlugin {
+class SvnReleasePlugin extends BaseScmPlugin {
 
     private static final String ERROR = 'Commit failed'
 
-    @Override
-    void init ( Project project ) {
-        findSvnUrl( project )
+    void init () {
+        findSvnUrl()
         project.convention.plugins.SvnReleasePlugin = new SvnReleasePluginConvention()
     }
 
 
-    @Override
-    void checkCommitNeeded (Project project) {
+    void checkCommitNeeded () {
         String out = exec( 'svn', 'status' )
         def changes = 0
         def unknown = 0
@@ -41,13 +37,13 @@ class SvnReleasePlugin extends BaseScmReleasePlugin {
         if (changes) {
             throw new GradleException('You have un-committed changes.')
         }
-        if ( releaseConvention( project ).failOnUnversionedFiles && unknown) {
+        if ( releaseConvention().failOnUnversionedFiles && unknown) {
             throw new GradleException('You have un-versioned files.')
         }
     }
 
-    @Override
-    void checkUpdateNeeded (Project project) {
+
+    void checkUpdateNeeded () {
             // svn status -q -u
             String out = exec( 'svn', 'status', '-q', '-u' )
             def missing = 0
@@ -63,45 +59,28 @@ class SvnReleasePlugin extends BaseScmReleasePlugin {
             }
     }
 
-    @Override
-    void commitNewVersion (Project project) {
-        String newVersionCommitMessage = releaseConvention( project ).newVersionCommitMessage
 
-        commit(newVersionCommitMessage)
-    }
+    void createReleaseTag () {
+        def    props   = project.properties
+        String svnUrl  = props.releaseSvnUrl
+        String svnRev  = props.releaseSvnRev
+        String svnRoot = props.releaseSvnRoot
+        String svnTag  = props.version
 
-    @Override
-    void createReleaseTag (Project project) {
-        String tagCommitMessage = releaseConvention( project ).tagCommitMessage
-        def props = project.properties
-        String svnUrl = props['releaseSvnUrl']
-        String svnRev = props['releaseSvnRev']
-        String svnRoot = props['releaseSvnRoot']
-        String svnTag = props['version']
-
-        exec( 'svn', 'cp', "${svnUrl}@${svnRev}", "${svnRoot}/tags/${svnTag}", '-m', tagCommitMessage )
-    }
-
-    @Override
-    void preTagCommit (Project project) {
-        String preTagCommitMessage = releaseConvention( project ).preTagCommitMessage
-        def props = project.properties
-        if (props['usesSnapshot']) {
-            // should only be changes if the project was using a snapshot version.
-            commit(preTagCommitMessage)
-        }
+        exec( 'svn', 'cp', "${svnUrl}@${svnRev}", "${svnRoot}/tags/${svnTag}", '-m', releaseConvention().tagCommitMessage )
     }
 
 
-    private void commit(String message) {
-        exec( ['svn', 'ci', '-m', message], 'Error committing new version', ERROR )
+    void commit( String message ) {
+        exec( [ 'svn', 'ci', '-m', message ], 'Error committing new version', ERROR )
     }
 
 
-    private void findSvnUrl(Project project) {
-        String out = exec( 'svn', 'info' )
-        def urlPattern = ~/URL:\s(.*?)(\/(trunk|branches|tags).*?)$/
-        def revPattern = ~/Revision:\s(.*?)$/
+    private void findSvnUrl() {
+        String out        = exec( 'svn', 'info' )
+        def    urlPattern = ~/URL:\s(.*?)(\/(trunk|branches|tags).*?)$/
+        def    revPattern = ~/Revision:\s(.*?)$/
+
         out.eachLine { line ->
             Matcher matcher = line =~ urlPattern
             if (matcher.matches()) {

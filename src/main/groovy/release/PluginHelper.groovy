@@ -13,6 +13,7 @@ class PluginHelper {
     private static final String LINE_SEP = System.getProperty( 'line.separator' )
     private static final String PROMPT   = "${LINE_SEP}>"
 
+    protected Project project
 
    /**
     * Retrieves plugin convention of the type specified.
@@ -25,8 +26,7 @@ class PluginHelper {
     @SuppressWarnings( 'UnnecessaryPublicModifier' )
     @Requires({ project && pluginName && conventionType })
     @Ensures({ conventionType.isInstance( result ) })
-    public <T> T convention( Project project, String pluginName, Class<T> conventionType ) {
-        assert project && pluginName && conventionType
+    public <T> T convention( String pluginName, Class<T> conventionType ) {
 
         Object convention = project.convention.plugins.get( pluginName )
 
@@ -47,10 +47,9 @@ class PluginHelper {
      * @param project current Gradle project
      * @return        current {@link ReleasePluginConvention}.
      */
-    @Requires({ project })
     @Ensures({ result })
-    ReleasePluginConvention releaseConvention( Project project ) {
-        convention( project, 'release', ReleasePluginConvention )
+    ReleasePluginConvention releaseConvention() {
+        convention( 'release', ReleasePluginConvention )
     }
 
 
@@ -68,7 +67,11 @@ class PluginHelper {
         def err     = new StringBuffer()
         def process = ( commands as List ).execute()
 
+        project.logger.info( " >>> Running $commands" )
+
         process.waitForProcessOutput( out, err )
+
+        project.logger.info( " >>> Running $commands: [$out][$err]" )
 
         if ( failOnStderr ) {
             assert err.length() < 1, "Running $commands produced an stderr output: [$err]"
@@ -91,7 +94,11 @@ class PluginHelper {
         def err     = new StringBuffer()
         def process = commands.execute()
 
+        project.logger.info( " >>> Running $commands" )
+
         process.waitForProcessOutput( out, err )
+
+        project.logger.info( " >>> Running $commands: [$out][$err]" )
 
         assert ! [ out, err ]*.toString().any{ String s -> errorPattern.any { s.contains( it ) }}, \
                "$errorMessage - [$out][$err]"
@@ -131,8 +138,8 @@ class PluginHelper {
      * @param project    current project
      * @param newVersion new version to store in the file
      */
-    @Requires({ project && newVersion })
-    void updateVersionProperty( Project project, String newVersion ) {
+    @Requires({ newVersion })
+    void updateVersionProperty( String newVersion ) {
 
         File       propertiesFile   = project.file( 'gradle.properties' )
         assert propertiesFile.file, "[$propertiesFile.canonicalPath] wasn't found, can't update it"

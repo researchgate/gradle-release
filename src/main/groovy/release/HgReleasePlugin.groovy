@@ -1,37 +1,30 @@
 package release
 
-import org.gradle.api.Project
-
 /**
  * @author elberry
  * @author evgenyg
  * Created: Wed Aug 10 23:44:15 PDT 2011
  */
-class HgReleasePlugin extends BaseScmReleasePlugin {
+class HgReleasePlugin extends BaseScmPlugin {
 
-    @Override
-    void init (Project project) {
+    void init () {
         project.convention.plugins.HgReleasePlugin = new HgReleasePluginConvention()
     }
 
 
-    void checkCommitNeeded( Project project ) {
+    void checkCommitNeeded() {
         println( 'checkCommitNeeded' )
     }
 
-    void checkUpdateNeeded( Project project ) {
+    void checkUpdateNeeded() {
         println( 'checkUpdateNeeded' )
     }
 
-    void commitNewVersion( Project project ) {
-        println( 'commitNewVersion' )
-    }
-
-    void createReleaseTag( Project project ) {
+    void createReleaseTag() {
         println( 'createReleaseTag' )
     }
 
-    void preTagCommit( Project project ) {
-        println( 'preTagCommit' )
+    void commit ( String message ) {
+        println( 'commit' )
     }
 }

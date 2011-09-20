@@ -1,21 +1,20 @@
 package release
 
-import org.gcontracts.annotations.Requires
 import org.gradle.api.GradleException
-import org.gradle.api.Project
 
 /**
  * @author elberry
  * @author evgenyg
  * Created: Tue Aug 09 23:26:04 PDT 2011
  */
-class BzrReleasePlugin extends BaseScmReleasePlugin {
+class BzrReleasePlugin extends BaseScmPlugin {
 
     private static final String ERROR = 'ERROR'
     private static final String DELIM = '\n  * '
 
     @Override
-    void init (Project project){
+    void init () {
+
         assert exec( 'bzr', 'plugins' ).readLines().any{ it.startsWith( 'xmloutput' ) } , \
                'The required xmloutput plugin is not installed in Bazaar, please install it.'
 
@@ -23,7 +22,7 @@ class BzrReleasePlugin extends BaseScmReleasePlugin {
     }
 
 
-    void checkCommitNeeded ( Project project ) {
+    void checkCommitNeeded () {
         String out   = exec( 'bzr', 'xmlstatus' )
         def xml      = new XmlSlurper().parseText( out )
         def added    = xml.added?.size()    ?: 0
@@ -50,7 +49,7 @@ class BzrReleasePlugin extends BaseScmReleasePlugin {
     }
 
 
-    void checkUpdateNeeded ( Project project ) {
+    void checkUpdateNeeded () {
         String out  = exec( 'bzr', 'xmlmissing' )
         def xml     = new XmlSlurper().parseText( out )
         int extra   = ( "${xml.extra_revisions?.@size}"   ?: 0 ) as int
@@ -82,25 +81,12 @@ class BzrReleasePlugin extends BaseScmReleasePlugin {
     }
 
 
-    void commitNewVersion ( Project project ) {
-        commit( releaseConvention( project ).newVersionCommitMessage )
-    }
-
-    void createReleaseTag ( Project project ) {
+    void createReleaseTag () {
         exec( [ 'bzr', 'tag', project.properties.version ], 'Error creating tag', ERROR )
     }
 
 
-    void preTagCommit ( Project project ) {
-        if ( project.properties[ 'usesSnapshot' ] ) {
-            // should only be changes if the project was using a snapshot version.
-            commit( releaseConvention( project ).preTagCommitMessage )
-        }
-    }
-
-
-    @Requires({ message })
-    private void commit( String message ) {
+    void commit( String message ) {
         exec( ['bzr', 'ci', '-m', message], 'Error committing new version', ERROR )
         exec( ['bzr', 'push', ':parent'],   'Error committing new version', ERROR )
     }
