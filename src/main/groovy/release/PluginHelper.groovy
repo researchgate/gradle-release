@@ -28,7 +28,7 @@ class PluginHelper {
     @Ensures({ conventionType.isInstance( result ) })
     public <T> T convention( String pluginName, Class<T> conventionType ) {
 
-        Object convention = project.convention.plugins.get( pluginName )
+        Object convention = project.convention.plugins[ pluginName ]
 
         assert convention, \
                "Current project contains no \"$pluginName\" plugin convention"

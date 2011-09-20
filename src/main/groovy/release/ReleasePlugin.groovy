@@ -25,7 +25,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
         project.convention.plugins.release = new ReleasePluginConvention()
 
         checkPropertiesFile()
-        applyScmPlugin()
+        this.scmPluginClass = applyScmPlugin()
 
         project.task( 'release', type: GradleBuild ) {
             // Release task should perform the following tasks.
@@ -61,9 +61,9 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
     }
 
 
-    def checkSnapshotDependencies() {
+    void checkSnapshotDependencies() {
 
-        def snapshotDependencies = project.configurations.runtime.allDependencies.
+        def snapshotDependencies = project.configurations.getByName( 'runtime' ).allDependencies.
                                    findAll { Dependency d -> d.version?.contains( 'SNAPSHOT' )}.
                                    collect { Dependency d -> "${d.group ?: ''}:${d.name}:${d.version ?: ''}" }
 
@@ -73,13 +73,13 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
                 throw new GradleException( message )
             }
             else {
-                println "WARNING: $message"
+                project.logger.warn( "WARNING: $message" )
             }
         }
     }
 
 
-    def unSnapshotVersion() {
+    void unSnapshotVersion() {
         def version = project.version.toString()
 
         if ( version.contains( '-SNAPSHOT' )) {
@@ -93,7 +93,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
     }
 
 
-    def preTagCommit() {
+    void preTagCommit() {
         if ( project.properties[ 'usesSnapshot' ] ) {
             // should only be committed if the project was using a snapshot version.
             commit( releaseConvention().preTagCommitMessage + " \"${ project.version }\"." )
@@ -101,7 +101,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
     }
 
 
-    def updateVersion() {
+    void updateVersion() {
         def version = project.version.toString()
         Map<String, Closure> patterns = releaseConvention().versionPatterns
 
@@ -156,9 +156,9 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
      * Looks for special directories in the project folder, then applies the correct SCM Release Plugin for the SCM type.
      * @param project
      */
-    private void applyScmPlugin() {
+    private Class<? extends BaseScmPlugin> applyScmPlugin() {
 
-        scmPluginClass = ( Class ) project.rootProject.projectDir.list().with {
+        Class c = ( Class ) project.rootProject.projectDir.list().with {
             delegate.grep( '.svn' ) ? SvnReleasePlugin :
             delegate.grep( '.bzr' ) ? BzrReleasePlugin :
             delegate.grep( '.git' ) ? GitReleasePlugin :
@@ -166,12 +166,14 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
                                       null
         }
 
-        if ( ! scmPluginClass ) {
+        if ( ! c ) {
             throw new GradleException(
                 'Unsupported SCM system, no .svn, .bzr, .git, or .hg found in ' +
                 "[${ project.rootProject.projectDir.canonicalPath }]" )
         }
 
-        project.apply plugin: scmPluginClass
+        assert BaseScmPlugin.isAssignableFrom( c )
+        project.apply plugin: c
+        c
     }
 }
