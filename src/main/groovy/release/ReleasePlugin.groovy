@@ -22,7 +22,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
     void apply( Project project ) {
 
         this.project = project
-        project.convention.plugins.release = new ReleasePluginConvention()
+        project.convention.plugins[ 'release' ] = new ReleasePluginConvention()
 
         checkPropertiesFile()
         this.scmPluginClass = applyScmPlugin()
