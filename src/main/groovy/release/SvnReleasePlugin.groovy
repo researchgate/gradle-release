@@ -16,7 +16,7 @@ class SvnReleasePlugin extends BaseScmPlugin {
 
     void init () {
         findSvnUrl()
-        project.convention.plugins.SvnReleasePlugin = new SvnReleasePluginConvention()
+        setConvention( 'SvnReleasePlugin', new SvnReleasePluginConvention())
     }
 
 

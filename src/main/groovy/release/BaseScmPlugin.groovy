@@ -15,16 +15,17 @@ abstract class BaseScmPlugin extends PluginHelper implements Plugin<Project> {
     final void apply( Project project ) {
 
         this.project = project
-        init()
 
-        project.task( 'checkCommitNeeded' ) << { checkCommitNeeded() }
-        project.task( 'checkUpdateNeeded' ) << { checkUpdateNeeded() }
-        project.task( 'createReleaseTag'  ) << { createReleaseTag() }
+        project.task( 'checkCommitNeeded' ) << this.&checkCommitNeeded
+        project.task( 'checkUpdateNeeded' ) << this.&checkUpdateNeeded
+        project.task( 'createReleaseTag'  ) << this.&createReleaseTag
     }
 
     abstract void init ()
     abstract void checkCommitNeeded()
     abstract void checkUpdateNeeded()
     abstract void createReleaseTag ()
+
+    @Requires({ message })
     abstract void commit ( String message  )
 }

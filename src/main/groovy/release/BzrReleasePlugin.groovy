@@ -18,7 +18,7 @@ class BzrReleasePlugin extends BaseScmPlugin {
         assert exec( 'bzr', 'plugins' ).readLines().any{ it.startsWith( 'xmloutput' ) } , \
                'The required xmloutput plugin is not installed in Bazaar, please install it.'
 
-        project.convention.plugins.BzrReleasePlugin = new BzrReleasePluginConvention()
+        setConvention( 'BzrReleasePlugin', new BzrReleasePluginConvention())
     }
 
 

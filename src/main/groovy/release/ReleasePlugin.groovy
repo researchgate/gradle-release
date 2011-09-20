@@ -1,6 +1,7 @@
 package release
 
 import java.util.regex.Matcher
+import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
@@ -15,21 +16,21 @@ import org.gradle.api.tasks.GradleBuild
  */
 class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
-    private Class<? extends BaseScmPlugin> scmPluginClass
+    private BaseScmPlugin scmPlugin
 
 
     @Requires({ project })
     void apply( Project project ) {
 
         this.project = project
-        project.convention.plugins[ 'release' ] = new ReleasePluginConvention()
 
-        checkPropertiesFile()
-        this.scmPluginClass = applyScmPlugin()
+        setConvention( 'release', new ReleasePluginConvention())
+        this.scmPlugin = applyScmPlugin()
 
         project.task( 'release', type: GradleBuild ) {
-            // Release task should perform the following tasks.
             tasks = [
+                    //  o. (This Plugin) Initializes the corresponding SCM plugin (Git/Bazaar/Svn/Mercurial).
+                    'initScmPlugin',
                     //  1. (SCM Plugin) Check to see if source needs to be checked in.
                     'checkCommitNeeded',
                     //  2. (SCM Plugin) Check to see if source is out of date
@@ -53,11 +54,23 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
             ].flatten()
         }
 
-        project.task( 'checkSnapshotDependencies' ) << { checkSnapshotDependencies() }
-        project.task( 'unSnapshotVersion'         ) << { unSnapshotVersion() }
-        project.task( 'preTagCommit'              ) << { preTagCommit() }
-        project.task( 'updateVersion'             ) << { updateVersion() }
-        project.task( 'commitNewVersion'          ) << { commitNewVersion() }
+        project.task( 'initScmPlugin'             ) << this.&initScmPlugin
+        project.task( 'checkSnapshotDependencies' ) << this.&checkSnapshotDependencies
+        project.task( 'unSnapshotVersion'         ) << this.&unSnapshotVersion
+        project.task( 'preTagCommit'              ) << this.&preTagCommit
+        project.task( 'updateVersion'             ) << this.&updateVersion
+        project.task( 'commitNewVersion'          ) << this.&commitNewVersion
+    }
+
+
+    void initScmPlugin() {
+
+        checkPropertiesFile()
+        scmPlugin.init()
+
+        // Verifying all "release" steps are defined
+        Set<String> allTasks  = project.tasks.all*.name
+        assert (( GradleBuild ) project.tasks[ 'release' ] ).tasks.every { allTasks.contains( it ) }
     }
 
 
@@ -96,7 +109,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
     void preTagCommit() {
         if ( project.properties[ 'usesSnapshot' ] ) {
             // should only be committed if the project was using a snapshot version.
-            commit( releaseConvention().preTagCommitMessage + " \"${ project.version }\"." )
+            scmPlugin.commit( releaseConvention().preTagCommitMessage + " '${ project.version }'." )
         }
     }
 
@@ -127,7 +140,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
 
     def commitNewVersion() {
-        commit( releaseConvention().newVersionCommitMessage + " \"${ project.version }\"." )
+        scmPlugin.commit( releaseConvention().newVersionCommitMessage + " '${ project.version }'." )
     }
 
 
@@ -146,17 +159,12 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
     }
 
 
-    @Requires({ scmPluginClass && message })
-    def commit ( String message ) {
-        (( BaseScmPlugin ) project.plugins.findPlugin( scmPluginClass )).commit( message )
-    }
-
-
     /**
      * Looks for special directories in the project folder, then applies the correct SCM Release Plugin for the SCM type.
      * @param project
      */
-    private Class<? extends BaseScmPlugin> applyScmPlugin() {
+    @Ensures({ result instanceof BaseScmPlugin })
+    private BaseScmPlugin applyScmPlugin() {
 
         Class c = ( Class ) project.rootProject.projectDir.list().with {
             delegate.grep( '.svn' ) ? SvnReleasePlugin :
@@ -173,7 +181,8 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
         }
 
         assert BaseScmPlugin.isAssignableFrom( c )
+
         project.apply plugin: c
-        c
+        project.plugins.findPlugin( c )
     }
 }

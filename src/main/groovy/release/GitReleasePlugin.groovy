@@ -19,7 +19,7 @@ class GitReleasePlugin extends BaseScmPlugin {
 
     void init () {
 
-        project.convention.plugins[ 'GitReleasePlugin' ] = new GitReleasePluginConvention()
+        setConvention( 'GitReleasePlugin', new GitReleasePluginConvention())
 
         if ( gitConvention().requireBranch ) {
 

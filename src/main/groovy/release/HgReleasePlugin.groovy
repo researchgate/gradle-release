@@ -8,23 +8,23 @@ package release
 class HgReleasePlugin extends BaseScmPlugin {
 
     void init () {
-        project.convention.plugins.HgReleasePlugin = new HgReleasePluginConvention()
+        setConvention( 'HgReleasePlugin', new HgReleasePluginConvention())
     }
 
 
     void checkCommitNeeded() {
-        println( 'checkCommitNeeded' )
+        project.logger.info( 'checkCommitNeeded' )
     }
 
     void checkUpdateNeeded() {
-        println( 'checkUpdateNeeded' )
+        project.logger.info( 'checkUpdateNeeded' )
     }
 
     void createReleaseTag() {
-        println( 'createReleaseTag' )
+        project.logger.info( 'createReleaseTag' )
     }
 
     void commit ( String message ) {
-        println( 'commit' )
+        project.logger.info( 'commit' )
     }
 }

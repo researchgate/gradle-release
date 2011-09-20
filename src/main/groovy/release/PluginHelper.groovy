@@ -15,6 +15,19 @@ class PluginHelper {
 
     protected Project project
 
+
+    /**
+     * Sets convention specified under the plugin name provided.
+     *
+     * @param pluginName name of the plugin
+     * @param convention convention object to set
+     */
+    @Requires({ pluginName && convention })
+    void setConvention( String pluginName, Object convention ) {
+        project.convention.plugins[ pluginName ] = convention
+    }
+
+
    /**
     * Retrieves plugin convention of the type specified.
     *
