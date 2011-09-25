@@ -15,8 +15,11 @@ class BzrReleasePlugin extends BaseScmPlugin {
     @Override
     void init () {
 
-        assert exec( 'bzr', 'plugins' ).readLines().any{ it.startsWith( 'xmloutput' ) } , \
-               'The required xmloutput plugin is not installed in Bazaar, please install it.'
+		  boolean hasXmlPlugin = exec( 'bzr', 'plugins' ).readLines().any{ it.startsWith( 'xmloutput' ) }
+
+        if(!hasXmlPlugin) {
+			  throw new GradleException('The required xmloutput plugin is not installed in Bazaar, please install it.')
+		  }
 
         setConvention( 'BzrReleasePlugin', new BzrReleasePluginConvention())
     }

@@ -19,9 +19,10 @@ configurations {
 }
 
 dependencies {
-   gcontracts 'org.gcontracts:gcontracts-core:1.2.4'
-   compile    gradleApi()
-   groovy     localGroovy()
+   gcontracts	'org.gcontracts:gcontracts-core:1.2.4'
+   compile		gradleApi()
+   groovy		localGroovy()
+	testCompile	'junit:junit:4.8.2'
 }
 
 

@@ -29,7 +29,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
         project.task( 'release', type: GradleBuild ) {
             tasks = [
-                    //  o. (This Plugin) Initializes the corresponding SCM plugin (Git/Bazaar/Svn/Mercurial).
+                    //  0. (This Plugin) Initializes the corresponding SCM plugin (Git/Bazaar/Svn/Mercurial).
                     'initScmPlugin',
                     //  1. (SCM Plugin) Check to see if source needs to be checked in.
                     'checkCommitNeeded',
@@ -39,17 +39,15 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
                     'checkSnapshotDependencies',
                     //  4. (This Plugin) Build && run Unit tests
                     'build',
-                    //  5. (This Plugin) Run any other tasks the user specifies in convention.
-                    releaseConvention().requiredTasks,
-                    //  6. (This Plugin) Update Snapshot version if used
+                    //  5. (This Plugin) Update Snapshot version if used
                     'unSnapshotVersion',
-                    //  7. (This Plugin) Commit Snapshot update (if done)
+                    //  6. (This Plugin) Commit Snapshot update (if done)
                     'preTagCommit',
-                    //  8. (SCM Plugin) Create tag of release.
+                    //  7. (SCM Plugin) Create tag of release.
                     'createReleaseTag',
-                    //  9. (This Plugin) Update version to next version.
+                    //  8. (This Plugin) Update version to next version.
                     'updateVersion',
-                    // 10. (This Plugin) Commit version update.
+                    //  9. (This Plugin) Commit version update.
                     'commitNewVersion'
             ].flatten()
         }
