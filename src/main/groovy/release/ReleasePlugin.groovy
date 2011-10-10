@@ -84,7 +84,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
                 throw new GradleException( message )
             }
             else {
-                project.logger.warn( "WARNING: $message" )
+                log.warn( "WARNING: $message" )
             }
         }
     }

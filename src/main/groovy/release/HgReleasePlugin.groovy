@@ -13,18 +13,18 @@ class HgReleasePlugin extends BaseScmPlugin {
 
 
     void checkCommitNeeded() {
-        project.logger.info( 'checkCommitNeeded' )
+        log.info( 'checkCommitNeeded' )
     }
 
     void checkUpdateNeeded() {
-        project.logger.info( 'checkUpdateNeeded' )
+        log.info( 'checkUpdateNeeded' )
     }
 
     void createReleaseTag() {
-        project.logger.info( 'createReleaseTag' )
+        log.info( 'createReleaseTag' )
     }
 
     void commit ( String message ) {
-        project.logger.info( 'commit' )
+        log.info( 'commit' )
     }
 }

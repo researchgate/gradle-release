@@ -3,6 +3,8 @@ package release
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.Project
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 /**
  * Helper object extended by plugins.
@@ -13,7 +15,20 @@ class PluginHelper {
     private static final String LINE_SEP = System.getProperty( 'line.separator' )
     private static final String PROMPT   = "${LINE_SEP}>"
 
-    protected Project project
+    @SuppressWarnings( 'StatelessClass' )
+    Project project
+
+
+    /**
+     * Retrieves SLF4J {@link Logger} instance.
+     *
+     * The logger is taken from the {@link Project} instance if it's initialized already
+     * or from SLF4J {@link LoggerFactory} if it's not.
+     *
+     * @return   SLF4J {@link Logger} instance
+     */
+    @Ensures({ result })
+    Logger getLog () { project?.logger ?: LoggerFactory.getLogger( this.class ) }
 
 
     /**
@@ -75,19 +90,23 @@ class PluginHelper {
      */
     @Requires({ commands })
     @Ensures({ result != null })
-    String exec ( boolean failOnStderr = true, String ... commands ) {
+    String exec ( boolean failOnStderr = true, Map env = [:], File directory = null, String ... commands ) {
+
         def out     = new StringBuffer()
         def err     = new StringBuffer()
-        def process = ( commands as List ).execute()
+        def process = ( env || directory ) ?
+            ( commands as List ).execute( env.collect{ "$it.key=$it.value" } as String[], directory ) :
+            ( commands as List ).execute()
 
-        project.logger.info( " >>> Running $commands" )
+        log.info( " >>> Running $commands in [$directory.canonicalPath]" )
 
         process.waitForProcessOutput( out, err )
 
-        project.logger.info( " >>> Running $commands: [$out][$err]" )
+        log.info( " >>> Running $commands in [$directory.canonicalPath]: [$out][$err]" )
 
         if ( failOnStderr ) {
-            assert err.length() < 1, "Running $commands produced an stderr output: [$err]"
+            assert err.length() < 1, "Running $commands ${ directory ? 'in ['+ directory.canonicalPath + '] ' : '' }" +
+                                     "produced an stderr output: [$err]"
         }
 
         out.toString()
@@ -107,11 +126,11 @@ class PluginHelper {
         def err     = new StringBuffer()
         def process = commands.execute()
 
-        project.logger.info( " >>> Running $commands" )
+        log.info( " >>> Running $commands" )
 
         process.waitForProcessOutput( out, err )
 
-        project.logger.info( " >>> Running $commands: [$out][$err]" )
+        log.info( " >>> Running $commands: [$out][$err]" )
 
         assert ! [ out, err ]*.toString().any{ String s -> errorPattern.any { s.contains( it ) }}, \
                "$errorMessage - [$out][$err]"

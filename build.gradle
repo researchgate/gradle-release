@@ -19,10 +19,10 @@ configurations {
 }
 
 dependencies {
-   gcontracts	'org.gcontracts:gcontracts-core:1.2.4'
-   compile		gradleApi()
-   groovy		localGroovy()
-	testCompile	'junit:junit:4.8.2'
+    gcontracts	'org.gcontracts:gcontracts-core:1.2.4'
+    compile		gradleApi()
+    groovy		localGroovy()
+    testCompile ( "org.spockframework:spock-core:0.5-groovy-1.7" ) { exclude group: 'org.codehaus.groovy' }
 }
 
 
