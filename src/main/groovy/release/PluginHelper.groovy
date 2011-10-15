@@ -92,23 +92,20 @@ class PluginHelper {
     @Ensures({ result != null })
     String exec ( boolean failOnStderr = true, Map env = [:], File directory = null, String ... commands ) {
 
-        def out     = new StringBuffer()
-        def err     = new StringBuffer()
-        def process = ( env || directory ) ?
+        def out        = new StringBuffer()
+        def err        = new StringBuffer()
+        def logMessage = "Running $commands${ directory ? ' in [' + directory.canonicalPath + ']' : '' }"
+        def process    = ( env || directory ) ?
             ( commands as List ).execute( env.collect{ "$it.key=$it.value" } as String[], directory ) :
             ( commands as List ).execute()
 
-        log.info( " >>> Running $commands in [$directory.canonicalPath]" )
+        log.info( logMessage )
 
         process.waitForProcessOutput( out, err )
 
-        log.info( " >>> Running $commands in [$directory.canonicalPath]: [$out][$err]" )
+        log.info( "$logMessage: [$out][$err]" )
 
-        if ( failOnStderr ) {
-            assert err.length() < 1, "Running $commands ${ directory ? 'in ['+ directory.canonicalPath + '] ' : '' }" +
-                                     "produced an stderr output: [$err]"
-        }
-
+        assert (( err.toString().trim().size() < 1 ) || ( ! failOnStderr )), "$logMessage produced an stderr output: [$err]"
         out.toString()
     }
 
