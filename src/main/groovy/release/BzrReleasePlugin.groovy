@@ -9,88 +9,111 @@ import org.gradle.api.GradleException
  */
 class BzrReleasePlugin extends BaseScmPlugin {
 
-    private static final String ERROR = 'ERROR'
-    private static final String DELIM = '\n  * '
+	private static final String ERROR = 'ERROR'
+	private static final String DELIM = '\n  * '
 
-    @Override
-    void init () {
+	@Override
+	void init() {
 
-		  boolean hasXmlPlugin = exec( 'bzr', 'plugins' ).readLines().any{ it.startsWith( 'xmloutput' ) }
+		boolean hasXmlPlugin = exec('bzr', 'plugins').readLines().any { it.startsWith('xmloutput') }
 
-        if(!hasXmlPlugin) {
-			  throw new GradleException('The required xmloutput plugin is not installed in Bazaar, please install it.')
-		  }
+		if (!hasXmlPlugin) {
+			throw new GradleException('The required xmloutput plugin is not installed in Bazaar, please install it.')
+		}
 
-        setConvention( 'BzrReleasePlugin', new BzrReleasePluginConvention())
-    }
-
-
-    void checkCommitNeeded () {
-        String out   = exec( 'bzr', 'xmlstatus' )
-        def xml      = new XmlSlurper().parseText( out )
-        def added    = xml.added?.size()    ?: 0
-        def modified = xml.modified?.size() ?: 0
-        def removed  = xml.removed?.size()  ?: 0
-        def unknown  = xml.unknown?.size()  ?: 0
-
-        if ( added || modified || removed || unknown ) {
-            def c = { String name -> [ "${ capitalize( name )}:",
-                                       xml."$name".file.collect{ it.text().trim() },
-                                       xml."$name".directory.collect{ it.text().trim() } ].
-                                     flatten().
-                                     join( DELIM ) + '\n'
-            }
-
-            throw new GradleException(
-                'You have un-committed or un-known files:\n' +
-                ( added    ? c( 'added' )    : '' ) +
-                ( modified ? c( 'modified' ) : '' ) +
-                ( removed  ? c( 'removed' )  : '' ) +
-                ( unknown  ? c( 'unknown' )  : '' ))
-
-        }
-    }
+		setConvention('BzrReleasePlugin', new BzrReleasePluginConvention())
+	}
 
 
-    void checkUpdateNeeded () {
-        String out  = exec( 'bzr', 'xmlmissing' )
-        def xml     = new XmlSlurper().parseText( out )
-        int extra   = ( "${xml.extra_revisions?.@size}"   ?: 0 ) as int
-        int missing = ( "${xml.missing_revisions?.@size}" ?: 0 ) as int
+	void checkCommitNeeded() {
+		String out = exec('bzr', 'xmlstatus')
+		def xml = new XmlSlurper().parseText(out)
+		def added = xml.added?.size() ?: 0
+		def modified = xml.modified?.size() ?: 0
+		def removed = xml.removed?.size() ?: 0
+		def unknown = xml.unknown?.size() ?: 0
 
-        //noinspection GroovyUnusedAssignment
-        Closure c   = {
-            int number, String name, String path ->
+		def c = { String name ->
+			["${ capitalize(name)}:",
+					xml."$name".file.collect { it.text().trim() },
+					xml."$name".directory.collect { it.text().trim() }].
+					flatten().
+					join(DELIM) + '\n'
+		}
 
-            [ "You have $number $name changes${ number == 1 ? '' : 's' }:",
-              xml."$path".logs.log.collect{
-                  int cutPosition = 40
-                  String message  = it.message.text()
-                  message         = message.readLines()[0].substring( 0, Math.min( cutPosition, message.size())) +
-                                    ( message.size() > cutPosition ? ' ..' : '' )
-                  "[$it.revno]: [$it.timestamp][$it.committer][$message]"
-              } ].
-            flatten().
-            join( DELIM )
-        }
+		if (unknown) {
+			def message = "You have un-versioned files:\n${c('unknown')}"
+			if (releaseConvention().failOnUnversionedFiles) {
+				throw new GradleException(message)
+			} else {
+				log.warn(message)
+			}
+		} else if (added || modified || removed) {
+			def message = 'You have un-committed files:\n' +
+					(added ? c('added') : '') +
+					(modified ? c('modified') : '') +
+					(removed ? c('removed') : '')
 
-        if ( extra > 0 ) {
-            throw new GradleException( c( extra, 'unpublished', 'extra_revisions' ))
-        }
+			if (releaseConvention().failOnCommitNeeded) {
+				throw new GradleException(message)
+			} else {
+				log.warn(message)
+			}
 
-        if ( missing > 0 ) {
-            throw new GradleException( c( missing, 'missing', 'missing_revisions' ))
-        }
-    }
-
-
-    void createReleaseTag () {
-        exec( [ 'bzr', 'tag', project.properties.version ], 'Error creating tag', ERROR )
-    }
+		}
+	}
 
 
-    void commit( String message ) {
-        exec( ['bzr', 'ci', '-m', message], 'Error committing new version', ERROR )
-        exec( ['bzr', 'push', ':parent'],   'Error committing new version', ERROR )
-    }
+	void checkUpdateNeeded() {
+		String out = exec('bzr', 'xmlmissing')
+		def xml = new XmlSlurper().parseText(out)
+		int extra = ("${xml.extra_revisions?.@size}" ?: 0) as int
+		int missing = ("${xml.missing_revisions?.@size}" ?: 0) as int
+
+		//noinspection GroovyUnusedAssignment
+		Closure c = {
+			int number, String name, String path ->
+
+			["You have $number $name changes${ number == 1 ? '' : 's' }:",
+					xml."$path".logs.log.collect {
+						int cutPosition = 40
+						String message = it.message.text()
+						message = message.readLines()[0].substring(0, Math.min(cutPosition, message.size())) +
+								(message.size() > cutPosition ? ' ..' : '')
+						"[$it.revno]: [$it.timestamp][$it.committer][$message]"
+					}].
+					flatten().
+					join(DELIM)
+		}
+
+		if (extra > 0) {
+			def message = c(extra, 'unpublished', 'extra_revisions')
+			if (releaseConvention().failOnPublishNeeded) {
+				throw new GradleException(message)
+			} else {
+				log.warn(message)
+			}
+		}
+
+		if (missing > 0) {
+			def message = c(missing, 'missing', 'missing_revisions')
+			if (releaseConvention().failOnUpdateNeeded) {
+				throw new GradleException(message)
+			} else {
+				log.warn(message)
+			}
+		}
+	}
+
+
+	void createReleaseTag() {
+		exec(['bzr', 'tag', project.properties.version], 'Error creating tag', ERROR)
+	}
+
+
+	void commit(String message) {
+		exec(['bzr', 'ci', '-m', message], 'Error committing new version', ERROR)
+		exec(['bzr', 'push', ':parent'], 'Error committing new version', ERROR)
+	}
+
 }

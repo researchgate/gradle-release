@@ -9,9 +9,11 @@ import java.util.regex.Matcher
  */
 class ReleasePluginConvention {
 
+	boolean failOnCommitNeeded = true
+	boolean failOnPublishNeeded = true
 	boolean failOnSnapshotDependencies = true
-	boolean failOnUpdateNeeded = true
 	boolean failOnUnversionedFiles = true
+	boolean failOnUpdateNeeded = true
 	String preTagCommitMessage = 'Gradle Release Plugin - pre tag commit: '
 	String newVersionCommitMessage = 'Gradle Release Plugin - new version commit: '
 	def requiredTasks = []
