@@ -62,7 +62,7 @@ class BzrReleasePlugin extends BaseScmPlugin {
         Closure c   = {
             int number, String name, String path ->
 
-            [ "You have $number $name revision${ number == 1 ? '' : 's' }:",
+            [ "You have $number $name changes${ number == 1 ? '' : 's' }:",
               xml."$path".logs.log.collect{
                   int cutPosition = 40
                   String message  = it.message.text()

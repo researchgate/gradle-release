@@ -2,10 +2,10 @@ apply plugin: 'groovy'
 apply plugin: 'idea'
 
 // Run "gradle installPlugin"
-apply plugin: release.ReleasePlugin
-
-codenarcRuleSetFiles = [ 'codenarc.groovy' ]
-apply from: 'https://raw.github.com/evgeny-goldin/gradle-plugins/master/src/main/groovy/CodeNarc.gradle'
+//apply plugin: release.ReleasePlugin
+apply from: './installation/apply-local.groovy'
+//codenarcRuleSetFiles = [ 'codenarc.groovy' ]
+//apply from: 'https://raw.github.com/evgeny-goldin/gradle-plugins/master/src/main/groovy/CodeNarc.gradle'
 
 
 group = 'gradle-release'
@@ -19,10 +19,10 @@ configurations {
 }
 
 dependencies {
-    gcontracts	'org.gcontracts:gcontracts-core:1.2.4'
+    //gcontracts	'org.gcontracts:gcontracts-core:1.2.4'
     compile		gradleApi()
     groovy		localGroovy()
-    testCompile ( "org.spockframework:spock-core:0.5-groovy-1.7" ) { exclude group: 'org.codehaus.groovy' }
+    //testCompile ( "org.spockframework:spock-core:0.5-groovy-1.7" ) { exclude group: 'org.codehaus.groovy' }
 }
 
 

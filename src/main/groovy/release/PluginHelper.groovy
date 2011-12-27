@@ -1,7 +1,7 @@
 package release
 
-import org.gcontracts.annotations.Ensures
-import org.gcontracts.annotations.Requires
+//import org.gcontracts.annotations.Ensures
+//import org.gcontracts.annotations.Requires
 import org.gradle.api.Project
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -27,7 +27,7 @@ class PluginHelper {
      *
      * @return   SLF4J {@link Logger} instance
      */
-    @Ensures({ result })
+    //@Ensures({ result })
     Logger getLog () { project?.logger ?: LoggerFactory.getLogger( this.class ) }
 
 
@@ -37,7 +37,7 @@ class PluginHelper {
      * @param pluginName name of the plugin
      * @param convention convention object to set
      */
-    @Requires({ pluginName && convention })
+    //@Requires({ pluginName && convention })
     void setConvention( String pluginName, Object convention ) {
         project.convention.plugins[ pluginName ] = convention
     }
@@ -52,8 +52,8 @@ class PluginHelper {
     * @return               plugin convention of the type specified
     */
     @SuppressWarnings( 'UnnecessaryPublicModifier' )
-    @Requires({ project && pluginName && conventionType })
-    @Ensures({ conventionType.isInstance( result ) })
+    //@Requires({ project && pluginName && conventionType })
+    //@Ensures({ conventionType.isInstance( result ) })
     public <T> T convention( String pluginName, Class<T> conventionType ) {
 
         Object convention = project.convention.plugins[ pluginName ]
@@ -75,7 +75,7 @@ class PluginHelper {
      * @param project current Gradle project
      * @return        current {@link ReleasePluginConvention}.
      */
-    @Ensures({ result })
+    //@Ensures({ result })
     ReleasePluginConvention releaseConvention() {
         convention( 'release', ReleasePluginConvention )
     }
@@ -88,8 +88,8 @@ class PluginHelper {
      * @param commands     commands to execute
      * @return command "stdout" output
      */
-    @Requires({ commands })
-    @Ensures({ result != null })
+    //@Requires({ commands })
+    //@Ensures({ result != null })
     String exec ( boolean failOnStderr = true, Map env = [:], File directory = null, String ... commands ) {
 
         def out        = new StringBuffer()
@@ -117,7 +117,7 @@ class PluginHelper {
      * @param errorMessage error message to throw
      * @param errorPattern error pattern to look for
      */
-    @Requires({ commands && errorMessage && errorPattern })
+    //@Requires({ commands && errorMessage && errorPattern })
     void exec( List<String> commands, String errorMessage, String ... errorPattern ) {
         def out     = new StringBuffer()
         def err     = new StringBuffer()
@@ -140,8 +140,8 @@ class PluginHelper {
      * @param s String to capitalize
      * @return String specified with first letter capitalized
      */
-    @Requires({ s })
-    @Ensures({ Character.isUpperCase( result[ 0 ] as char ) })
+    //@Requires({ s })
+    //@Ensures({ Character.isUpperCase( result[ 0 ] as char ) })
     String capitalize( String s ) {
         s[ 0 ].toUpperCase() + ( s.size() > 1 ? s[ 1 .. -1 ] : '' )
     }
@@ -154,7 +154,7 @@ class PluginHelper {
      * @param defaultValue (optional) default value to display
      * @return             User input entered or default value if user enters no data
      */
-    @Requires({ message })
+    //@Requires({ message })
     String readLine ( String message, String defaultValue = null ) {
         System.console().readLine( "$PROMPT $message " + ( defaultValue ? "[$defaultValue] " : '' )) ?:
         defaultValue
@@ -167,7 +167,7 @@ class PluginHelper {
      * @param project    current project
      * @param newVersion new version to store in the file
      */
-    @Requires({ newVersion })
+    //@Requires({ newVersion })
     void updateVersionProperty( String newVersion ) {
 
         project.version             = newVersion

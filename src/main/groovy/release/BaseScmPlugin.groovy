@@ -1,6 +1,6 @@
 package release
 
-import org.gcontracts.annotations.Requires
+//import org.gcontracts.annotations.Requires
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
@@ -11,7 +11,7 @@ import org.gradle.api.Project
  */
 abstract class BaseScmPlugin extends PluginHelper implements Plugin<Project> {
 
-    @Requires({ project })
+    //@Requires({ project })
     final void apply( Project project ) {
 
         this.project = project
@@ -26,6 +26,6 @@ abstract class BaseScmPlugin extends PluginHelper implements Plugin<Project> {
     abstract void checkUpdateNeeded()
     abstract void createReleaseTag ()
 
-    @Requires({ message })
+    //@Requires({ message })
     abstract void commit ( String message  )
 }

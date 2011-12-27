@@ -1,8 +1,8 @@
 package release
 
 import java.util.regex.Matcher
-import org.gcontracts.annotations.Ensures
-import org.gcontracts.annotations.Requires
+//import org.gcontracts.annotations.Ensures
+//import org.gcontracts.annotations.Requires
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -19,7 +19,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
     private BaseScmPlugin scmPlugin
 
 
-    @Requires({ project })
+    //@Requires({ project })
     void apply( Project project ) {
 
         this.project = project
@@ -161,7 +161,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
      * Looks for special directories in the project folder, then applies the correct SCM Release Plugin for the SCM type.
      * @param project
      */
-    @Ensures({ result instanceof BaseScmPlugin })
+    //@Ensures({ result instanceof BaseScmPlugin })
     private BaseScmPlugin applyScmPlugin() {
 
         Class c = ( Class ) project.rootProject.projectDir.list().with {
