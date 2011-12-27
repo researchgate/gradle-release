@@ -12,51 +12,57 @@ group = 'gradle-release'
 
 defaultTasks 'clean', 'build'
 
+repositories {
+	mavenCentral()
+	mavenRepo urls: "http://m2repo.spockframework.org/snapshots"
+}
+
 
 configurations {
-    gcontracts
-    compile { extendsFrom gcontracts }
+	gcontracts
+	compile { extendsFrom gcontracts }
 }
 
 dependencies {
-    //gcontracts	'org.gcontracts:gcontracts-core:1.2.4'
-    compile		gradleApi()
-    groovy		localGroovy()
-    //testCompile ( "org.spockframework:spock-core:0.5-groovy-1.7" ) { exclude group: 'org.codehaus.groovy' }
+	//gcontracts	'org.gcontracts:gcontracts-core:1.2.4'
+	compile gradleApi()
+	groovy localGroovy()
+	testCompile("org.spockframework:spock-core:0.5-groovy-1.8") { exclude group: 'org.codehaus.groovy' }
+	testCompile "junit:junit:4.8.1"
 }
 
 
-task( 'unversionedJar', type: Jar, dependsOn: 'jar' ) {
-    version = null
-    from sourceSets.main.classes
+task('unversionedJar', type: Jar, dependsOn: 'jar') {
+	version = null
+	from sourceSets.main.classes
 }
 
-def     installedJar   = file( "${gradle.gradleHomeDir.canonicalPath}/lib/plugins/${unversionedJar.archiveName}" )
-Closure isGContracts   = { it.name.contains( 'gcontracts' ) }
-def     findGContracts = { installedJar.parentFile.listFiles().findAll( isGContracts ) }
+def installedJar = file("${gradle.gradleHomeDir.canonicalPath}/lib/plugins/${unversionedJar.archiveName}")
+Closure isGContracts = { it.name.contains('gcontracts') }
+def findGContracts = { installedJar.parentFile.listFiles().findAll(isGContracts) }
 
 
-task( 'uninstallPlugin' ) {
-    group       = 'installation'
-    description = 'Removes the plugin from your gradle distribution.'
-    doLast {
-        delete( installedJar, *findGContracts()) // May not delete, causing following assert to fail
-        assert ! ( installedJar.file || findGContracts())
-        println "[$installedJar] deleted"
-    }
+task('uninstallPlugin') {
+	group = 'installation'
+	description = 'Removes the plugin from your gradle distribution.'
+	doLast {
+		delete(installedJar, * findGContracts()) // May not delete, causing following assert to fail
+		assert !(installedJar.file || findGContracts())
+		println "[$installedJar] deleted"
+	}
 }
 
-task( 'installPlugin', type: Copy, dependsOn: [ unversionedJar, uninstallPlugin ] ) {
-    group       = 'installation'
-    description = 'Installs the plugin jar in your gradle distribution.'
-    from unversionedJar.archivePath
-    into installedJar.parentFile
-    doLast {
-        copy {
-            from configurations.gcontracts.files.findAll( isGContracts )
-            into installedJar.parentFile
-        }
-        assert installedJar.file && findGContracts()
-        println "Plugin installed as [$installedJar]"
-    }
+task('installPlugin', type: Copy, dependsOn: [unversionedJar, uninstallPlugin]) {
+	group = 'installation'
+	description = 'Installs the plugin jar in your gradle distribution.'
+	from unversionedJar.archivePath
+	into installedJar.parentFile
+	doLast {
+		copy {
+			from configurations.gcontracts.files.findAll(isGContracts)
+			into installedJar.parentFile
+		}
+		assert installedJar.file && findGContracts()
+		println "Plugin installed as [$installedJar]"
+	}
 }
