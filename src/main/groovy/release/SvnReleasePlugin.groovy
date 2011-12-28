@@ -22,33 +22,23 @@ class SvnReleasePlugin extends BaseScmPlugin {
 
 	void checkCommitNeeded() {
 		String out = exec('svn', 'status')
-		def changes = 0
-		def unknown = 0
+		def changes = []
+		def unknown = []
 		out.eachLine { line ->
 			switch (line?.trim()?.charAt(0)) {
 				case '?':
-					unknown++
+					unknown << line
 					break
 				default:
-					changes++
+					changes << line
 					break
 			}
 		}
 		if (changes) {
-			def message = "You have ${changes} un-commited changes."
-			if (releaseConvention().failOnCommitNeeded) {
-				throw new GradleException(message)
-			} else {
-				log.warn(message)
-			}
+			warnOrThrow(releaseConvention().failOnCommitNeeded, "You have ${changes.size()} un-commited changes.")
 		}
 		if (unknown) {
-			def message = "You have ${unknown} un-versioned files."
-			if (releaseConvention().failOnUnversionedFiles) {
-				throw new GradleException(message)
-			} else {
-				log.warn(message)
-			}
+			warnOrThrow(releaseConvention().failOnUnversionedFiles, "You have ${unknown.size()} un-versioned files.")
 		}
 	}
 
@@ -56,21 +46,16 @@ class SvnReleasePlugin extends BaseScmPlugin {
 	void checkUpdateNeeded() {
 		// svn status -q -u
 		String out = exec('svn', 'status', '-q', '-u')
-		def missing = 0
+		def missing = []
 		out.eachLine { line ->
 			switch (line?.trim()?.charAt(0)) {
 				case '*':
-					missing++
+					missing << line
 					break
 			}
 		}
 		if (missing) {
-			def message = "You are missing $missing changes."
-			if (releaseConvention().failOnUpdateNeeded) {
-				throw new GradleException(message)
-			} else {
-				log.warn(message)
-			}
+			warnOrThrow(releaseConvention().failOnUpdateNeeded, "You are missing ${missing.size()} changes.")
 		}
 	}
 

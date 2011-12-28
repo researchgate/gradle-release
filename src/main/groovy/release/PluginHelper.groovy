@@ -177,4 +177,12 @@ class PluginHelper {
 			gradleProps.store(it, "Version updated to '${newVersion}', by Gradle release plugin (http://code.launchpad.net/~gradle-plugins/gradle-release/).")
 		}
 	}
+
+	void warnOrThrow(boolean doThrow, String message) {
+		if(doThrow) {
+			throw new GradleException(message)
+		} else {
+			log.warn(message)
+		}
+	}
 }

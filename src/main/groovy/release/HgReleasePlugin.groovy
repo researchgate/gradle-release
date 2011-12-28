@@ -1,7 +1,5 @@
 package release
 
-import org.gradle.api.GradleException
-
 /**
  * @author elberry
  * @author evgenyg
@@ -23,12 +21,7 @@ class HgReleasePlugin extends BaseScmPlugin {
 			if (mods) mods << line
 		}
 		if (modifications['?']) {
-			def message = "You have ${modifications['?'].size()} un-versioned files."
-			if (releaseConvention().failOnUnversionedFiles) {
-				throw new GradleException(message)
-			} else {
-				log.warn(message)
-			}
+			warnOrThrow(releaseConvention().failOnUnversionedFiles, "You have ${modifications['?'].size()} un-versioned files.")
 		}
 		if (modifications.count { k, v -> v }) {
 			def c = { count, label ->
@@ -36,11 +29,7 @@ class HgReleasePlugin extends BaseScmPlugin {
 			}
 			def message = "You have " + c(modifications["A"].size(), "added") + c(modifications["M"].size(), "modified") +
 					c(modifications["R"].size(), "removed")
-			if (releaseConvention().failOnCommitNeeded) {
-				throw new GradleException(message)
-			} else {
-				log.warn(message)
-			}
+			warnOrThrow(releaseConvention().failOnCommitNeeded, message)
 		}
 	}
 
@@ -53,20 +42,10 @@ class HgReleasePlugin extends BaseScmPlugin {
 			modifications["out"] << line
 		}
 		if (modifications["in"]) {
-			def message = "You have ${modifications["in"].size()} incoming changes"
-			if (releaseConvention().failOnUpdateNeeded) {
-				throw new GradleException(message)
-			} else {
-				log.warn(message)
-			}
+			warnOrThrow(releaseConvention().failOnUpdateNeeded, "You have ${modifications["in"].size()} incoming changes")
 		}
 		if (modifications["out"]) {
-			def message = "You have ${modifications["out"].size()} outgoing changes"
-			if (releaseConvention().failOnPublishNeeded) {
-				throw new GradleException(message)
-			} else {
-				log.warn(message)
-			}
+			warnOrThrow(releaseConvention().failOnPublishNeeded, "You have ${modifications["out"].size()} outgoing changes")
 		}
 	}
 

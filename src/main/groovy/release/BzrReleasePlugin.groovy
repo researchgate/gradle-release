@@ -42,24 +42,13 @@ class BzrReleasePlugin extends BaseScmPlugin {
 		}
 
 		if (unknown) {
-			def message = "You have un-versioned files:\n${c('unknown')}"
-			if (releaseConvention().failOnUnversionedFiles) {
-				throw new GradleException(message)
-			} else {
-				log.warn(message)
-			}
+			warnOrThrow(releaseConvention().failOnUnversionedFiles, "You have un-versioned files:\n${c('unknown')}")
 		} else if (added || modified || removed) {
 			def message = 'You have un-committed files:\n' +
 					(added ? c('added') : '') +
 					(modified ? c('modified') : '') +
 					(removed ? c('removed') : '')
-
-			if (releaseConvention().failOnCommitNeeded) {
-				throw new GradleException(message)
-			} else {
-				log.warn(message)
-			}
-
+			warnOrThrow(releaseConvention().failOnCommitNeeded, message)
 		}
 	}
 
@@ -87,21 +76,11 @@ class BzrReleasePlugin extends BaseScmPlugin {
 		}
 
 		if (extra > 0) {
-			def message = c(extra, 'unpublished', 'extra_revisions')
-			if (releaseConvention().failOnPublishNeeded) {
-				throw new GradleException(message)
-			} else {
-				log.warn(message)
-			}
+			warnOrThrow(releaseConvention().failOnPublishNeeded, c(extra, 'unpublished', 'extra_revisions'))
 		}
 
 		if (missing > 0) {
-			def message = c(missing, 'missing', 'missing_revisions')
-			if (releaseConvention().failOnUpdateNeeded) {
-				throw new GradleException(message)
-			} else {
-				log.warn(message)
-			}
+			warnOrThrow(releaseConvention().failOnUpdateNeeded, c(missing, 'missing', 'missing_revisions'))
 		}
 	}
 
