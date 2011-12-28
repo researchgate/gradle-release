@@ -2,6 +2,9 @@ package release
 
 //import org.gcontracts.annotations.Ensures
 //import org.gcontracts.annotations.Requires
+
+
+import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -12,174 +15,166 @@ import org.slf4j.LoggerFactory
  */
 class PluginHelper {
 
-    private static final String LINE_SEP = System.getProperty( 'line.separator' )
-    private static final String PROMPT   = "${LINE_SEP}>"
+	private static final String LINE_SEP = System.getProperty('line.separator')
+	private static final String PROMPT = "${LINE_SEP}>"
 
-    @SuppressWarnings( 'StatelessClass' )
-    Project project
+	@SuppressWarnings('StatelessClass')
+	Project project
 
+	/**
+	 * Retrieves SLF4J {@link Logger} instance.
+	 *
+	 * The logger is taken from the {@link Project} instance if it's initialized already
+	 * or from SLF4J {@link LoggerFactory} if it's not.
+	 *
+	 * @return SLF4J {@link Logger} instance
+	 */
+	//@Ensures({ result })
+	Logger getLog() { project?.logger ?: LoggerFactory.getLogger(this.class) }
 
-    /**
-     * Retrieves SLF4J {@link Logger} instance.
-     *
-     * The logger is taken from the {@link Project} instance if it's initialized already
-     * or from SLF4J {@link LoggerFactory} if it's not.
-     *
-     * @return   SLF4J {@link Logger} instance
-     */
-    //@Ensures({ result })
-    Logger getLog () { project?.logger ?: LoggerFactory.getLogger( this.class ) }
+	/**
+	 * Sets convention specified under the plugin name provided.
+	 *
+	 * @param pluginName name of the plugin
+	 * @param convention convention object to set
+	 */
+	//@Requires({ pluginName && convention })
+	void setConvention(String pluginName, Object convention) {
+		project.convention.plugins[pluginName] = convention
+	}
 
+	/**
+	 * Retrieves plugin convention of the type specified.
+	 *
+	 * @param project current Gradle project
+	 * @param pluginName plugin name
+	 * @param conventionType convention type
+	 * @return plugin convention of the type specified
+	 */
+	@SuppressWarnings('UnnecessaryPublicModifier')
+	//@Requires({ project && pluginName && conventionType })
+	//@Ensures({ conventionType.isInstance( result ) })
+	public <T> T convention(String pluginName, Class<T> conventionType) {
 
-    /**
-     * Sets convention specified under the plugin name provided.
-     *
-     * @param pluginName name of the plugin
-     * @param convention convention object to set
-     */
-    //@Requires({ pluginName && convention })
-    void setConvention( String pluginName, Object convention ) {
-        project.convention.plugins[ pluginName ] = convention
-    }
+		Object convention = project.convention.plugins[pluginName]
 
+		assert convention,   \
+                 "Current project contains no \"$pluginName\" plugin convention"
 
-   /**
-    * Retrieves plugin convention of the type specified.
-    *
-    * @param project        current Gradle project
-    * @param pluginName     plugin name
-    * @param conventionType convention type
-    * @return               plugin convention of the type specified
-    */
-    @SuppressWarnings( 'UnnecessaryPublicModifier' )
-    //@Requires({ project && pluginName && conventionType })
-    //@Ensures({ conventionType.isInstance( result ) })
-    public <T> T convention( String pluginName, Class<T> conventionType ) {
+		assert conventionType.isInstance(convention),   \
+                 "Current project contains \"$pluginName\" plugin convention, " +
+				"but it's of type [${ convention.class.name }] rather than expected [${ conventionType.name }]"
 
-        Object convention = project.convention.plugins[ pluginName ]
+		(T) convention
+	}
 
-        assert convention, \
-               "Current project contains no \"$pluginName\" plugin convention"
+	/**
+	 * Gets current {@link ReleasePluginConvention}.
+	 *
+	 * @param project current Gradle project
+	 * @return current {@link ReleasePluginConvention}.
+	 */
+	//@Ensures({ result })
+	ReleasePluginConvention releaseConvention() {
+		convention('release', ReleasePluginConvention)
+	}
 
-        assert conventionType.isInstance( convention ), \
-               "Current project contains \"$pluginName\" plugin convention, " +
-               "but it's of type [${ convention.class.name }] rather than expected [${ conventionType.name }]"
+	/**
+	 * Executes command specified and retrieves its "stdout" output.
+	 *
+	 * @param failOnStderr whether execution should fail if there's any "stderr" output produced, "true" by default.
+	 * @param commands commands to execute
+	 * @return command "stdout" output
+	 */
+	String exec(boolean failOnStderr = true, Map env = [:], File directory = null, String... commands) {
 
-        ( T ) convention
-    }
+		def out = new StringBuffer()
+		def err = new StringBuffer()
+		def logMessage = "Running \"${commands.join(' ')}\"${ directory ? ' in [' + directory.canonicalPath + ']' : '' }"
+		def process = (env || directory) ?
+			(commands as List).execute(env.collect { "$it.key=$it.value" } as String[], directory) :
+			(commands as List).execute()
 
+		log.info(logMessage)
 
-    /**
-     * Gets current {@link ReleasePluginConvention}.
-     *
-     * @param project current Gradle project
-     * @return        current {@link ReleasePluginConvention}.
-     */
-    //@Ensures({ result })
-    ReleasePluginConvention releaseConvention() {
-        convention( 'release', ReleasePluginConvention )
-    }
+		process.waitForProcessOutput(out, err)
 
+		log.info("$logMessage: [$out][$err]")
 
-    /**
-     * Executes command specified and retrieves its "stdout" output.
-     *
-     * @param failOnStderr whether execution should fail if there's any "stderr" output produced, "true" by default.
-     * @param commands     commands to execute
-     * @return command "stdout" output
-     */
-    //@Requires({ commands })
-    //@Ensures({ result != null })
-    String exec ( boolean failOnStderr = true, Map env = [:], File directory = null, String ... commands ) {
+		if (err.toString()) {
+			def message = "$logMessage produced an error: [${err.toString().trim()}]"
+			if (failOnStderr) {
+				throw new GradleException(message)
+			} else {
+				log.warn(message)
+			}
+		}
+		out.toString()
+	}
 
-        def out        = new StringBuffer()
-        def err        = new StringBuffer()
-        def logMessage = "Running $commands${ directory ? ' in [' + directory.canonicalPath + ']' : '' }"
-        def process    = ( env || directory ) ?
-            ( commands as List ).execute( env.collect{ "$it.key=$it.value" } as String[], directory ) :
-            ( commands as List ).execute()
+	/**
+	 * Executes command specified and verifies neither "stdout" or "stderr" contain an error pattern specified.
+	 *
+	 * @param commands commands to execute
+	 * @param errorMessage error message to throw
+	 * @param errorPattern error pattern to look for
+	 */
+	void exec(List<String> commands, String errorMessage, String... errorPattern) {
+		def out = new StringBuffer()
+		def err = new StringBuffer()
+		def process = commands.execute()
 
-        log.info( logMessage )
+		log.info(" >>> Running $commands")
 
-        process.waitForProcessOutput( out, err )
+		process.waitForProcessOutput(out, err)
 
-        log.info( "$logMessage: [$out][$err]" )
+		log.info(" >>> Running $commands: [$out][$err]")
 
-        assert (( err.toString().trim().size() < 1 ) || ( ! failOnStderr )), "$logMessage produced an stderr output: [$err]"
-        out.toString()
-    }
+		if ([out, err]*.toString().any { String s -> errorPattern.any { s.contains(it) }}) {
+			throw new GradleException("$errorMessage - [$out][$err]")
+		}
+	}
 
+	/**
+	 * Capitalizes first letter of the String specified.
+	 *
+	 * @param s String to capitalize
+	 * @return String specified with first letter capitalized
+	 */
+	String capitalize(String s) {
+		s[0].toUpperCase() + (s.size() > 1 ? s[1..-1] : '')
+	}
 
-    /**
-     * Executes command specified and verifies neither "stdout" or "stderr" contain an error pattern specified.
-     *
-     * @param commands     commands to execute
-     * @param errorMessage error message to throw
-     * @param errorPattern error pattern to look for
-     */
-    //@Requires({ commands && errorMessage && errorPattern })
-    void exec( List<String> commands, String errorMessage, String ... errorPattern ) {
-        def out     = new StringBuffer()
-        def err     = new StringBuffer()
-        def process = commands.execute()
+	/**
+	 * Reads user input from the console.
+	 *
+	 * @param message Message to display
+	 * @param defaultValue (optional) default value to display
+	 * @return User input entered or default value if user enters no data
+	 */
+	String readLine(String message, String defaultValue = null) {
+		System.console().readLine("$PROMPT $message " + (defaultValue ? "[$defaultValue] " : '')) ?:
+			defaultValue
+	}
 
-        log.info( " >>> Running $commands" )
+	/**
+	 * Updates 'gradle.properties' file with new version specified.
+	 *
+	 * @param project current project
+	 * @param newVersion new version to store in the file
+	 */
+	void updateVersionProperty(String newVersion) {
 
-        process.waitForProcessOutput( out, err )
+		project.version = newVersion
+		File propertiesFile = project.file('gradle.properties')
+		assert propertiesFile.file, "[$propertiesFile.canonicalPath] wasn't found, can't update it"
 
-        log.info( " >>> Running $commands: [$out][$err]" )
+		Properties gradleProps = new Properties()
+		propertiesFile.withReader { gradleProps.load(it) }
 
-        assert ! [ out, err ]*.toString().any{ String s -> errorPattern.any { s.contains( it ) }}, \
-               "$errorMessage - [$out][$err]"
-    }
-
-
-    /**
-     * Capitalizes first letter of the String specified.
-     *
-     * @param s String to capitalize
-     * @return String specified with first letter capitalized
-     */
-    //@Requires({ s })
-    //@Ensures({ Character.isUpperCase( result[ 0 ] as char ) })
-    String capitalize( String s ) {
-        s[ 0 ].toUpperCase() + ( s.size() > 1 ? s[ 1 .. -1 ] : '' )
-    }
-
-
-    /**
-     * Reads user input from the console.
-     *
-     * @param message      Message to display
-     * @param defaultValue (optional) default value to display
-     * @return             User input entered or default value if user enters no data
-     */
-    //@Requires({ message })
-    String readLine ( String message, String defaultValue = null ) {
-        System.console().readLine( "$PROMPT $message " + ( defaultValue ? "[$defaultValue] " : '' )) ?:
-        defaultValue
-    }
-
-
-    /**
-     * Updates 'gradle.properties' file with new version specified.
-     *
-     * @param project    current project
-     * @param newVersion new version to store in the file
-     */
-    //@Requires({ newVersion })
-    void updateVersionProperty( String newVersion ) {
-
-        project.version             = newVersion
-        File       propertiesFile   = project.file( 'gradle.properties' )
-        assert propertiesFile.file, "[$propertiesFile.canonicalPath] wasn't found, can't update it"
-
-        Properties gradleProps = new Properties()
-        propertiesFile.withReader { gradleProps.load( it ) }
-
-        gradleProps.version = newVersion
-        propertiesFile.withWriter {
-            gradleProps.store( it, "Version updated to '${newVersion}', by Gradle release plugin (http://code.launchpad.net/~gradle-plugins/gradle-release/)." )
-        }
-    }
+		gradleProps.version = newVersion
+		propertiesFile.withWriter {
+			gradleProps.store(it, "Version updated to '${newVersion}', by Gradle release plugin (http://code.launchpad.net/~gradle-plugins/gradle-release/).")
+		}
+	}
 }

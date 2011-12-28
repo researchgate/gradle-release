@@ -1,12 +1,17 @@
 buildscript {
 	repositories {
 		ivy {
+			def releaseDir = project.hasProperty("gradle.release.dir") ?
+				project.getProperty("gradle.release.dir") :
+				System.properties['user.dir']
 			name = 'gradle_release'
-			artifactPattern "${System.properties['user.dir']}/build/libs/[artifact]-[revision].jar"
+			artifactPattern "${releaseDir}/build/libs/[artifact]-[revision].jar"
 		}
 	}
 	dependencies {
-		classpath "gradle-release:gradle-release:${project.version}"
+		def releaseVersion = project.hasProperty("gradle.release.ver") ?
+			project.getProperty("gradle.release.ver") : project.version
+		classpath "gradle-release:gradle-release:${releaseVersion}"
 	}
 }
 // Check to make sure release.ReleasePlugin isn't already added.
