@@ -1,9 +1,5 @@
 package release
 
-//import org.gcontracts.annotations.Ensures
-//import org.gcontracts.annotations.Requires
-
-
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.slf4j.Logger
@@ -29,7 +25,6 @@ class PluginHelper {
 	 *
 	 * @return SLF4J {@link Logger} instance
 	 */
-	//@Ensures({ result })
 	Logger getLog() { project?.logger ?: LoggerFactory.getLogger(this.class) }
 
 	/**
@@ -38,7 +33,6 @@ class PluginHelper {
 	 * @param pluginName name of the plugin
 	 * @param convention convention object to set
 	 */
-	//@Requires({ pluginName && convention })
 	void setConvention(String pluginName, Object convention) {
 		project.convention.plugins[pluginName] = convention
 	}
@@ -52,17 +46,15 @@ class PluginHelper {
 	 * @return plugin convention of the type specified
 	 */
 	@SuppressWarnings('UnnecessaryPublicModifier')
-	//@Requires({ project && pluginName && conventionType })
-	//@Ensures({ conventionType.isInstance( result ) })
 	public <T> T convention(String pluginName, Class<T> conventionType) {
 
 		Object convention = project.convention.plugins[pluginName]
 
-		assert convention,   \
-                 "Current project contains no \"$pluginName\" plugin convention"
+		assert convention,    \
+                  "Current project contains no \"$pluginName\" plugin convention"
 
-		assert conventionType.isInstance(convention),   \
-                 "Current project contains \"$pluginName\" plugin convention, " +
+		assert conventionType.isInstance(convention),    \
+                  "Current project contains \"$pluginName\" plugin convention, " +
 				"but it's of type [${ convention.class.name }] rather than expected [${ conventionType.name }]"
 
 		(T) convention
@@ -74,7 +66,6 @@ class PluginHelper {
 	 * @param project current Gradle project
 	 * @return current {@link ReleasePluginConvention}.
 	 */
-	//@Ensures({ result })
 	ReleasePluginConvention releaseConvention() {
 		convention('release', ReleasePluginConvention)
 	}
@@ -179,7 +170,7 @@ class PluginHelper {
 	}
 
 	void warnOrThrow(boolean doThrow, String message) {
-		if(doThrow) {
+		if (doThrow) {
 			throw new GradleException(message)
 		} else {
 			log.warn(message)

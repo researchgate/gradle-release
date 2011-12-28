@@ -1,9 +1,5 @@
 package release
 
-//import org.gcontracts.annotations.Ensures
-//import org.gcontracts.annotations.Requires
-
-
 import java.util.regex.Matcher
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
@@ -20,7 +16,6 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
 	private BaseScmPlugin scmPlugin
 
-	//@Requires({ project })
 	void apply(Project project) {
 
 		this.project = project
@@ -28,7 +23,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 		setConvention('release', new ReleasePluginConvention())
 		this.scmPlugin = applyScmPlugin()
 
-		project.task('release', description: "Verify project, release, and update version to next.",type: GradleBuild) {
+		project.task('release', description: "Verify project, release, and update version to next.", type: GradleBuild) {
 			tasks = [
 					//  0. (This Plugin) Initializes the corresponding SCM plugin (Git/Bazaar/Svn/Mercurial).
 					'initScmPlugin',
@@ -152,8 +147,8 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 		propertiesFile.withReader { properties.load(it) }
 
 		assert properties.version, "[$propertiesFile.canonicalPath] contains no 'version' property"
-		assert releaseConvention().versionPatterns.keySet().any { (properties.version =~ it).find() },   \
-                 "[$propertiesFile.canonicalPath] version [$properties.version] doesn't match any of known version patterns: " +
+		assert releaseConvention().versionPatterns.keySet().any { (properties.version =~ it).find() },     \
+                   "[$propertiesFile.canonicalPath] version [$properties.version] doesn't match any of known version patterns: " +
 				releaseConvention().versionPatterns.keySet()
 	}
 
@@ -161,7 +156,6 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 	 * Looks for special directories in the project folder, then applies the correct SCM Release Plugin for the SCM type.
 	 * @param project
 	 */
-	//@Ensures({ result instanceof BaseScmPlugin })
 	private BaseScmPlugin applyScmPlugin() {
 
 		Class c = (Class) project.rootProject.projectDir.list().with {
