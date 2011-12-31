@@ -13,6 +13,7 @@ import org.gradle.api.Project
 class BzrReleasePluginTests extends AbstractReleasePluginTests {
 
 	@Override
+    @SuppressWarnings( 'GetterMethodCouldBeProperty' )
 	Class<? extends Plugin<Project>> getPluginClass() { BzrReleasePlugin }
 
 	@Override

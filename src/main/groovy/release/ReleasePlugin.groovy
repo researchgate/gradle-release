@@ -14,6 +14,7 @@ import org.gradle.api.tasks.GradleBuild
  */
 class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
+    @SuppressWarnings( 'StatelessClass' )
 	private BaseScmPlugin scmPlugin
 
 	void apply(Project project) {
@@ -23,7 +24,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 		setConvention('release', new ReleasePluginConvention())
 		this.scmPlugin = applyScmPlugin()
 
-		project.task('release', description: "Verify project, release, and update version to next.", type: GradleBuild) {
+		project.task('release', description: 'Verify project, release, and update version to next.', type: GradleBuild) {
 			tasks = [
 					//  0. (This Plugin) Initializes the corresponding SCM plugin (Git/Bazaar/Svn/Mercurial).
 					'initScmPlugin',
@@ -48,12 +49,18 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 			].flatten()
 		}
 
-		project.task('initScmPlugin', description: "Initializes the SCM plugin (based on hidden directories in your project's directory)") << this.&initScmPlugin
-		project.task('checkSnapshotDependencies', description: "Checks to see if your project has any SNAPSHOT dependencies.") << this.&checkSnapshotDependencies
-		project.task('unSnapshotVersion', description: "Removes \"-SNAPSHOT\" from your project's current version.") << this.&unSnapshotVersion
-		project.task('preTagCommit', description: "Commits any changes made by the Release plugin - eg. If the unSnapshotVersion tas was executed") << this.&preTagCommit
-		project.task('updateVersion', description: "Prompts user for the next version. Does it's best to supply a smart default.") << this.&updateVersion
-		project.task('commitNewVersion', description: "Commits the version update to your SCM") << this.&commitNewVersion
+		project.task( 'initScmPlugin',
+                      description: 'Initializes the SCM plugin (based on hidden directories in your project\'s directory)') << this.&initScmPlugin
+		project.task( 'checkSnapshotDependencies',
+                      description: 'Checks to see if your project has any SNAPSHOT dependencies.') << this.&checkSnapshotDependencies
+		project.task( 'unSnapshotVersion',
+                      description: 'Removes "-SNAPSHOT" from your project\'s current version.') << this.&unSnapshotVersion
+		project.task( 'preTagCommit',
+                      description: 'Commits any changes made by the Release plugin - eg. If the unSnapshotVersion tas was executed') << this.&preTagCommit
+		project.task( 'updateVersion',
+                      description: 'Prompts user for the next version. Does it\'s best to supply a smart default.') << this.&updateVersion
+		project.task( 'commitNewVersion',
+                      description: 'Commits the version update to your SCM') << this.&commitNewVersion
 	}
 
 
@@ -112,7 +119,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 		def version = project.version.toString()
 		Map<String, Closure> patterns = releaseConvention().versionPatterns
 
-		for (Map.Entry<String, Closure> entry in patterns) {
+		for ( entry in patterns ) {
 
 			String pattern = entry.key
 			//noinspection GroovyUnusedAssignment
