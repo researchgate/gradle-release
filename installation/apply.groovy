@@ -2,7 +2,7 @@ buildscript {
 	repositories {
 		ivy {
 			name = 'gradle_release'
-			artifactPattern "http://launchpad.net/[organization]/trunk/[revision]/+download/[artifact]-[revision].jar"
+			artifactPattern 'http://launchpad.net/[organization]/trunk/[revision]/+download/[artifact]-[revision].jar'
 		}
 	}
 	dependencies {

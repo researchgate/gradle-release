@@ -6,6 +6,7 @@ ruleset {
     ruleset( 'http://codenarc.sourceforge.net/StarterRuleSet-AllRulesByCategory.groovy.txt' ) {
 
         DuplicateNumberLiteral       ( enabled : false )
+        DuplicateMapLiteral          ( enabled : false )
         DuplicateStringLiteral       ( enabled : false )
         BracesForTryCatchFinally     ( enabled : false )
         BuilderMethodWithSideEffects ( enabled : false )

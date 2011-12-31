@@ -1,8 +1,9 @@
 apply plugin: 'groovy'
 apply plugin: 'idea'
 
-apply from: './installation/apply-local.groovy'
+// apply from: './installation/apply-local.groovy'
 codenarcRuleSetFiles = [ 'codenarc.groovy' ]
+codenarcSources      = [ 'src/main/groovy', 'src/test/groovy', 'installation', '.' ]
 apply from: 'https://raw.github.com/evgeny-goldin/gradle-plugins/master/src/main/groovy/CodeNarc.gradle'
 
 
@@ -12,12 +13,12 @@ defaultTasks 'clean', 'build'
 
 repositories {
 	mavenCentral()
-	mavenRepo url: "http://m2repo.spockframework.org/snapshots"
+	mavenRepo url: 'http://m2repo.spockframework.org/snapshots'
 }
 
 dependencies {
 	compile gradleApi()
 	groovy localGroovy()
-	testCompile("org.spockframework:spock-core:0.5-groovy-1.8") { exclude group: 'org.codehaus.groovy' }
-	testCompile "junit:junit:4.8.1"
+	testCompile( 'org.spockframework:spock-core:0.5-groovy-1.8' ) { exclude group: 'org.codehaus.groovy' }
+	testCompile 'junit:junit:4.10'
 }
