@@ -1,7 +1,7 @@
 apply plugin: 'groovy'
 apply plugin: 'idea'
 
-// apply from: './installation/apply-local.groovy'
+apply from: './installation/apply-artifactory.groovy'
 codenarcRuleSetFiles = [ 'codenarc.groovy' ]
 codenarcSources      = [ 'src/main/groovy', 'src/test/groovy', 'installation', '.' ]
 apply from: 'https://raw.github.com/evgeny-goldin/gradle-plugins/master/src/main/groovy/CodeNarc.gradle'
