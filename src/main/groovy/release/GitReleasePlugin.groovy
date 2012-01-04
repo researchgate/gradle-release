@@ -49,7 +49,7 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
     @Override
     void checkUpdateNeeded () {
 
-        exec([ 'git', 'remote', 'update' ], 'aaaaaa', 'aaaaaa' )
+        exec([ 'git', 'remote', 'update' ], '' )
 
         def status    = gitStatus()
         def noUpdates = ( status.size() == 2 ) &&
@@ -67,13 +67,13 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
     void createReleaseTag () {
         def version = project.version
         exec([ 'git', 'tag', '-a',      version, '-m', 'v' + version ], "Duplicate tag [$version]", 'already exists' )
-        exec([ 'git', 'push', 'origin', version ], 'aaaa', 'aaaaaa' )
+        exec([ 'git', 'push', 'origin', version ], '', '! [rejected]', 'error: failed to push' )
     }
 
 
     @Override
     void commit ( String message ) {
-        exec([ 'git', 'commit', '-a', '-m', message ], 'aaaa', 'aaaaaa' )
-        exec([ 'git', 'push', 'origin' ], 'aaaa', 'aaaaaa' )
+        exec([ 'git', 'commit', '-a', '-m', message ], '' )
+        exec([ 'git', 'push', 'origin' ], '', '! [rejected]', 'error: failed to push' )
     }
 }

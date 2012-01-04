@@ -107,8 +107,8 @@ class PluginHelper {
 	 * Executes command specified and verifies neither "stdout" or "stderr" contain an error pattern specified.
 	 *
 	 * @param commands commands to execute
-	 * @param errorMessage error message to throw
-	 * @param errorPattern error pattern to look for
+	 * @param errorMessage error message to throw, optional
+	 * @param errorPattern error patterns to look for, optional
 	 */
 	void exec(List<String> commands, String errorMessage, String... errorPattern) {
 		def out = new StringBuffer()
@@ -122,7 +122,7 @@ class PluginHelper {
 		log.info(" >>> Running $commands: [$out][$err]")
 
 		if ([out, err]*.toString().any { String s -> errorPattern.any { s.contains(it) }}) {
-			throw new GradleException("$errorMessage - [$out][$err]")
+			throw new GradleException( "${ errorMessage ?: 'Failed to run [' + commands.join( ' ' ) + ']' } - [$out][$err]" )
 		}
 	}
 
