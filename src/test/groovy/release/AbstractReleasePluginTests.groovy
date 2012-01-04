@@ -3,8 +3,8 @@ package release
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
-import spock.lang.Specification
 import spock.lang.Ignore
+import spock.lang.Specification
 
 /**
  * User: elberry
@@ -27,6 +27,11 @@ abstract class AbstractReleasePluginTests extends Specification {
 
         assert projectDir.with { directory || mkdirs() }
 		initProject( tempDir, projectName )
+
+        new File( tempDir, "$projectName/build.gradle" ).write( '''
+      		apply plugin: 'groovy'
+      		apply plugin: 'release'
+      		'''.stripIndent())
 
 		project = ProjectBuilder.builder().withProjectDir( projectDir ).build()
 	}

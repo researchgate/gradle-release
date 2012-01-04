@@ -30,11 +30,13 @@ class PluginHelper {
 	/**
 	 * Sets convention specified under the plugin name provided.
 	 *
-	 * @param pluginName name of the plugin
-	 * @param convention convention object to set
+	 * @param  pluginName name of the plugin
+	 * @param  convention convention object to set
+     * @return convention instance set
 	 */
-	void setConvention(String pluginName, Object convention) {
-		project.convention.plugins[pluginName] = convention
+	Object setConvention(String pluginName, Object convention) {
+        assert pluginName && convention
+		project.convention.plugins[ pluginName ] = convention
 	}
 
 	/**
@@ -50,14 +52,12 @@ class PluginHelper {
 
 		Object convention = project.convention.plugins[pluginName]
 
-		assert convention,    \
-                  "Current project contains no \"$pluginName\" plugin convention"
-
+		assert convention, "Project contains no \"$pluginName\" plugin convention"
 		assert conventionType.isInstance(convention),    \
-                  "Current project contains \"$pluginName\" plugin convention, " +
-				"but it's of type [${ convention.class.name }] rather than expected [${ conventionType.name }]"
+               "Project contains \"$pluginName\" plugin convention, " +
+               "but it's of type [${ convention.class.name }] rather than [${ conventionType.name }]"
 
-		(T) convention
+		( T ) convention
 	}
 
 	/**

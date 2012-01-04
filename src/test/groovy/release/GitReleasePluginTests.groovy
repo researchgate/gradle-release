@@ -10,7 +10,7 @@ import org.gradle.api.Project
  */
 @Mixin( PluginHelper )
 @SuppressWarnings( 'JUnitPublicNonTestMethod' )
-class BzrReleasePluginTests extends AbstractReleasePluginTests {
+class GitReleasePluginTests extends AbstractReleasePluginTests {
 
 	@Override
     @SuppressWarnings( 'GetterMethodCouldBeProperty' )
@@ -19,6 +19,6 @@ class BzrReleasePluginTests extends AbstractReleasePluginTests {
 	@Override
 	void initProject( File root, String projectName ) {
 
-        exec( false, [:], root, *[ 'bzr', 'init', projectName ] )
+        exec( false, [:], root, *[ 'git', 'init', projectName ] )
 	}
 }

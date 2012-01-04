@@ -5,16 +5,17 @@ package release
  * @author evgenyg
  * Created: Wed Aug 10 23:44:15 PDT 2011
  */
-class HgReleasePlugin extends BaseScmPlugin {
+class HgReleasePlugin extends BaseScmPlugin<HgReleasePluginConvention> {
 
 	private static final String ERROR = 'abort:'
 
-	void init() {
-		setConvention('HgReleasePlugin', new HgReleasePluginConvention())
-	}
+	void init() {}
+
+    @Override
+    HgReleasePluginConvention buildConventionInstance () { new HgReleasePluginConvention() }
 
 
-	void checkCommitNeeded() {
+    void checkCommitNeeded() {
 		def modifications = ['A': [], 'M': [], 'R': [], '?': []]
 		exec('hg', 'status').eachLine {line ->
 			def mods = modifications[line[0]]

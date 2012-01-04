@@ -10,17 +10,20 @@ import org.gradle.api.GradleException
  * Created: Tue Aug 09 23:25:18 PDT 2011
  */
 // TODO: Use SVNKit or SubversionJ
-class SvnReleasePlugin extends BaseScmPlugin {
+class SvnReleasePlugin extends BaseScmPlugin<SvnReleasePluginConvention> {
 
 	private static final String ERROR = 'Commit failed'
 
 	void init() {
 		findSvnUrl()
-		setConvention('SvnReleasePlugin', new SvnReleasePluginConvention())
 	}
 
 
-	void checkCommitNeeded() {
+    @Override
+    SvnReleasePluginConvention buildConventionInstance () { new SvnReleasePluginConvention() }
+
+
+    void checkCommitNeeded() {
 		String out = exec('svn', 'status')
 		def changes = []
 		def unknown = []

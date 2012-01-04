@@ -7,29 +7,30 @@ import org.gradle.api.GradleException
  * @author evgenyg
  * Created: Tue Aug 09 23:24:40 PDT 2011
  */
-class GitReleasePlugin extends BaseScmPlugin {
+class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 
     private static final String LINE              = '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
     private static final String NOTHING_TO_COMMIT = 'nothing to commit (working directory clean)'
 
 
-    private GitReleasePluginConvention gitConvention(){ convention( 'GitReleasePlugin', GitReleasePluginConvention) }
-    private List<String>               gitStatus()    { exec( 'git', 'status' ).readLines() }
+    private List<String> gitStatus() { exec( 'git', 'status' ).readLines() }
 
 
     void init () {
 
-        setConvention( 'GitReleasePlugin', new GitReleasePluginConvention())
-
-        if ( gitConvention().requireBranch ) {
+        if ( convention().requireBranch ) {
 
             def branch = gitStatus()[ 0 ].trim().find( /^# On branch (\S+)$/ ){ it[ 1 ] }
 
-            if ( ! ( branch == gitConvention().requireBranch )) {
-                throw new GradleException( "Current Git branch is \"$branch\" and not \"${ gitConvention().requireBranch }\"." )
+            if ( ! ( branch == convention().requireBranch )) {
+                throw new GradleException( "Current Git branch is \"$branch\" and not \"${ convention().requireBranch }\"." )
             }
         }
     }
+
+
+    @Override
+    GitReleasePluginConvention buildConventionInstance () { new GitReleasePluginConvention() }
 
 
     void checkCommitNeeded () {

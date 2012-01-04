@@ -3,11 +3,15 @@ package release
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
+
 /**
  * Base class for all SCM-specific plugins
  * @author evgenyg
  */
-abstract class BaseScmPlugin extends PluginHelper implements Plugin<Project> {
+abstract class BaseScmPlugin<T> extends PluginHelper implements Plugin<Project> {
+
+    private final String pluginName = this.class.simpleName
+    private       T      convention
 
 	final void apply(Project project) {
 
@@ -20,6 +24,23 @@ abstract class BaseScmPlugin extends PluginHelper implements Plugin<Project> {
 		project.task( 'createReleaseTag',
                       description: 'Creates a tag in SCM for the current (un-snapshotted) version.') << this.&createReleaseTag
 	}
+
+    /**
+     * Called by {@link ReleasePlugin} when plugin's convention needs to be set.
+     */
+    final void setConvention() { convention = ( T ) setConvention( pluginName, buildConventionInstance()) }
+
+    /**
+     * Convenience method for sub-classes to access their own convention instance.
+     * @return this plugin convention instance.
+     */
+    final T    convention()    { convention( pluginName, convention.class )}
+
+    /**
+     * Retrieves convention instance to be set for this plugin.
+     * @return convention instance to be set for this plugin.
+     */
+    abstract T buildConventionInstance ()
 
 	abstract void init()
 

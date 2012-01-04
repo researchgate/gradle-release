@@ -7,7 +7,7 @@ import org.gradle.api.GradleException
  * @author evgenyg
  * Created: Tue Aug 09 23:26:04 PDT 2011
  */
-class BzrReleasePlugin extends BaseScmPlugin {
+class BzrReleasePlugin extends BaseScmPlugin<BzrReleasePluginConvention> {
 
 	private static final String ERROR = 'ERROR'
 	private static final String DELIM = '\n  * '
@@ -20,12 +20,13 @@ class BzrReleasePlugin extends BaseScmPlugin {
 		if (!hasXmlPlugin) {
 			throw new GradleException('The required xmloutput plugin is not installed in Bazaar, please install it.')
 		}
-
-		setConvention('BzrReleasePlugin', new BzrReleasePluginConvention())
 	}
 
+    @Override
+    BzrReleasePluginConvention buildConventionInstance () { new BzrReleasePluginConvention() }
 
-	void checkCommitNeeded() {
+
+    void checkCommitNeeded() {
 		String out = exec('bzr', 'xmlstatus')
 		def xml = new XmlSlurper().parseText(out)
 		def added = xml.added?.size() ?: 0
