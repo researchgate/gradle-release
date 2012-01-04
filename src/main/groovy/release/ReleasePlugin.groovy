@@ -71,7 +71,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 		scmPlugin.init()
 
 		// Verifying all "release" steps are defined
-		Set<String> allTasks = project.tasks.all*.name
+		Set<String> allTasks = project.tasks*.name
 		assert ((GradleBuild) project.tasks['release']).tasks.every { allTasks.contains(it) }
 	}
 
@@ -79,8 +79,8 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 	void checkSnapshotDependencies() {
 
 		def snapshotDependencies = project.configurations.getByName('runtime').allDependencies.
-				findAll { Dependency d -> d.version?.contains('SNAPSHOT')}.
-				collect { Dependency d -> "${d.group ?: ''}:${d.name}:${d.version ?: ''}" }
+				matching { Dependency d -> d.version?.contains('SNAPSHOT')}.
+				collect  { Dependency d -> "${d.group ?: ''}:${d.name}:${d.version ?: ''}" }
 
 		if (snapshotDependencies) {
 			def message = "Snapshot dependencies detected: $snapshotDependencies"
