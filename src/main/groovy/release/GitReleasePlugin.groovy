@@ -16,6 +16,7 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
     private List<String> gitStatus() { exec( 'git', 'status' ).readLines() }
 
 
+    @Override
     void init () {
 
         if ( convention().requireBranch ) {
@@ -33,6 +34,7 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
     GitReleasePluginConvention buildConventionInstance () { new GitReleasePluginConvention() }
 
 
+    @Override
     void checkCommitNeeded () {
 
         def status = gitStatus()
@@ -44,6 +46,7 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
     }
 
 
+    @Override
     void checkUpdateNeeded () {
 
         exec([ 'git', 'remote', 'update' ], 'aaaaaa', 'aaaaaa' )
@@ -60,6 +63,7 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
     }
 
 
+    @Override
     void createReleaseTag () {
         def version = project.version
         exec([ 'git', 'tag', '-a',      version, '-m', 'v' + version ], "Duplicate tag [$version]", 'already exists' )
@@ -67,6 +71,7 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
     }
 
 
+    @Override
     void commit ( String message ) {
         exec([ 'git', 'commit', '-a', '-m', message ], 'aaaa', 'aaaaaa' )
         exec([ 'git', 'push', 'origin' ], 'aaaa', 'aaaaaa' )

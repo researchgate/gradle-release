@@ -23,6 +23,7 @@ class SvnReleasePlugin extends BaseScmPlugin<SvnReleasePluginConvention> {
     SvnReleasePluginConvention buildConventionInstance () { new SvnReleasePluginConvention() }
 
 
+    @Override
     void checkCommitNeeded() {
 		String out = exec('svn', 'status')
 		def changes = []
@@ -46,6 +47,7 @@ class SvnReleasePlugin extends BaseScmPlugin<SvnReleasePluginConvention> {
 	}
 
 
+    @Override
 	void checkUpdateNeeded() {
 		// svn status -q -u
 		String out = exec('svn', 'status', '-q', '-u')
@@ -63,6 +65,7 @@ class SvnReleasePlugin extends BaseScmPlugin<SvnReleasePluginConvention> {
 	}
 
 
+    @Override
 	void createReleaseTag() {
 		def props = project.properties
 		String svnUrl = props.releaseSvnUrl
@@ -74,6 +77,7 @@ class SvnReleasePlugin extends BaseScmPlugin<SvnReleasePluginConvention> {
 	}
 
 
+    @Override
 	void commit(String message) {
 		exec(['svn', 'ci', '-m', message], 'Error committing new version', ERROR)
 	}

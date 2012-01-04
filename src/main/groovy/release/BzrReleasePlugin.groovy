@@ -22,10 +22,12 @@ class BzrReleasePlugin extends BaseScmPlugin<BzrReleasePluginConvention> {
 		}
 	}
 
+
     @Override
     BzrReleasePluginConvention buildConventionInstance () { new BzrReleasePluginConvention() }
 
 
+    @Override
     void checkCommitNeeded() {
 		String out = exec('bzr', 'xmlstatus')
 		def xml = new XmlSlurper().parseText(out)
@@ -54,6 +56,7 @@ class BzrReleasePlugin extends BaseScmPlugin<BzrReleasePluginConvention> {
 	}
 
 
+    @Override
 	void checkUpdateNeeded() {
 		String out = exec('bzr', 'xmlmissing')
 		def xml = new XmlSlurper().parseText(out)
@@ -86,14 +89,15 @@ class BzrReleasePlugin extends BaseScmPlugin<BzrReleasePluginConvention> {
 	}
 
 
+    @Override
 	void createReleaseTag() {
 		exec(['bzr', 'tag', project.properties.version], 'Error creating tag', ERROR)
 	}
 
 
+    @Override
 	void commit(String message) {
 		exec(['bzr', 'ci', '-m', message], 'Error committing new version', ERROR)
 		exec(['bzr', 'push', ':parent'], 'Error committing new version', ERROR)
 	}
-
 }

@@ -9,12 +9,18 @@ class HgReleasePlugin extends BaseScmPlugin<HgReleasePluginConvention> {
 
 	private static final String ERROR = 'abort:'
 
-	void init() {}
+
+    @Override
+    void init () {
+    }
+
+
 
     @Override
     HgReleasePluginConvention buildConventionInstance () { new HgReleasePluginConvention() }
 
 
+    @Override
     void checkCommitNeeded() {
 		def modifications = ['A': [], 'M': [], 'R': [], '?': []]
 		exec('hg', 'status').eachLine {line ->
@@ -34,6 +40,8 @@ class HgReleasePlugin extends BaseScmPlugin<HgReleasePluginConvention> {
 		}
 	}
 
+
+    @Override
 	void checkUpdateNeeded() {
 		def modifications = ['in': [], 'out': []]
 		exec('hg', 'in', '-q').eachLine { line ->
@@ -50,10 +58,14 @@ class HgReleasePlugin extends BaseScmPlugin<HgReleasePluginConvention> {
 		}
 	}
 
+
+    @Override
 	void createReleaseTag() {
 		exec(['hg', 'tag', project.properties.version], 'Error creating tag', ERROR)
 	}
 
+
+    @Override
 	void commit(String message) {
 		exec(['hg', 'ci', '-m', message], 'Error committing new version', ERROR)
 		exec(['hg', 'push'], 'Error committing new version', ERROR)

@@ -34,6 +34,7 @@ abstract class BaseScmPlugin<T> extends PluginHelper implements Plugin<Project> 
      * Convenience method for sub-classes to access their own convention instance.
      * @return this plugin convention instance.
      */
+    @SuppressWarnings( 'ConfusingMethodName' )
     final T    convention()    { convention( pluginName, convention.class )}
 
     /**
