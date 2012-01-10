@@ -14,7 +14,7 @@ import org.gradle.api.tasks.GradleBuild
  */
 class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
-    @SuppressWarnings( 'StatelessClass' )
+	@SuppressWarnings('StatelessClass')
 	private BaseScmPlugin scmPlugin
 
 	void apply(Project project) {
@@ -49,18 +49,18 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 			].flatten()
 		}
 
-		project.task( 'initScmPlugin',
-                      description: 'Initializes the SCM plugin (based on hidden directories in your project\'s directory)') << this.&initScmPlugin
-		project.task( 'checkSnapshotDependencies',
-                      description: 'Checks to see if your project has any SNAPSHOT dependencies.') << this.&checkSnapshotDependencies
-		project.task( 'unSnapshotVersion',
-                      description: 'Removes "-SNAPSHOT" from your project\'s current version.') << this.&unSnapshotVersion
-		project.task( 'preTagCommit',
-                      description: 'Commits any changes made by the Release plugin - eg. If the unSnapshotVersion tas was executed') << this.&preTagCommit
-		project.task( 'updateVersion',
-                      description: 'Prompts user for the next version. Does it\'s best to supply a smart default.') << this.&updateVersion
-		project.task( 'commitNewVersion',
-                      description: 'Commits the version update to your SCM') << this.&commitNewVersion
+		project.task('initScmPlugin',
+				description: 'Initializes the SCM plugin (based on hidden directories in your project\'s directory)') << this.&initScmPlugin
+		project.task('checkSnapshotDependencies',
+				description: 'Checks to see if your project has any SNAPSHOT dependencies.') << this.&checkSnapshotDependencies
+		project.task('unSnapshotVersion',
+				description: 'Removes "-SNAPSHOT" from your project\'s current version.') << this.&unSnapshotVersion
+		project.task('preTagCommit',
+				description: 'Commits any changes made by the Release plugin - eg. If the unSnapshotVersion tas was executed') << this.&preTagCommit
+		project.task('updateVersion',
+				description: 'Prompts user for the next version. Does it\'s best to supply a smart default.') << this.&updateVersion
+		project.task('commitNewVersion',
+				description: 'Commits the version update to your SCM') << this.&commitNewVersion
 	}
 
 
@@ -71,25 +71,40 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 		scmPlugin.init()
 
 		// Verifying all "release" steps are defined
-		Set<String> allTasks = project.tasks*.name
-		assert ((GradleBuild) project.tasks['release']).tasks.every { allTasks.contains(it) }
+		// TODO: Eric says - Not sure if this is actually necessary. The Base SCM Plugin requires the methods be
+		//       implemented and adds the tasks accordingly. So unless someone doesn't extend BaseSCMPlugin, there's no
+		//       real chance of the tasks not being there.
+		//Set<String> allTasks = project.tasks*.name
+		//assert ((GradleBuild) project.tasks['release']).tasks.every { allTasks.contains(it) }
 	}
 
 
 	void checkSnapshotDependencies() {
 
-		def snapshotDependencies = project.configurations.getByName('runtime').allDependencies.
-				matching { Dependency d -> d.version?.contains('SNAPSHOT')}.
-				collect  { Dependency d -> "${d.group ?: ''}:${d.name}:${d.version ?: ''}" }
+		def matcher = { Dependency d -> d.version?.contains('SNAPSHOT') }
+		def collector = { Dependency d -> "${d.group ?: ''}:${d.name}:${d.version ?: ''}" }
 
-		if (snapshotDependencies) {
+		// get the snapshot dependencies on the root project
+		def rootSnapshotDependencies = project.configurations.findByName('runtime')?.allDependencies?.
+				matching(matcher)?.collect(collector)
+
+		def snapshotDependencies = ["${project.name}": rootSnapshotDependencies ?: []]
+
+		// get the snapshot dependencies on any sub projects
+		project.subprojects?.each { Project subProject ->
+			def subSnapshotDependencies = subProject.configurations.findByName('runtime')?.allDependencies?.
+					matching(matcher)?.collect(collector)
+			snapshotDependencies["${subProject.name}"] = subSnapshotDependencies ?: []
+		}
+
+		if (!snapshotDependencies.values()*.empty) {
+			snapshotDependencies.each { pName, dList ->
+				if (dList.empty) {
+					snapshotDependencies.remove(pName)
+				}
+			}
 			def message = "Snapshot dependencies detected: $snapshotDependencies"
-			if (releaseConvention().failOnSnapshotDependencies) {
-				throw new GradleException(message)
-			}
-			else {
-				log.warn("WARNING: $message")
-			}
+			warnOrThrow(releaseConvention().failOnSnapshotDependencies, message)
 		}
 	}
 
@@ -120,7 +135,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 		def version = project.version.toString()
 		Map<String, Closure> patterns = releaseConvention().versionPatterns
 
-		for ( entry in patterns ) {
+		for (entry in patterns) {
 
 			String pattern = entry.key
 			//noinspection GroovyUnusedAssignment
@@ -148,15 +163,14 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
 	def checkPropertiesFile() {
 
-		File propertiesFile = project.file('gradle.properties')
-		assert propertiesFile.file, "[$propertiesFile.canonicalPath] not found, create it and specify version = ..."
+		File propertiesFile = findPropertiesFile()
 
 		Properties properties = new Properties()
 		propertiesFile.withReader { properties.load(it) }
 
 		assert properties.version, "[$propertiesFile.canonicalPath] contains no 'version' property"
-		assert releaseConvention().versionPatterns.keySet().any { (properties.version =~ it).find() },     \
-                   "[$propertiesFile.canonicalPath] version [$properties.version] doesn't match any of known version patterns: " +
+		assert releaseConvention().versionPatterns.keySet().any { (properties.version =~ it).find() },            \
+                          "[$propertiesFile.canonicalPath] version [$properties.version] doesn't match any of known version patterns: " +
 				releaseConvention().versionPatterns.keySet()
 	}
 

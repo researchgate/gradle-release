@@ -30,13 +30,13 @@ class PluginHelper {
 	/**
 	 * Sets convention specified under the plugin name provided.
 	 *
-	 * @param  pluginName name of the plugin
-	 * @param  convention convention object to set
-     * @return convention instance set
+	 * @param pluginName name of the plugin
+	 * @param convention convention object to set
+	 * @return convention instance set
 	 */
 	Object setConvention(String pluginName, Object convention) {
-        assert pluginName && convention
-		project.convention.plugins[ pluginName ] = convention
+		assert pluginName && convention
+		project.convention.plugins[pluginName] = convention
 	}
 
 	/**
@@ -53,11 +53,11 @@ class PluginHelper {
 		Object convention = project.convention.plugins[pluginName]
 
 		assert convention, "Project contains no \"$pluginName\" plugin convention"
-		assert conventionType.isInstance(convention),    \
-               "Project contains \"$pluginName\" plugin convention, " +
-               "but it's of type [${ convention.class.name }] rather than [${ conventionType.name }]"
+		assert conventionType.isInstance(convention),     \
+                "Project contains \"$pluginName\" plugin convention, " +
+				"but it's of type [${ convention.class.name }] rather than [${ conventionType.name }]"
 
-		( T ) convention
+		(T) convention
 	}
 
 	/**
@@ -122,7 +122,7 @@ class PluginHelper {
 		log.info(" >>> Running $commands: [$out][$err]")
 
 		if ([out, err]*.toString().any { String s -> errorPattern.any { s.contains(it) }}) {
-			throw new GradleException( "${ errorMessage ?: 'Failed to run [' + commands.join( ' ' ) + ']' } - [$out][$err]" )
+			throw new GradleException("${ errorMessage ?: 'Failed to run [' + commands.join(' ') + ']' } - [$out][$err]")
 		}
 	}
 
@@ -134,6 +134,15 @@ class PluginHelper {
 	 */
 	String capitalize(String s) {
 		s[0].toUpperCase() + (s.size() > 1 ? s[1..-1] : '')
+	}
+
+	boolean promptYesOrNo(String message, boolean defaultValue = false) {
+		def defaultStr = defaultValue ? 'Y' : 'n'
+		String consoleVal = System.console().readLine("${PROMPT} ${message} (Y|n)[${defaultStr}] ")
+		if (consoleVal) {
+			return consoleVal.toLowerCase().startsWith('y')
+		}
+		return defaultValue
 	}
 
 	/**
@@ -157,8 +166,7 @@ class PluginHelper {
 	void updateVersionProperty(String newVersion) {
 
 		project.version = newVersion
-		File propertiesFile = project.file('gradle.properties')
-		assert propertiesFile.file, "[$propertiesFile.canonicalPath] wasn't found, can't update it"
+		File propertiesFile = findPropertiesFile()
 
 		Properties gradleProps = new Properties()
 		propertiesFile.withReader { gradleProps.load(it) }
@@ -167,6 +175,19 @@ class PluginHelper {
 		propertiesFile.withWriter {
 			gradleProps.store(it, "Version updated to '${newVersion}', by Gradle release plugin (http://code.launchpad.net/~gradle-plugins/gradle-release/).")
 		}
+	}
+
+	File findPropertiesFile() {
+		File propertiesFile = project.file('gradle.properties')
+		if (!propertiesFile.file) {
+			boolean createIt = project.hasProperty("version") && promptYesOrNo("[$propertiesFile.canonicalPath] not found, create it with version = ${project.version}")
+			if (createIt) {
+				propertiesFile.append("version = \"${project.version}\"")
+			} else {
+				throw new GradleException("[$propertiesFile.canonicalPath] not found, create it and specify version = ...")
+			}
+		}
+		return propertiesFile
 	}
 
 	void warnOrThrow(boolean doThrow, String message) {
