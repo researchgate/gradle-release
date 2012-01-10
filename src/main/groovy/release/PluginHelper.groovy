@@ -142,7 +142,7 @@ class PluginHelper {
 		if (consoleVal) {
 			return consoleVal.toLowerCase().startsWith('y')
 		}
-		return defaultValue
+		defaultValue
 	}
 
 	/**
@@ -180,14 +180,14 @@ class PluginHelper {
 	File findPropertiesFile() {
 		File propertiesFile = project.file('gradle.properties')
 		if (!propertiesFile.file) {
-			boolean createIt = project.hasProperty("version") && promptYesOrNo("[$propertiesFile.canonicalPath] not found, create it with version = ${project.version}")
+			boolean createIt = project.hasProperty('version') && promptYesOrNo("[$propertiesFile.canonicalPath] not found, create it with version = ${project.version}")
 			if (createIt) {
 				propertiesFile.append("version = \"${project.version}\"")
 			} else {
 				throw new GradleException("[$propertiesFile.canonicalPath] not found, create it and specify version = ...")
 			}
 		}
-		return propertiesFile
+		propertiesFile
 	}
 
 	void warnOrThrow(boolean doThrow, String message) {
