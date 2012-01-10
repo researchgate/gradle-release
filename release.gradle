@@ -1,0 +1,2 @@
+apply plugin: 'groovy'
+apply from: "installation/apply-local.groovy"
