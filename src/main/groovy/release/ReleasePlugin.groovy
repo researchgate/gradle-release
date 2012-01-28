@@ -126,7 +126,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 	void preTagCommit() {
 		if (project.properties['usesSnapshot']) {
 			// should only be committed if the project was using a snapshot version.
-			scmPlugin.commit(releaseConvention().preTagCommitMessage + " '${ project.version }'.")
+			scmPlugin.commit(releaseConvention().preTagCommitMessage + " '${ tagName() }'.")
 		}
 	}
 
@@ -157,7 +157,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
 
 	def commitNewVersion() {
-		scmPlugin.commit(releaseConvention().newVersionCommitMessage + " '${ project.version }'.")
+		scmPlugin.commit(releaseConvention().newVersionCommitMessage + " '${ tagName() }'.")
 	}
 
 

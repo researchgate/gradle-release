@@ -61,7 +61,7 @@ class HgReleasePlugin extends BaseScmPlugin<HgReleasePluginConvention> {
 
     @Override
 	void createReleaseTag() {
-		exec(['hg', 'tag', project.properties.version], 'Error creating tag', ERROR)
+		exec(['hg', 'tag', tagName()], 'Error creating tag', ERROR)
 	}
 
 

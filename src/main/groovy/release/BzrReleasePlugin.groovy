@@ -91,7 +91,7 @@ class BzrReleasePlugin extends BaseScmPlugin<BzrReleasePluginConvention> {
 
     @Override
 	void createReleaseTag() {
-		exec(['bzr', 'tag', project.properties.version], 'Error creating tag', ERROR)
+		exec(['bzr', 'tag', tagName()], 'Error creating tag', ERROR)
 	}
 
 
