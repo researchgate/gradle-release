@@ -180,18 +180,14 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 	 */
 	private BaseScmPlugin applyScmPlugin() {
 
-		Class c = (Class) project.rootProject.projectDir.list().with {
-			delegate.grep('.svn') ? SvnReleasePlugin :
-				delegate.grep('.bzr') ? BzrReleasePlugin :
-					delegate.grep('.git') ? GitReleasePlugin :
-						delegate.grep('.hg') ? HgReleasePlugin :
-							null
-		}
+		def projectPath = project.rootProject.projectDir.canonicalFile
+
+		Class c = findScmType(projectPath)
 
 		if (!c) {
 			throw new GradleException(
 					'Unsupported SCM system, no .svn, .bzr, .git, or .hg found in ' +
-							"[${ project.rootProject.projectDir.canonicalPath }]")
+							"[${ projectPath }] or its parent directories.")
 		}
 
 		assert BaseScmPlugin.isAssignableFrom(c)
@@ -199,4 +195,26 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 		project.apply plugin: c
 		project.plugins.findPlugin(c)
 	}
+
+	/**
+	 * Recursively look for the type of the SCM we are dealing with, if no match is found look in parent directory
+	 * @param directory the directory to start from
+	 */
+	private Class findScmType(File directory) {
+
+		Class c = (Class) directory.list().with {
+			delegate.grep('.svn') ? SvnReleasePlugin :
+				delegate.grep('.bzr') ? BzrReleasePlugin :
+					delegate.grep('.git') ? GitReleasePlugin :
+						delegate.grep('.hg') ? HgReleasePlugin :
+							null
+		}
+
+		if (!c && directory.parentFile) {
+			c = findScmType(directory.parentFile)
+		}
+		
+		c	
+	}
+
 }
