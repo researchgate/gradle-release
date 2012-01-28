@@ -10,22 +10,18 @@ import org.gradle.api.GradleException
 class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 
     private static final String LINE              = '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
-    private static final String NOTHING_TO_COMMIT = 'nothing to commit (working directory clean)'
 
     private static final String UNCOMMITTED = 'uncommitted'
     private static final String UNVERSIONED = 'unversioned'
     private static final String AHEAD = 'ahead'
     private static final String BEHIND = 'behind'
 
-    private List<String> gitStatus() { exec( 'git', 'status' ).readLines() }
-
-
     @Override
     void init () {
 
         if ( convention().requireBranch ) {
 
-            def branch = getCurrentBranch()
+            def branch = gitCurrentBranch()
 
             if ( ! ( branch == convention().requireBranch )) {
                 throw new GradleException( "Current Git branch is \"$branch\" and not \"${ convention().requireBranch }\"." )
@@ -41,7 +37,7 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
     @Override
     void checkCommitNeeded () {
 
-        def status = getGitStatus()
+        def status = gitStatus()
 
         if ( status[UNVERSIONED] ) {
             warnOrThrow(releaseConvention().failOnUnversionedFiles,
@@ -61,7 +57,7 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 
         exec([ 'git', 'remote', 'update' ], '' )
 
-        def status = getGitRemoteStatus()
+        def status = gitRemoteStatus()
 
         if ( status[AHEAD] ) {
             warnOrThrow(releaseConvention().failOnPublishNeeded, "You have ${status[AHEAD]} local change(s) to push.")
@@ -87,12 +83,12 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
         exec([ 'git', 'push', 'origin' ], '', '! [rejected]', 'error: failed to push' )
     }
 
-    private String getCurrentBranch() { 
+    private String gitCurrentBranch() { 
         def matches = exec( 'git', 'branch' ).readLines().grep(~/\s*\*.*/)
-        matches[0].trim().minus(~/^\*\s+/)
+        matches[0].trim() - (~/^\*\s+/)
     }
 
-    private Map<String, List<String>> getGitStatus() {
+    private Map<String, List<String>> gitStatus() {
         exec( 'git', 'status', '--porcelain' ).readLines().groupBy {
             if (it ==~ /^\s*\?{2}.*/) {
                 UNVERSIONED
@@ -102,7 +98,7 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
         }
     }
 
-    private Map<String, Integer> getGitRemoteStatus() {
+    private Map<String, Integer> gitRemoteStatus() {
         def branchStatus = exec( 'git', 'status', '-sb' ).readLines()[0]
         def aheadMatcher = branchStatus =~ /.*ahead (\d+).*/
         def behindMatcher = branchStatus =~ /.*behind (\d+).*/
