@@ -25,6 +25,8 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 		this.scmPlugin = applyScmPlugin()
 
 		project.task('release', description: 'Verify project, release, and update version to next.', type: GradleBuild) {
+			startParameter = project.getGradle().startParameter.newInstance()
+
 			tasks = [
 					//  0. (This Plugin) Initializes the corresponding SCM plugin (Git/Bazaar/Svn/Mercurial).
 					'initScmPlugin',
