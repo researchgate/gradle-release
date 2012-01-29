@@ -147,12 +147,19 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 				if (project.properties['usesSnapshot']) {
 					nextVersion += '-SNAPSHOT'
 				}
-				updateVersionProperty(readLine("Enter the next version (current one released as [$version]):", nextVersion))
+				if ( ! useAutomaticVersion() ) {
+					nextVersion = readLine("Enter the next version (current one released as [$version]):", nextVersion)
+				}
+				updateVersionProperty(nextVersion)
 				return
 			}
 		}
 
 		throw new GradleException("Failed to increase version [$version] - unknown pattern")
+	}
+
+	boolean useAutomaticVersion() {
+		project.hasProperty('gradle.release.useAutomaticVersion') && project.getProperty('gradle.release.useAutomaticVersion') == "true"
 	}
 
 
