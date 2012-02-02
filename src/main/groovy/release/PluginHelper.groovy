@@ -197,4 +197,8 @@ class PluginHelper {
 			log.warn(message)
 		}
 	}
+
+	String tagName() {
+		(releaseConvention().includeProjectNameInTag ? project.rootProject.name + '-' : '') + project.version
+	}
 }

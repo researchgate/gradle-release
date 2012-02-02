@@ -16,6 +16,13 @@ class ReleasePluginConvention {
 	boolean failOnUpdateNeeded = true
 	String preTagCommitMessage = 'Gradle Release Plugin - pre tag commit: '
 	String newVersionCommitMessage = 'Gradle Release Plugin - new version commit: '
+
+	/**
+	* If true, tag names and messages will include the project name (e.g. project-name-version)
+	* otherwise only version is used.
+	*/
+	boolean includeProjectNameInTag = false
+
 	def requiredTasks = []
 	def versionPatterns = [
 			// Increments last number: "2.5-SNAPSHOT" => "2.6-SNAPSHOT"

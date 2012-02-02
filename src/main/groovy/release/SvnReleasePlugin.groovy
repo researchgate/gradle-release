@@ -71,9 +71,9 @@ class SvnReleasePlugin extends BaseScmPlugin<SvnReleasePluginConvention> {
 		String svnUrl = props.releaseSvnUrl
 		String svnRev = props.releaseSvnRev
 		String svnRoot = props.releaseSvnRoot
-		String svnTag = props.version
+		String svnTag = tagName()
 
-		exec('svn', 'cp', "${svnUrl}@${svnRev}", "${svnRoot}/tags/${svnTag}", '-m', 'v' + svnTag)
+		exec('svn', 'cp', "${svnUrl}@${svnRev}", "${svnRoot}/tags/${svnTag}", '-m', 'version ' + svnTag)
 	}
 
 

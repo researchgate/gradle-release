@@ -10,18 +10,18 @@ import org.gradle.api.GradleException
 class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 
     private static final String LINE              = '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
-    private static final String NOTHING_TO_COMMIT = 'nothing to commit (working directory clean)'
 
-
-    private List<String> gitStatus() { exec( 'git', 'status' ).readLines() }
-
+    private static final String UNCOMMITTED = 'uncommitted'
+    private static final String UNVERSIONED = 'unversioned'
+    private static final String AHEAD = 'ahead'
+    private static final String BEHIND = 'behind'
 
     @Override
     void init () {
 
         if ( convention().requireBranch ) {
 
-            def branch = gitStatus()[ 0 ].trim().find( /^# On branch (\S+)$/ ){ it[ 1 ] }
+            def branch = gitCurrentBranch()
 
             if ( ! ( branch == convention().requireBranch )) {
                 throw new GradleException( "Current Git branch is \"$branch\" and not \"${ convention().requireBranch }\"." )
@@ -39,10 +39,16 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 
         def status = gitStatus()
 
-        if ( ! status.grep( NOTHING_TO_COMMIT )) {
-            throw new GradleException(([ 'You have uncommitted or unversioned files:', LINE, *status, LINE ] as String[] ).
-                                      join( '\n' ))
+        if ( status[UNVERSIONED] ) {
+            warnOrThrow(releaseConvention().failOnUnversionedFiles,
+                ([ 'You have unversioned files:', LINE, *status[UNVERSIONED], LINE ] as String[] ).join( '\n' ))            
         }
+
+        if ( status[UNCOMMITTED] ) {
+            warnOrThrow(releaseConvention().failOnCommitNeeded,
+                ([ 'You have uncommitted files:', LINE, *status[UNCOMMITTED], LINE ] as String[] ).join( '\n' ))            
+        }
+
     }
 
 
@@ -51,23 +57,23 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 
         exec([ 'git', 'remote', 'update' ], '' )
 
-        def status    = gitStatus()
-        def noUpdates = ( status.size() == 2 ) &&
-                        ( status[ 0 ].startsWith( '# On branch ' )) &&
-                        ( status[ 1 ] == NOTHING_TO_COMMIT )
+        def status = gitRemoteStatus()
 
-        if ( ! noUpdates ) {
-            throw new GradleException(( [ 'You have remote changes to pull or local changes to push', LINE, *status, LINE ] as String[] ).
-                                      join( '\n' ))
+        if ( status[AHEAD] ) {
+            warnOrThrow(releaseConvention().failOnPublishNeeded, "You have ${status[AHEAD]} local change(s) to push.")
+        }
+
+        if ( status[BEHIND] ) {
+            warnOrThrow(releaseConvention().failOnUpdateNeeded, "You have ${status[BEHIND]} remote change(s) to pull.")
         }
     }
 
 
     @Override
     void createReleaseTag () {
-        def version = project.version
-        exec([ 'git', 'tag', '-a',      version, '-m', 'v' + version ], "Duplicate tag [$version]", 'already exists' )
-        exec([ 'git', 'push', 'origin', version ], '', '! [rejected]', 'error: failed to push' )
+        def tagName = tagName()
+        exec([ 'git', 'tag', '-a',      tagName, '-m', 'version ' + tagName ], "Duplicate tag [$tagName]", 'already exists' )
+        exec([ 'git', 'push', 'origin', tagName ], '', '! [rejected]', 'error: failed to push' )
     }
 
 
@@ -76,4 +82,36 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
         exec([ 'git', 'commit', '-a', '-m', message ], '' )
         exec([ 'git', 'push', 'origin' ], '', '! [rejected]', 'error: failed to push' )
     }
+
+    private String gitCurrentBranch() { 
+        def matches = exec( 'git', 'branch' ).readLines().grep(~/\s*\*.*/)
+        matches[0].trim() - (~/^\*\s+/)
+    }
+
+    private Map<String, List<String>> gitStatus() {
+        exec( 'git', 'status', '--porcelain' ).readLines().groupBy {
+            if (it ==~ /^\s*\?{2}.*/) {
+                UNVERSIONED
+            } else {
+                UNCOMMITTED
+            }
+        }
+    }
+
+    private Map<String, Integer> gitRemoteStatus() {
+        def branchStatus = exec( 'git', 'status', '-sb' ).readLines()[0]
+        def aheadMatcher = branchStatus =~ /.*ahead (\d+).*/
+        def behindMatcher = branchStatus =~ /.*behind (\d+).*/
+
+        def remoteStatus = [:]
+
+        if (aheadMatcher.matches()) {
+            remoteStatus[AHEAD] = aheadMatcher[0][1]
+        }
+        if (behindMatcher.matches()) {
+            remoteStatus[BEHIND] = behindMatcher[0][1]
+        }
+        remoteStatus
+    }    
+
 }

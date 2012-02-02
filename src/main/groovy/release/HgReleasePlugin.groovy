@@ -25,7 +25,7 @@ class HgReleasePlugin extends BaseScmPlugin<HgReleasePluginConvention> {
 		def modifications = ['A': [], 'M': [], 'R': [], '?': []]
 		exec('hg', 'status').eachLine {line ->
 			def mods = modifications[line[0]]
-			if (mods) { mods << line }
+			if (mods != null) { mods << line }
 		}
 		if (modifications['?']) {
 			warnOrThrow(releaseConvention().failOnUnversionedFiles, "You have ${modifications['?'].size()} un-versioned files.")
@@ -61,7 +61,7 @@ class HgReleasePlugin extends BaseScmPlugin<HgReleasePluginConvention> {
 
     @Override
 	void createReleaseTag() {
-		exec(['hg', 'tag', project.properties.version], 'Error creating tag', ERROR)
+		exec(['hg', 'tag', tagName()], 'Error creating tag', ERROR)
 	}
 
 

@@ -25,6 +25,8 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 		this.scmPlugin = applyScmPlugin()
 
 		project.task('release', description: 'Verify project, release, and update version to next.', type: GradleBuild) {
+			startParameter = project.getGradle().startParameter.newInstance()
+
 			tasks = [
 					//  0. (This Plugin) Initializes the corresponding SCM plugin (Git/Bazaar/Svn/Mercurial).
 					'initScmPlugin',
@@ -126,7 +128,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 	void preTagCommit() {
 		if (project.properties['usesSnapshot']) {
 			// should only be committed if the project was using a snapshot version.
-			scmPlugin.commit(releaseConvention().preTagCommitMessage + " '${ project.version }'.")
+			scmPlugin.commit(releaseConvention().preTagCommitMessage + " '${ tagName() }'.")
 		}
 	}
 
@@ -147,7 +149,10 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 				if (project.properties['usesSnapshot']) {
 					nextVersion += '-SNAPSHOT'
 				}
-				updateVersionProperty(readLine("Enter the next version (current one released as [$version]):", nextVersion))
+				if ( ! useAutomaticVersion() ) {
+					nextVersion = readLine("Enter the next version (current one released as [$version]):", nextVersion)
+				}
+				updateVersionProperty(nextVersion)
 				return
 			}
 		}
@@ -155,9 +160,13 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 		throw new GradleException("Failed to increase version [$version] - unknown pattern")
 	}
 
+	boolean useAutomaticVersion() {
+		project.hasProperty('gradle.release.useAutomaticVersion') && project.getProperty('gradle.release.useAutomaticVersion') == "true"
+	}
+
 
 	def commitNewVersion() {
-		scmPlugin.commit(releaseConvention().newVersionCommitMessage + " '${ project.version }'.")
+		scmPlugin.commit(releaseConvention().newVersionCommitMessage + " '${ tagName() }'.")
 	}
 
 
@@ -180,18 +189,14 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 	 */
 	private BaseScmPlugin applyScmPlugin() {
 
-		Class c = (Class) project.rootProject.projectDir.list().with {
-			delegate.grep('.svn') ? SvnReleasePlugin :
-				delegate.grep('.bzr') ? BzrReleasePlugin :
-					delegate.grep('.git') ? GitReleasePlugin :
-						delegate.grep('.hg') ? HgReleasePlugin :
-							null
-		}
+		def projectPath = project.rootProject.projectDir.canonicalFile
+
+		Class c = findScmType(projectPath)
 
 		if (!c) {
 			throw new GradleException(
 					'Unsupported SCM system, no .svn, .bzr, .git, or .hg found in ' +
-							"[${ project.rootProject.projectDir.canonicalPath }]")
+							"[${ projectPath }] or its parent directories.")
 		}
 
 		assert BaseScmPlugin.isAssignableFrom(c)
@@ -199,4 +204,26 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 		project.apply plugin: c
 		project.plugins.findPlugin(c)
 	}
+
+	/**
+	 * Recursively look for the type of the SCM we are dealing with, if no match is found look in parent directory
+	 * @param directory the directory to start from
+	 */
+	private Class findScmType(File directory) {
+
+		Class c = (Class) directory.list().with {
+			delegate.grep('.svn') ? SvnReleasePlugin :
+				delegate.grep('.bzr') ? BzrReleasePlugin :
+					delegate.grep('.git') ? GitReleasePlugin :
+						delegate.grep('.hg') ? HgReleasePlugin :
+							null
+		}
+
+		if (!c && directory.parentFile) {
+			c = findScmType(directory.parentFile)
+		}
+		
+		c	
+	}
+
 }
