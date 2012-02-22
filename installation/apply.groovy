@@ -6,7 +6,7 @@ buildscript {
 		}
 	}
 	dependencies {
-		classpath 'gradle-release:gradle-release:0.8'
+		classpath 'gradle-release:gradle-release:0.9pre'
 	}
 }
 // Check to make sure release.ReleasePlugin isn't already added.
