@@ -4,10 +4,10 @@ import java.util.regex.Matcher
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.tasks.GradleBuild
 import org.gradle.api.tasks.TaskState
-import org.gradle.api.Task
 
 /**
  * @author elberry
@@ -26,6 +26,11 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 		this.project = project
 
 		setConvention('release', new ReleasePluginConvention())
+
+		def preCommitText = findProperty("release.preCommitText") ?: findProperty("preCommitText")
+		if (preCommitText) {
+			releaseConvention().preCommitText = preCommitText
+		}
 		this.scmPlugin = applyScmPlugin()
 
 		project.task('release', description: 'Verify project, release, and update version to next.', group: RELEASE_GROUP, type: GradleBuild) {
@@ -67,10 +72,13 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 				description: 'Prompts user for the next version. Does it\'s best to supply a smart default.') << this.&updateVersion
 		project.task('commitNewVersion', group: RELEASE_GROUP,
 				description: 'Commits the version update to your SCM') << this.&commitNewVersion
-		
+		project.task('createReleaseTag', group: RELEASE_GROUP,
+				description: 'Creates a tag in SCM for the current (un-snapshotted) version.') << this.&commitTag
+
+
 		project.gradle.taskGraph.afterTask { Task task, TaskState state ->
-			if(state.failure && task.name == "release") {
-				if(releaseConvention().revertOnFail) {
+			if (state.failure && task.name == "release") {
+				if (releaseConvention().revertOnFail) {
 					log.error("Release process failed, reverting back any changes made by Release Plugin.")
 					this.scmPlugin.revert()
 				} else {
@@ -86,13 +94,6 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 		checkPropertiesFile()
 		scmPlugin.setConvention()
 		scmPlugin.init()
-
-		// Verifying all "release" steps are defined
-		// TODO: Eric says - Not sure if this is actually necessary. The Base SCM Plugin requires the methods be
-		//       implemented and adds the tasks accordingly. So unless someone doesn't extend BaseSCMPlugin, there's no
-		//       real chance of the tasks not being there.
-		//Set<String> allTasks = project.tasks*.name
-		//assert ((GradleBuild) project.tasks['release']).tasks.every { allTasks.contains(it) }
 	}
 
 
@@ -101,28 +102,39 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 		def matcher = { Dependency d -> d.version?.contains('SNAPSHOT') }
 		def collector = { Dependency d -> "${d.group ?: ''}:${d.name}:${d.version ?: ''}" }
 
+		def message = ""
+
 		// get the snapshot dependencies on the root project
 		def rootSnapshotDependencies = project.configurations.findByName('runtime')?.allDependencies?.
 				matching(matcher)?.collect(collector)
 
-		def snapshotDependencies = ["${project.name}": rootSnapshotDependencies ?: []]
+		if (rootSnapshotDependencies) {
+			message += "\n\t${project.name}: ${rootSnapshotDependencies}"
+		}
 
 		// get the snapshot dependencies on any sub projects
 		project.subprojects?.each { Project subProject ->
 			def subSnapshotDependencies = subProject.configurations.findByName('runtime')?.allDependencies?.
 					matching(matcher)?.collect(collector)
-			snapshotDependencies["${subProject.name}"] = subSnapshotDependencies ?: []
+
+			if (subSnapshotDependencies) {
+				message += "\n\t  ${subProject.name}: ${subSnapshotDependencies}"
+			}
 		}
 
-		if (!snapshotDependencies.values()*.empty) {
-			snapshotDependencies.each { pName, dList ->
-				if (dList.empty) {
-					snapshotDependencies.remove(pName)
-				}
-			}
-			def message = "Snapshot dependencies detected: $snapshotDependencies"
+		if (message) {
+			message = "Snapshot dependencies detected: ${message}"
 			warnOrThrow(releaseConvention().failOnSnapshotDependencies, message)
 		}
+	}
+
+	void commitTag() {
+		def message = releaseConvention().tagCommitMessage +
+				" '${tagName()}'."
+		if(releaseConvention().preCommitText) {
+			message = "${releaseConvention().preCommitText} ${message}"
+		}
+		scmPlugin.createReleaseTag(message)
 	}
 
 
@@ -143,7 +155,13 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 	void preTagCommit() {
 		if (project.properties['usesSnapshot']) {
 			// should only be committed if the project was using a snapshot version.
-			scmPlugin.commit(releaseConvention().preTagCommitMessage + " '${ tagName() }'.")
+			def message = releaseConvention().preTagCommitMessage +
+					" '${tagName()}'."
+
+			if(releaseConvention().preCommitText) {
+				message = "${releaseConvention().preCommitText} ${message}"
+			}
+			scmPlugin.commit(message)
 		}
 	}
 
@@ -164,7 +182,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 				if (project.properties['usesSnapshot']) {
 					nextVersion += '-SNAPSHOT'
 				}
-				if ( ! useAutomaticVersion() ) {
+				if (!useAutomaticVersion()) {
 					nextVersion = readLine("Enter the next version (current one released as [$version]):", nextVersion)
 				}
 				updateVersionProperty(nextVersion)
@@ -181,7 +199,12 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
 
 	def commitNewVersion() {
-		scmPlugin.commit(releaseConvention().newVersionCommitMessage + " '${ tagName() }'.")
+		def message = releaseConvention().newVersionCommitMessage +
+				" '${tagName()}'."
+		if(releaseConvention().preCommitText) {
+			message = "${releaseConvention().preCommitText} ${message}"
+		}
+		scmPlugin.commit(message)
 	}
 
 
@@ -193,8 +216,8 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 		propertiesFile.withReader { properties.load(it) }
 
 		assert properties.version, "[$propertiesFile.canonicalPath] contains no 'version' property"
-		assert releaseConvention().versionPatterns.keySet().any { (properties.version =~ it).find() },            \
-                          "[$propertiesFile.canonicalPath] version [$properties.version] doesn't match any of known version patterns: " +
+		assert releaseConvention().versionPatterns.keySet().any { (properties.version =~ it).find() },             \
+                           "[$propertiesFile.canonicalPath] version [$properties.version] doesn't match any of known version patterns: " +
 				releaseConvention().versionPatterns.keySet()
 	}
 
@@ -237,8 +260,8 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 		if (!c && directory.parentFile) {
 			c = findScmType(directory.parentFile)
 		}
-		
-		c	
+
+		c
 	}
 
 }

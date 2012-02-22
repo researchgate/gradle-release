@@ -88,9 +88,13 @@ class BzrReleasePlugin extends BaseScmPlugin<BzrReleasePluginConvention> {
 		}
 	}
 
-
+	/**
+	 * Uses 'bzr tag [name]'.
+	 * @param message ignored.
+	 */
 	@Override
-	void createReleaseTag() {
+	void createReleaseTag(String message = "") {
+		// message is ignored
 		exec(['bzr', 'tag', tagName()], 'Error creating tag', ERROR)
 	}
 
@@ -103,6 +107,6 @@ class BzrReleasePlugin extends BaseScmPlugin<BzrReleasePluginConvention> {
 
 	@Override
 	void revert() {
-		exec(['bzr', 'revert'], 'Error reverting changes made by the release plugin.', ERROR)
+		exec(['bzr', 'revert', findPropertiesFile().name], 'Error reverting changes made by the release plugin.', ERROR)
 	}
 }

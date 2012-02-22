@@ -66,14 +66,14 @@ class SvnReleasePlugin extends BaseScmPlugin<SvnReleasePluginConvention> {
 
 
 	@Override
-	void createReleaseTag() {
+	void createReleaseTag(String message = "") {
 		def props = project.properties
 		String svnUrl = props.releaseSvnUrl
 		String svnRev = props.releaseSvnRev
 		String svnRoot = props.releaseSvnRoot
 		String svnTag = tagName()
 
-		exec('svn', 'cp', "${svnUrl}@${svnRev}", "${svnRoot}/tags/${svnTag}", '-m', 'version ' + svnTag)
+		exec('svn', 'cp', "${svnUrl}@${svnRev}", "${svnRoot}/tags/${svnTag}", '-m', message ?: "Created by Release Plugin: ${svnTag}")
 	}
 
 
@@ -84,7 +84,7 @@ class SvnReleasePlugin extends BaseScmPlugin<SvnReleasePluginConvention> {
 
 	@Override
 	void revert() {
-		exec(['svn', 'revert', '-R'], 'Error reverting changes made by the release plugin.', ERROR)
+		exec(['svn', 'revert', findPropertiesFile().name], 'Error reverting changes made by the release plugin.', ERROR)
 	}
 
 

@@ -53,8 +53,8 @@ class PluginHelper {
 		Object convention = project.convention.plugins[pluginName]
 
 		assert convention, "Project contains no \"$pluginName\" plugin convention"
-		assert conventionType.isInstance(convention),     \
-                "Project contains \"$pluginName\" plugin convention, " +
+		assert conventionType.isInstance(convention),      \
+                 "Project contains \"$pluginName\" plugin convention, " +
 				"but it's of type [${ convention.class.name }] rather than [${ conventionType.name }]"
 
 		(T) convention
@@ -166,6 +166,9 @@ class PluginHelper {
 	void updateVersionProperty(String newVersion) {
 
 		project.version = newVersion
+		project.subprojects?.each { Project subProject ->
+			subProject.version = newVersion
+		}
 		File propertiesFile = findPropertiesFile()
 
 		Properties gradleProps = new Properties()
@@ -200,5 +203,9 @@ class PluginHelper {
 
 	String tagName() {
 		(releaseConvention().includeProjectNameInTag ? project.rootProject.name + '-' : '') + project.version
+	}
+
+	String findProperty(String key, String defaultVal = "") {
+		System.properties[key] ?: project.properties[key] ?: defaultVal
 	}
 }
