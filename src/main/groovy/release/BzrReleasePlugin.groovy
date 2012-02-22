@@ -23,12 +23,12 @@ class BzrReleasePlugin extends BaseScmPlugin<BzrReleasePluginConvention> {
 	}
 
 
-    @Override
-    BzrReleasePluginConvention buildConventionInstance () { new BzrReleasePluginConvention() }
+	@Override
+	BzrReleasePluginConvention buildConventionInstance() { new BzrReleasePluginConvention() }
 
 
-    @Override
-    void checkCommitNeeded() {
+	@Override
+	void checkCommitNeeded() {
 		String out = exec('bzr', 'xmlstatus')
 		def xml = new XmlSlurper().parseText(out)
 		def added = xml.added?.size() ?: 0
@@ -56,7 +56,7 @@ class BzrReleasePlugin extends BaseScmPlugin<BzrReleasePluginConvention> {
 	}
 
 
-    @Override
+	@Override
 	void checkUpdateNeeded() {
 		String out = exec('bzr', 'xmlmissing')
 		def xml = new XmlSlurper().parseText(out)
@@ -89,15 +89,20 @@ class BzrReleasePlugin extends BaseScmPlugin<BzrReleasePluginConvention> {
 	}
 
 
-    @Override
+	@Override
 	void createReleaseTag() {
 		exec(['bzr', 'tag', tagName()], 'Error creating tag', ERROR)
 	}
 
 
-    @Override
+	@Override
 	void commit(String message) {
 		exec(['bzr', 'ci', '-m', message], 'Error committing new version', ERROR)
 		exec(['bzr', 'push', ':parent'], 'Error committing new version', ERROR)
+	}
+
+	@Override
+	void revert() {
+		exec(['bzr', 'revert'], 'Error reverting changes made by the release plugin.', ERROR)
 	}
 }

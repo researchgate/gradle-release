@@ -16,11 +16,11 @@ abstract class BaseScmPlugin<T> extends PluginHelper implements Plugin<Project> 
 
 		this.project = project
 
-		project.task('checkCommitNeeded',
+		project.task('checkCommitNeeded', group: ReleasePlugin.RELEASE_GROUP,
 				description: 'Checks to see if there are any added, modified, removed, or un-versioned files.') << this.&checkCommitNeeded
-		project.task('checkUpdateNeeded',
+		project.task('checkUpdateNeeded', group: ReleasePlugin.RELEASE_GROUP,
 				description: 'Checks to see if there are any incoming or outgoing changes that haven\'t been applied locally.') << this.&checkUpdateNeeded
-		project.task('createReleaseTag',
+		project.task('createReleaseTag', group: ReleasePlugin.RELEASE_GROUP,
 				description: 'Creates a tag in SCM for the current (un-snapshotted) version.') << this.&createReleaseTag
 
 	}
@@ -52,4 +52,6 @@ abstract class BaseScmPlugin<T> extends PluginHelper implements Plugin<Project> 
 	abstract void createReleaseTag()
 
 	abstract void commit(String message)
+
+	abstract void revert()
 }

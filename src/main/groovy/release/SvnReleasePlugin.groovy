@@ -19,12 +19,12 @@ class SvnReleasePlugin extends BaseScmPlugin<SvnReleasePluginConvention> {
 	}
 
 
-    @Override
-    SvnReleasePluginConvention buildConventionInstance () { new SvnReleasePluginConvention() }
+	@Override
+	SvnReleasePluginConvention buildConventionInstance() { new SvnReleasePluginConvention() }
 
 
-    @Override
-    void checkCommitNeeded() {
+	@Override
+	void checkCommitNeeded() {
 		String out = exec('svn', 'status')
 		def changes = []
 		def unknown = []
@@ -47,7 +47,7 @@ class SvnReleasePlugin extends BaseScmPlugin<SvnReleasePluginConvention> {
 	}
 
 
-    @Override
+	@Override
 	void checkUpdateNeeded() {
 		// svn status -q -u
 		String out = exec('svn', 'status', '-q', '-u')
@@ -65,7 +65,7 @@ class SvnReleasePlugin extends BaseScmPlugin<SvnReleasePluginConvention> {
 	}
 
 
-    @Override
+	@Override
 	void createReleaseTag() {
 		def props = project.properties
 		String svnUrl = props.releaseSvnUrl
@@ -77,10 +77,16 @@ class SvnReleasePlugin extends BaseScmPlugin<SvnReleasePluginConvention> {
 	}
 
 
-    @Override
+	@Override
 	void commit(String message) {
 		exec(['svn', 'ci', '-m', message], 'Error committing new version', ERROR)
 	}
+
+	@Override
+	void revert() {
+		exec(['svn', 'revert', '-R'], 'Error reverting changes made by the release plugin.', ERROR)
+	}
+
 
 
 	private void findSvnUrl() {

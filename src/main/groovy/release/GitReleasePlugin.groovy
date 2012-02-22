@@ -9,109 +9,116 @@ import org.gradle.api.GradleException
  */
 class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 
-    private static final String LINE              = '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
+	private static final String LINE = '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
 
-    private static final String UNCOMMITTED = 'uncommitted'
-    private static final String UNVERSIONED = 'unversioned'
-    private static final String AHEAD = 'ahead'
-    private static final String BEHIND = 'behind'
+	private static final String UNCOMMITTED = 'uncommitted'
+	private static final String UNVERSIONED = 'unversioned'
+	private static final String AHEAD = 'ahead'
+	private static final String BEHIND = 'behind'
 
-    @Override
-    void init () {
+	@Override
+	void init() {
 
-        if ( convention().requireBranch ) {
+		if (convention().requireBranch) {
 
-            def branch = gitCurrentBranch()
+			def branch = gitCurrentBranch()
 
-            if ( ! ( branch == convention().requireBranch )) {
-                throw new GradleException( "Current Git branch is \"$branch\" and not \"${ convention().requireBranch }\"." )
-            }
-        }
-    }
-
-
-    @Override
-    GitReleasePluginConvention buildConventionInstance () { new GitReleasePluginConvention() }
+			if (!(branch == convention().requireBranch)) {
+				throw new GradleException("Current Git branch is \"$branch\" and not \"${ convention().requireBranch }\".")
+			}
+		}
+	}
 
 
-    @Override
-    void checkCommitNeeded () {
-
-        def status = gitStatus()
-
-        if ( status[UNVERSIONED] ) {
-            warnOrThrow(releaseConvention().failOnUnversionedFiles,
-                ([ 'You have unversioned files:', LINE, *status[UNVERSIONED], LINE ] as String[] ).join( '\n' ))            
-        }
-
-        if ( status[UNCOMMITTED] ) {
-            warnOrThrow(releaseConvention().failOnCommitNeeded,
-                ([ 'You have uncommitted files:', LINE, *status[UNCOMMITTED], LINE ] as String[] ).join( '\n' ))            
-        }
-
-    }
+	@Override
+	GitReleasePluginConvention buildConventionInstance() { new GitReleasePluginConvention() }
 
 
-    @Override
-    void checkUpdateNeeded () {
+	@Override
+	void checkCommitNeeded() {
 
-        exec([ 'git', 'remote', 'update' ], '' )
+		def status = gitStatus()
 
-        def status = gitRemoteStatus()
+		if (status[UNVERSIONED]) {
+			warnOrThrow(releaseConvention().failOnUnversionedFiles,
+					(['You have unversioned files:', LINE, * status[UNVERSIONED], LINE] as String[]).join('\n'))
+		}
 
-        if ( status[AHEAD] ) {
-            warnOrThrow(releaseConvention().failOnPublishNeeded, "You have ${status[AHEAD]} local change(s) to push.")
-        }
+		if (status[UNCOMMITTED]) {
+			warnOrThrow(releaseConvention().failOnCommitNeeded,
+					(['You have uncommitted files:', LINE, * status[UNCOMMITTED], LINE] as String[]).join('\n'))
+		}
 
-        if ( status[BEHIND] ) {
-            warnOrThrow(releaseConvention().failOnUpdateNeeded, "You have ${status[BEHIND]} remote change(s) to pull.")
-        }
-    }
-
-
-    @Override
-    void createReleaseTag () {
-        def tagName = tagName()
-        exec([ 'git', 'tag', '-a',      tagName, '-m', 'version ' + tagName ], "Duplicate tag [$tagName]", 'already exists' )
-        exec([ 'git', 'push', 'origin', tagName ], '', '! [rejected]', 'error: failed to push' )
-    }
+	}
 
 
-    @Override
-    void commit ( String message ) {
-        exec([ 'git', 'commit', '-a', '-m', message ], '' )
-        exec([ 'git', 'push', 'origin' ], '', '! [rejected]', 'error: failed to push' )
-    }
+	@Override
+	void checkUpdateNeeded() {
 
-    private String gitCurrentBranch() { 
-        def matches = exec( 'git', 'branch' ).readLines().grep(~/\s*\*.*/)
-        matches[0].trim() - (~/^\*\s+/)
-    }
+		exec(['git', 'remote', 'update'], '')
 
-    private Map<String, List<String>> gitStatus() {
-        exec( 'git', 'status', '--porcelain' ).readLines().groupBy {
-            if (it ==~ /^\s*\?{2}.*/) {
-                UNVERSIONED
-            } else {
-                UNCOMMITTED
-            }
-        }
-    }
+		def status = gitRemoteStatus()
 
-    private Map<String, Integer> gitRemoteStatus() {
-        def branchStatus = exec( 'git', 'status', '-sb' ).readLines()[0]
-        def aheadMatcher = branchStatus =~ /.*ahead (\d+).*/
-        def behindMatcher = branchStatus =~ /.*behind (\d+).*/
+		if (status[AHEAD]) {
+			warnOrThrow(releaseConvention().failOnPublishNeeded, "You have ${status[AHEAD]} local change(s) to push.")
+		}
 
-        def remoteStatus = [:]
+		if (status[BEHIND]) {
+			warnOrThrow(releaseConvention().failOnUpdateNeeded, "You have ${status[BEHIND]} remote change(s) to pull.")
+		}
+	}
 
-        if (aheadMatcher.matches()) {
-            remoteStatus[AHEAD] = aheadMatcher[0][1]
-        }
-        if (behindMatcher.matches()) {
-            remoteStatus[BEHIND] = behindMatcher[0][1]
-        }
-        remoteStatus
-    }    
+
+	@Override
+	void createReleaseTag() {
+		def tagName = tagName()
+		exec(['git', 'tag', '-a', tagName, '-m', 'version ' + tagName], "Duplicate tag [$tagName]", 'already exists')
+		exec(['git', 'push', 'origin', tagName], '', '! [rejected]', 'error: failed to push')
+	}
+
+
+	@Override
+	void commit(String message) {
+		exec(['git', 'commit', '-a', '-m', message], '')
+		exec(['git', 'push', 'origin'], '', '! [rejected]', 'error: failed to push')
+	}
+
+	@Override
+	void revert() {
+		exec(['git', 'reset', '--hard', 'HEAD'], "Error reverting changes made by the release plugin.")
+	}
+
+
+
+	private String gitCurrentBranch() {
+		def matches = exec('git', 'branch').readLines().grep(~/\s*\*.*/)
+		matches[0].trim() - (~/^\*\s+/)
+	}
+
+	private Map<String, List<String>> gitStatus() {
+		exec('git', 'status', '--porcelain').readLines().groupBy {
+			if (it ==~ /^\s*\?{2}.*/) {
+				UNVERSIONED
+			} else {
+				UNCOMMITTED
+			}
+		}
+	}
+
+	private Map<String, Integer> gitRemoteStatus() {
+		def branchStatus = exec('git', 'status', '-sb').readLines()[0]
+		def aheadMatcher = branchStatus =~ /.*ahead (\d+).*/
+		def behindMatcher = branchStatus =~ /.*behind (\d+).*/
+
+		def remoteStatus = [:]
+
+		if (aheadMatcher.matches()) {
+			remoteStatus[AHEAD] = aheadMatcher[0][1]
+		}
+		if (behindMatcher.matches()) {
+			remoteStatus[BEHIND] = behindMatcher[0][1]
+		}
+		remoteStatus
+	}
 
 }

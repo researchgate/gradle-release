@@ -6,6 +6,8 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.tasks.GradleBuild
+import org.gradle.api.tasks.TaskState
+import org.gradle.api.Task
 
 /**
  * @author elberry
@@ -13,6 +15,8 @@ import org.gradle.api.tasks.GradleBuild
  * Created: Tue Aug 09 15:32:00 PDT 2011
  */
 class ReleasePlugin extends PluginHelper implements Plugin<Project> {
+
+	static final String RELEASE_GROUP = "Release"
 
 	@SuppressWarnings('StatelessClass')
 	private BaseScmPlugin scmPlugin
@@ -24,7 +28,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 		setConvention('release', new ReleasePluginConvention())
 		this.scmPlugin = applyScmPlugin()
 
-		project.task('release', description: 'Verify project, release, and update version to next.', type: GradleBuild) {
+		project.task('release', description: 'Verify project, release, and update version to next.', group: RELEASE_GROUP, type: GradleBuild) {
 			startParameter = project.getGradle().startParameter.newInstance()
 
 			tasks = [
@@ -36,10 +40,10 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 					'checkUpdateNeeded',
 					//  3. (This Plugin) Check for SNAPSHOT dependencies if required.
 					'checkSnapshotDependencies',
-					//  4. (This Plugin) Build && run Unit tests
-					'build',
-					//  5. (This Plugin) Update Snapshot version if used
+					//  4. (This Plugin) Update Snapshot version if used
 					'unSnapshotVersion',
+					//  5. (This Plugin) Build && run Unit tests
+					'build',
 					//  6. (This Plugin) Commit Snapshot update (if done)
 					'preTagCommit',
 					//  7. (SCM Plugin) Create tag of release.
@@ -48,21 +52,32 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 					'updateVersion',
 					//  9. (This Plugin) Commit version update.
 					'commitNewVersion'
-			].flatten()
+			]
 		}
 
-		project.task('initScmPlugin',
+		project.task('initScmPlugin', group: RELEASE_GROUP,
 				description: 'Initializes the SCM plugin (based on hidden directories in your project\'s directory)') << this.&initScmPlugin
-		project.task('checkSnapshotDependencies',
+		project.task('checkSnapshotDependencies', group: RELEASE_GROUP,
 				description: 'Checks to see if your project has any SNAPSHOT dependencies.') << this.&checkSnapshotDependencies
-		project.task('unSnapshotVersion',
+		project.task('unSnapshotVersion', group: RELEASE_GROUP,
 				description: 'Removes "-SNAPSHOT" from your project\'s current version.') << this.&unSnapshotVersion
-		project.task('preTagCommit',
+		project.task('preTagCommit', group: RELEASE_GROUP,
 				description: 'Commits any changes made by the Release plugin - eg. If the unSnapshotVersion tas was executed') << this.&preTagCommit
-		project.task('updateVersion',
+		project.task('updateVersion', group: RELEASE_GROUP,
 				description: 'Prompts user for the next version. Does it\'s best to supply a smart default.') << this.&updateVersion
-		project.task('commitNewVersion',
+		project.task('commitNewVersion', group: RELEASE_GROUP,
 				description: 'Commits the version update to your SCM') << this.&commitNewVersion
+		
+		project.gradle.taskGraph.afterTask { Task task, TaskState state ->
+			if(state.failure && task.name == "release") {
+				if(releaseConvention().revertOnFail) {
+					log.error("Release process failed, reverting back any changes made by Release Plugin.")
+					this.scmPlugin.revert()
+				} else {
+					log.error("Release process failed, please remember to revert any uncommitted changes made by the Release Plugin.")
+				}
+			}
+		}
 	}
 
 
@@ -116,10 +131,10 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
 		if (version.contains('-SNAPSHOT')) {
 			project.setProperty('usesSnapshot', true)
+			project.setProperty('snapshotVersion', version)
 			version -= '-SNAPSHOT'
 			updateVersionProperty(version)
-		}
-		else {
+		} else {
 			project.setProperty('usesSnapshot', false)
 		}
 	}

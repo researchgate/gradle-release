@@ -14,13 +14,14 @@ class ReleasePluginConvention {
 	boolean failOnSnapshotDependencies = true
 	boolean failOnUnversionedFiles = true
 	boolean failOnUpdateNeeded = true
+	boolean revertOnFail = true // will use the SCM plugin to revert any uncommitted changes in the project.
 	String preTagCommitMessage = 'Gradle Release Plugin - pre tag commit: '
 	String newVersionCommitMessage = 'Gradle Release Plugin - new version commit: '
 
 	/**
-	* If true, tag names and messages will include the project name (e.g. project-name-version)
-	* otherwise only version is used.
-	*/
+	 * If true, tag names and messages will include the project name (e.g. project-name-version)
+	 * otherwise only version is used.
+	 */
 	boolean includeProjectNameInTag = false
 
 	def requiredTasks = []

@@ -10,18 +10,18 @@ class HgReleasePlugin extends BaseScmPlugin<HgReleasePluginConvention> {
 	private static final String ERROR = 'abort:'
 
 
-    @Override
-    void init () {
-    }
+	@Override
+	void init() {
+	}
 
 
 
-    @Override
-    HgReleasePluginConvention buildConventionInstance () { new HgReleasePluginConvention() }
+	@Override
+	HgReleasePluginConvention buildConventionInstance() { new HgReleasePluginConvention() }
 
 
-    @Override
-    void checkCommitNeeded() {
+	@Override
+	void checkCommitNeeded() {
 		def modifications = ['A': [], 'M': [], 'R': [], '?': []]
 		exec('hg', 'status').eachLine {line ->
 			def mods = modifications[line[0]]
@@ -41,7 +41,7 @@ class HgReleasePlugin extends BaseScmPlugin<HgReleasePluginConvention> {
 	}
 
 
-    @Override
+	@Override
 	void checkUpdateNeeded() {
 		def modifications = ['in': [], 'out': []]
 		exec('hg', 'in', '-q').eachLine { line ->
@@ -59,15 +59,19 @@ class HgReleasePlugin extends BaseScmPlugin<HgReleasePluginConvention> {
 	}
 
 
-    @Override
+	@Override
 	void createReleaseTag() {
 		exec(['hg', 'tag', tagName()], 'Error creating tag', ERROR)
 	}
 
 
-    @Override
+	@Override
 	void commit(String message) {
 		exec(['hg', 'ci', '-m', message], 'Error committing new version', ERROR)
 		exec(['hg', 'push'], 'Error committing new version', ERROR)
+	}
+
+	void revert() {
+		exec(['hg', 'revert'], 'Error reverting changes made by the release plugin.', ERROR)
 	}
 }
