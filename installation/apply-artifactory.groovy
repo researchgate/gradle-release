@@ -6,7 +6,7 @@ buildscript {
 		}
 	}
 	dependencies {
-		classpath 'gradle-release:gradle-release:0.8a'
+		classpath 'gradle-release:gradle-release:0.9'
 	}
 }
 

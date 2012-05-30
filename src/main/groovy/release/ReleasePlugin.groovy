@@ -43,10 +43,12 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 					'checkCommitNeeded',
 					//  2. (SCM Plugin) Check to see if source is out of date
 					'checkUpdateNeeded',
-					//  3. (This Plugin) Check for SNAPSHOT dependencies if required.
-					'checkSnapshotDependencies',
-					//  4. (This Plugin) Update Snapshot version if used
+					//  3. (This Plugin) Update Snapshot version if used
+					//     Needs to be done before checking for snapshot versions since the project might depend on other
+					//     Modules within the same project.
 					'unSnapshotVersion',
+					//  4. (This Plugin) Check for SNAPSHOT dependencies if required.
+					'checkSnapshotDependencies',
 					//  5. (This Plugin) Build && run Unit tests
 					'build',
 					//  6. (This Plugin) Commit Snapshot update (if done)
