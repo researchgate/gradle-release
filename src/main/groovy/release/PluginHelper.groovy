@@ -164,20 +164,14 @@ class PluginHelper {
 	 * @param newVersion new version to store in the file
 	 */
 	void updateVersionProperty(String newVersion) {
-
+		def oldVersion = project.version
 		project.version = newVersion
 		project.subprojects?.each { Project subProject ->
 			subProject.version = newVersion
 		}
 		File propertiesFile = findPropertiesFile()
 
-		Properties gradleProps = new Properties()
-		propertiesFile.withReader { gradleProps.load(it) }
-
-		gradleProps.version = newVersion
-		propertiesFile.withWriter {
-			gradleProps.store(it, "Version updated to '${newVersion}', by Gradle release plugin (http://code.launchpad.net/~gradle-plugins/gradle-release/).")
-		}
+		project.ant.replace(file: propertiesFile, token: "version=${oldVersion}", value: "version=${newVersion}")
 	}
 
 	File findPropertiesFile() {
