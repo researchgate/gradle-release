@@ -2,7 +2,7 @@ apply plugin: 'groovy'
 apply from: 'installation/apply-local.groovy'
 
 confirmReleaseVersion << {
-	def applyFile = file("installation", "apply.groovy")
+	def applyFile = new File("installation", "apply.groovy")
 	def oldVersion = project.getProperty("release.oldVersion")
 	def newVersion = project.getProperty("release.newVersion")
 	ant.replace(file: applyFile, token: "version=${oldVersion}", value: "version=${newVersion}")
