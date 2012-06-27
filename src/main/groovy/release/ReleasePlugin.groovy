@@ -47,17 +47,19 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 					//     Needs to be done before checking for snapshot versions since the project might depend on other
 					//     Modules within the same project.
 					'unSnapshotVersion',
-					//  4. (This Plugin) Check for SNAPSHOT dependencies if required.
+					//  4. (This Plugin) Confirm this release version
+					'confirmReleaseVersion',
+					//  5. (This Plugin) Check for SNAPSHOT dependencies if required.
 					'checkSnapshotDependencies',
-					//  5. (This Plugin) Build && run Unit tests
+					//  6. (This Plugin) Build && run Unit tests
 					'build',
-					//  6. (This Plugin) Commit Snapshot update (if done)
+					//  7. (This Plugin) Commit Snapshot update (if done)
 					'preTagCommit',
-					//  7. (SCM Plugin) Create tag of release.
+					//  8. (SCM Plugin) Create tag of release.
 					'createReleaseTag',
-					//  8. (This Plugin) Update version to next version.
+					//  9. (This Plugin) Update version to next version.
 					'updateVersion',
-					//  9. (This Plugin) Commit version update.
+					// 10. (This Plugin) Commit version update.
 					'commitNewVersion'
 			]
 		}
@@ -68,6 +70,8 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 				description: 'Checks to see if your project has any SNAPSHOT dependencies.') << this.&checkSnapshotDependencies
 		project.task('unSnapshotVersion', group: RELEASE_GROUP,
 				description: 'Removes "-SNAPSHOT" from your project\'s current version.') << this.&unSnapshotVersion
+		project.task('confirmReleaseVersion', group: RELEASE_GROUP,
+				description: 'Prompts user for this release version. Allows for alpha or pre releases.') << this.&confirmReleaseVersion
 		project.task('preTagCommit', group: RELEASE_GROUP,
 				description: 'Commits any changes made by the Release plugin - eg. If the unSnapshotVersion tas was executed') << this.&preTagCommit
 		project.task('updateVersion', group: RELEASE_GROUP,
@@ -139,6 +143,14 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 		scmPlugin.createReleaseTag(message)
 	}
 
+	void confirmReleaseVersion() {
+		def version = "$project.version"
+
+		version = readLine("This release version:", version)
+
+		updateVersionProperty(version)
+	}
+
 
 	void unSnapshotVersion() {
 		def version = project.version.toString()
@@ -187,6 +199,8 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 				if (!useAutomaticVersion()) {
 					nextVersion = readLine("Enter the next version (current one released as [$version]):", nextVersion)
 				}
+				project.setProperty("release.oldVersion", project.version)
+				project.setProperty("release.newVersion", nextVersion)
 				updateVersionProperty(nextVersion)
 				return
 			}
