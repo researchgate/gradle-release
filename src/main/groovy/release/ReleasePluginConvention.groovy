@@ -32,6 +32,8 @@ class ReleasePluginConvention {
 			/(\d+)([^\d]*$)/: { Matcher m -> m.replaceAll("${ (m[0][1] as int) + 1 }${ m[0][2] }") }
 	]
 
+	def git = new GitReleasePluginConvention()
+
 	void release(Closure closure) {
 		closure.delegate = this
 		closure.call()

@@ -18,7 +18,6 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 
 	@Override
 	void init() {
-
 		if (convention().requireBranch) {
 
 			def branch = gitCurrentBranch()
@@ -31,7 +30,7 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 
 
 	@Override
-	GitReleasePluginConvention buildConventionInstance() { new GitReleasePluginConvention() }
+	GitReleasePluginConvention buildConventionInstance() { releaseConvention().git }
 
 
 	@Override
