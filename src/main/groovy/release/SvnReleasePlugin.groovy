@@ -90,7 +90,7 @@ class SvnReleasePlugin extends BaseScmPlugin<SvnReleasePluginConvention> {
 
 
 	private void findSvnUrl() {
-		String out = exec(LC_COLLATE: "C", LC_CTYPE: "en_US.UTF-8", 'svn', 'info')
+		String out = exec(true, [LC_COLLATE: "C", LC_CTYPE: "en_US.UTF-8"], 'svn', 'info')
 		def urlPattern = ~/URL:\s(.*?)(\/(trunk|branches|tags).*?)$/
 		def revPattern = ~/Revision:\s(.*?)$/
 
