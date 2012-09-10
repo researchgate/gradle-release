@@ -21,7 +21,9 @@ abstract class BaseScmPlugin<T> extends PluginHelper implements Plugin<Project> 
 		project.task('checkUpdateNeeded', group: ReleasePlugin.RELEASE_GROUP,
 				description: 'Checks to see if there are any incoming or outgoing changes that haven\'t been applied locally.') << this.&checkUpdateNeeded
 
-	}
+        setConvention()
+
+    }
 
 	/**
 	 * Called by {@link ReleasePlugin} when plugin's convention needs to be set.

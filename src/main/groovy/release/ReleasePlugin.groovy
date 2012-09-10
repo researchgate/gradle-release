@@ -98,7 +98,6 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 	void initScmPlugin() {
 
 		checkPropertiesFile()
-		scmPlugin.setConvention()
 		scmPlugin.init()
 	}
 
