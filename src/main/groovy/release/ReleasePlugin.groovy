@@ -146,7 +146,9 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 	void confirmReleaseVersion() {
 		def version = "$project.version"
 
-		version = readLine("This release version:", version)
+        if (!useAutomaticVersion()) {
+			version = readLine("This release version:", version)
+        }
 
 		updateVersionProperty(version)
 	}
