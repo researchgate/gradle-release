@@ -157,12 +157,12 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 		def version = project.version.toString()
 
 		if (version.contains('-SNAPSHOT')) {
-			project.setProperty('usesSnapshot', true)
-			project.setProperty('snapshotVersion', version)
+			project.ext.set('usesSnapshot', true)
+			project.ext.set('snapshotVersion', version)
 			version -= '-SNAPSHOT'
 			updateVersionProperty(version)
 		} else {
-			project.setProperty('usesSnapshot', false)
+			project.ext.set('usesSnapshot', false)
 		}
 	}
 
@@ -200,8 +200,8 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 				if (!useAutomaticVersion()) {
 					nextVersion = readLine("Enter the next version (current one released as [$version]):", nextVersion)
 				}
-				project.setProperty("release.oldVersion", project.version)
-				project.setProperty("release.newVersion", nextVersion)
+				project.ext.set("release.oldVersion", project.version)
+				project.ext.set("release.newVersion", nextVersion)
 				updateVersionProperty(nextVersion)
 				return
 			}

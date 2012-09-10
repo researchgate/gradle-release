@@ -99,13 +99,13 @@ class SvnReleasePlugin extends BaseScmPlugin<SvnReleasePluginConvention> {
 			if (matcher.matches()) {
 				String svnRoot = matcher.group(1)
 				String svnProject = matcher.group(2)
-				project.setProperty('releaseSvnRoot', svnRoot)
-				project.setProperty('releaseSvnUrl', "$svnRoot$svnProject")
+				project.ext.set('releaseSvnRoot', svnRoot)
+				project.ext.set('releaseSvnUrl', "$svnRoot$svnProject")
 			}
 			matcher = line =~ revPattern
 			if (matcher.matches()) {
 				String revision = matcher.group(1)
-				project.setProperty('releaseSvnRev', revision)
+				project.ext.set('releaseSvnRev', revision)
 			}
 		}
 		if (!project.hasProperty('releaseSvnUrl')) {
