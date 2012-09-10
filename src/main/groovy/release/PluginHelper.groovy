@@ -177,9 +177,12 @@ class PluginHelper {
 	File findPropertiesFile() {
 		File propertiesFile = project.file('gradle.properties')
 		if (!propertiesFile.file) {
+			if(!project.version || "unspecified" == project.version) {
+				project.version = useAutomaticVersion() ? "1.0" : readLine("Version property not set, please set it now:", "1.0")
+			}
 			boolean createIt = project.hasProperty('version') && promptYesOrNo("[$propertiesFile.canonicalPath] not found, create it with version = ${project.version}")
 			if (createIt) {
-				propertiesFile.append("version = \"${project.version}\"")
+				propertiesFile.append("version=${project.version}")
 			} else {
 				throw new GradleException("[$propertiesFile.canonicalPath] not found, create it and specify version = ...")
 			}
