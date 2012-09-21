@@ -1,10 +1,19 @@
 apply plugin: 'groovy'
 apply from: 'installation/apply-local.groovy'
 
-dependencies {
-	groovy localGroovy()
+repositories {
+	mavenCentral()
+	mavenRepo url: 'http://m2repo.spockframework.org/snapshots'
 }
 
+dependencies {
+	compile gradleApi()
+	groovy localGroovy()
+	testCompile( 'org.spockframework:spock-core:0.5-groovy-1.8' ) { exclude group: 'org.codehaus.groovy' }
+	testCompile 'junit:junit:4.10'
+}
+
+// This updates the apply script with the new version.
 updateVersion << {
 	def applyFile = new File("installation", "apply.groovy")
 	def oldVersion = project.getProperty("release.oldVersion")
