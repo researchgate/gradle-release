@@ -1,6 +1,10 @@
 apply plugin: 'groovy'
 apply from: 'installation/apply-local.groovy'
 
+dependencies {
+	groovy localGroovy()
+}
+
 updateVersion << {
 	def applyFile = new File("installation", "apply.groovy")
 	def oldVersion = project.getProperty("release.oldVersion")
