@@ -18,5 +18,5 @@ updateVersion << {
 	def applyFile = new File("installation", "apply.groovy")
 	def oldVersion = project.getProperty("release.oldVersion")
 	def newVersion = project.getProperty("release.newVersion")
-	ant.replace(file: applyFile, token: "version=${oldVersion}", value: "version=${newVersion}")
+	ant.replace(file: applyFile, token: "gradle-release:gradle-release:${oldVersion}", value: "gradle-release:gradle-release:${newVersion}")
 }
