@@ -84,7 +84,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
 		project.gradle.taskGraph.afterTask { Task task, TaskState state ->
 			if (state.failure && task.name == "release") {
-				if (releaseConvention().revertOnFail) {
+				if (releaseConvention().revertOnFail && project.file("gradle.properties")?.exists()) {
 					log.error("Release process failed, reverting back any changes made by Release Plugin.")
 					this.scmPlugin.revert()
 				} else {
@@ -208,10 +208,6 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 		}
 
 		throw new GradleException("Failed to increase version [$version] - unknown pattern")
-	}
-
-	boolean useAutomaticVersion() {
-		project.hasProperty('gradle.release.useAutomaticVersion') && project.getProperty('gradle.release.useAutomaticVersion') == "true"
 	}
 
 

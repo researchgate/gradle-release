@@ -1,15 +1,9 @@
 apply plugin: 'groovy'
 apply plugin: 'idea'
 
-//apply from: './installation/apply.groovy'
-codenarcRuleSetFiles = [ 'codenarc.groovy' ]
-codenarcSources      = [ 'src/main/groovy', 'src/test/groovy', 'installation', '.' ]
-apply from: 'https://raw.github.com/evgeny-goldin/gradle-plugins/master/src/main/groovy/CodeNarc.gradle'
-
-
 group = 'gradle-release'
 
-defaultTasks 'clean', 'codenarc', 'build'
+defaultTasks 'clean', 'build'
 
 repositories {
 	mavenCentral()

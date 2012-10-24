@@ -103,6 +103,10 @@ class PluginHelper {
 		out.toString()
 	}
 
+	boolean useAutomaticVersion() {
+		project.hasProperty('gradle.release.useAutomaticVersion') && project.getProperty('gradle.release.useAutomaticVersion') == "true"
+	}
+
 	/**
 	 * Executes command specified and verifies neither "stdout" or "stderr" contain an error pattern specified.
 	 *
@@ -184,7 +188,8 @@ class PluginHelper {
 			if (createIt) {
 				propertiesFile.append("version=${project.version}")
 			} else {
-				throw new GradleException("[$propertiesFile.canonicalPath] not found, create it and specify version = ...")
+				log.debug "[$propertiesFile.canonicalPath] was not found, and user opted out of it being created. Throwing exception."
+				throw new GradleException("[$propertiesFile.canonicalPath] not found and you opted out of it being created,\n please create it manually and and specify the version property.")
 			}
 		}
 		propertiesFile
