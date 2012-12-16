@@ -109,23 +109,15 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
 		def message = ""
 
-		// get the snapshot dependencies on the root project
-		def rootSnapshotDependencies = project.configurations.findByName('runtime')?.allDependencies?.
-				matching(matcher)?.collect(collector)
-
-		if (rootSnapshotDependencies) {
-			message += "\n\t${project.name}: ${rootSnapshotDependencies}"
-		}
-
-		// get the snapshot dependencies on any sub projects
-		project.subprojects?.each { Project subProject ->
-			def subSnapshotDependencies = subProject.configurations.findByName('runtime')?.allDependencies?.
-					matching(matcher)?.collect(collector)
-
-			if (subSnapshotDependencies) {
-				message += "\n\t  ${subProject.name}: ${subSnapshotDependencies}"
-			}
-		}
+        project.allprojects.each {project ->
+            def snapshotDependencies = [] as Set
+            project.configurations.each {cfg ->
+                snapshotDependencies += cfg.dependencies?.matching(matcher)?.collect(collector)
+            }
+            if (snapshotDependencies.size() > 0) {
+                message += "\n\t${project.name}: ${snapshotDependencies}"
+            }
+        }
 
 		if (message) {
 			message = "Snapshot dependencies detected: ${message}"
@@ -260,7 +252,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 	 * Recursively look for the type of the SCM we are dealing with, if no match is found look in parent directory
 	 * @param directory the directory to start from
 	 */
-	private Class findScmType(File directory) {
+	protected Class findScmType(File directory) {
 
 		Class c = (Class) directory.list().with {
 			delegate.grep('.svn') ? SvnReleasePlugin :

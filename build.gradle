@@ -7,12 +7,11 @@ defaultTasks 'clean', 'build'
 
 repositories {
 	mavenCentral()
-	mavenRepo url: 'http://m2repo.spockframework.org/snapshots'
 }
 
 dependencies {
 	compile gradleApi()
 	groovy localGroovy()
-	testCompile( 'org.spockframework:spock-core:0.5-groovy-1.8' ) { exclude group: 'org.codehaus.groovy' }
+    testCompile( 'org.spockframework:spock-core:0.7-groovy-1.8' ) { exclude group: 'org.codehaus.groovy' }
 	testCompile 'junit:junit:4.10'
 }
