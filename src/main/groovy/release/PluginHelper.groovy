@@ -179,7 +179,7 @@ class PluginHelper {
 	}
 
 	File findPropertiesFile() {
-		File propertiesFile = project.file('gradle.properties')
+		File propertiesFile = project.file(releaseConvention().versionPropertyFile)
 		if (!propertiesFile.file) {
 			if(!project.version || "unspecified" == project.version) {
 				project.version = useAutomaticVersion() ? "1.0" : readLine("Version property not set, please set it now:", "1.0")
