@@ -1,1 +1,4 @@
 language: groovy
+branches:
+  only:
+    - master
