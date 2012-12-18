@@ -34,6 +34,8 @@ class ReleasePluginConvention {
 
 	def git = new GitReleasePluginConvention()
 
+    String versionPropertyFile = 'gradle.properties'
+
 	void release(Closure closure) {
 		closure.delegate = this
 		closure.call()
