@@ -1,4 +1,4 @@
-# Introduction
+## Introduction
 
 The gradle-release plugin is designed to work similar to the Maven release plugin.
 The `gradle release` task defines the following as the default release process:
@@ -8,38 +8,35 @@ The `gradle release` task defines the following as the default release process:
 * Removes the SNAPSHOT flag on your projects version (If used)
 * Prompts you for the release version.
 * Checks if your project is using any SNAPSHOT dependencies
+* Will `build` your project.
+* Commits the project if SNAPSHOT was being used.
+* Creates a release tag with the current version.
+* Prompts you for the next version.
+* Commits the project with the new version.
 
- Will `build` your project.
+Current Version: 1.0
 
- Commits the project if SNAPSHOT was being used.
+Current SCM support: [Bazaar](http://bazaar.canonical.com/en/), [Git](http://git-scm.com/), [Mercurial](), and [Subversion]()
 
- Creates a release tag with the current version.
+## Installation & Usage
 
- Prompts you for the next version.
+The gradle-release plugin will work with Gradle 1.0M3 and beyond
+To use the plugin simply add an `apply from` script to your project's `build.gradle` file
+It's recommended that you use the `latest` script reference instead of a specific version so that you can automatically get plugin updates:
 
- Commits the project with the new version.
-
- Current Version: 1.0
-
- Current SCM support: Bazaar, Git, Mercurial, and Subversion
-Installation & Usage
-
- The gradle-release plugin will work with Gradle 1.0M3 and beyond.
-
- To use the plugin simply add an 'apply from' script to your project's 'build.gradle' file.
-
- It's recommended that you use the 'latest' script reference instead of a specific version so that you can automatically get plugin updates:
+```groovy
 apply from: "https://launchpad.net/gradle-release/trunk/latest/+download/apply.groovy"
-
- If you do want to use a specific version, just change the 'latest' reference to the specific version:
+```
+If you do want to use a specific version, just change the `latest` reference to the specific version:
 apply from: "https://launchpad.net/gradle-release/trunk/1.0/+download/apply.groovy"
 
- After you have your 'build.gradle' file configured, simply run: 'gradle release' and follow the on-screen instructions.
-Configuration
+After you have your 'build.gradle' file configured, simply run: 'gradle release' and follow the on-screen instructions.
 
- As described above, the plugin will check for un-committed files and SNAPSHOT dependencies. By default the plugin will fail when any un-committed, or SNAPSHOT dependencies are found.
+### Configuration
 
- Below are some properties of the Release Plugin Convention that can be used to make your release process more lenient.  Name 	 Default 	 Description
+As described above, the plugin will check for un-committed files and SNAPSHOT dependencies. By default the plugin will fail when any un-committed, or SNAPSHOT dependencies are found.
+
+Below are some properties of the Release Plugin Convention that can be used to make your release process more lenient.  Name 	 Default 	 Description
 failOnCommitNeeded 	 true 	 Fail the release process when there un-committed changes.
 failOnPublishNeeded 	 true 	 Fail when there are local commits that haven't been published upstream (DVCS support)
 failOnSnapshotDependencies 	 true 	 Fail when the project has dependencies on SNAPSHOT versions
@@ -87,12 +84,10 @@ Working in Continuous Integration
 
  You can do this by setting the 'gradle.release.useAutomaticVersion' property on the command line, or in Jenkins when you execute gradle.
 -Pgradle.release.useAutomaticVersion=true
-Getting Help
+## Getting Help
 
- To ask questions or report bugs, please use the Launchpad.net project.
+To ask questions or report bugs, please use the GitHub project.
 
  Project Page: https://launchpad.net/gradle-release
-
- Asking Questions: https://answers.launchpad.net/gradle-release/+addquestion
-
- Reporting Bugs: https://bugs.launchpad.net/gradle-release/+filebug
+    Asking Questions: https://answers.launchpad.net/gradle-release/+addquestion
+    Reporting Bugs: https://bugs.launchpad.net/gradle-release/+filebug
