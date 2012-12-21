@@ -20,21 +20,19 @@ Current SCM support: [Bazaar](http://bazaar.canonical.com/en/), [Git](http://git
 
 ## Installation & Usage
 
-The gradle-release plugin will work with Gradle 1.0M3 and beyond
-To use the plugin simply add an `apply from` script to your project's `build.gradle` file
+The gradle-release plugin will work with Gradle 1.0M3 and beyond<br>
+To use the plugin simply add an `apply from` script to your project's `build.gradle` file<br>
 It's recommended that you use the `latest` script reference instead of a specific version so that you can automatically get plugin updates:
 
-```groovy
-apply from: "https://launchpad.net/gradle-release/trunk/latest/+download/apply.groovy"
-```
+    apply from: "https://launchpad.net/gradle-release/trunk/latest/+download/apply.groovy"
 If you do want to use a specific version, just change the `latest` reference to the specific version:
-apply from: "https://launchpad.net/gradle-release/trunk/1.0/+download/apply.groovy"
-
-After you have your 'build.gradle' file configured, simply run: 'gradle release' and follow the on-screen instructions.
+    apply from: "https://launchpad.net/gradle-release/trunk/1.0/+download/apply.groovy"
+After you have your `build.gradle` file configured, simply run: `gradle release` and follow the on-screen instructions.
 
 ### Configuration
 
-As described above, the plugin will check for un-committed files and SNAPSHOT dependencies. By default the plugin will fail when any un-committed, or SNAPSHOT dependencies are found.
+As described above, the plugin will check for un-committed files and SNAPSHOT dependencies.
+By default the plugin will fail when any un-committed, or SNAPSHOT dependencies are found.
 
 Below are some properties of the Release Plugin Convention that can be used to make your release process more lenient.  Name 	 Default 	 Description
 failOnCommitNeeded 	 true 	 Fail the release process when there un-committed changes.
