@@ -146,6 +146,6 @@ You can do this by setting the 'gradle.release.useAutomaticVersion' property on 
 
 To ask questions or report bugs, please use the GitHub project.
 
-* Project Page: [https://launchpad.net/gradle-release](https://launchpad.net/gradle-release)
-* Asking Questions: [https://answers.launchpad.net/gradle-release/+addquestion](https://answers.launchpad.net/gradle-release/+addquestion)
-* Reporting Bugs: [https://bugs.launchpad.net/gradle-release/+filebug](https://bugs.launchpad.net/gradle-release/+filebug)
+* Project Page: [https://github.com/townsfolk/gradle-release](https://github.com/townsfolk/gradle-release)
+* Asking Questions: [https://github.com/townsfolk/gradle-release/issues](https://github.com/townsfolk/gradle-release/issues)
+* Reporting Bugs: [https://github.com/townsfolk/gradle-release/issues](https://github.com/townsfolk/gradle-release/issues)
