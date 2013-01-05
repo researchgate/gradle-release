@@ -20,3 +20,19 @@ updateVersion << {
 	def newVersion = project.getProperty("release.newVersion")
 	ant.replace(file: applyFile, token: "gradle-release:gradle-release:${oldVersion}", value: "gradle-release:gradle-release:${newVersion}")
 }
+
+artifacts {
+	archives jar
+}
+
+uploadArchives {
+	repositories {
+		add(new org.apache.ivy.plugins.resolver.SFTPResolver()) {
+			host = releaseRepoHost
+			addIvyPattern "${releaseRepoBase}/[module]/[revision]/[artifact]-[revision].[ext]"
+			addArtifactPattern "${releaseRepoBase}/[module]/[revision]/[artifact]-[revision].[ext]"
+		}
+	}
+}
+
+createReleaseTag.dependsOn uploadArchives

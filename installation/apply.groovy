@@ -2,8 +2,8 @@ buildscript {
 	repositories {
 		ivy {
 			name = 'gradle_release'
-			artifactPattern 'https://launchpad.net/[organization]/trunk/[revision]/+download/[artifact]-[revision].jar'
-			//artifactPattern 'http://www.tellurianring.com/projects/gradle-plugins/release/[artifact]-[revision].jar'
+			artifactPattern 'http://tellurianring.com/projects/gradle-plugins/[module]/[revision]/[artifact]-[revision].[ext]'
+			ivyPattern 'http://tellurianring.com/projects/gradle-plugins/[module]/[revision]/[artifact]-[revision].[ext]'
 		}
 	}
 	dependencies {
