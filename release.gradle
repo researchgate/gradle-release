@@ -1,6 +1,10 @@
 apply plugin: 'groovy'
 apply from: 'installation/apply-local.groovy'
 
+configurations {
+	installers {}
+}
+
 repositories {
 	mavenCentral()
 	mavenRepo url: 'http://m2repo.spockframework.org/snapshots'
@@ -23,6 +27,7 @@ updateVersion << {
 
 artifacts {
 	archives jar
+	installers file('installation/apply.groovy')
 }
 
 uploadArchives {
@@ -35,4 +40,18 @@ uploadArchives {
 	}
 }
 
+uploadInstallers {
+	repositories {
+		add(new org.apache.ivy.plugins.resolver.SFTPResolver()) {
+			host = releaseRepoHost
+			addArtifactPattern "${releaseRepoBase}/[module]/[revision]/[artifact].[ext]"
+		}
+		add(new org.apache.ivy.plugins.resolver.SFTPResolver()) {
+			host = releaseRepoHost
+			addArtifactPattern "${releaseRepoBase}/[module]/[artifact].[ext]"
+		}
+	}
+}
+
 createReleaseTag.dependsOn uploadArchives
+createReleaseTag.dependsOn uploadInstallers
