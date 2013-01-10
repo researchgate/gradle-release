@@ -24,10 +24,14 @@ The gradle-release plugin will work with Gradle 1.0M3 and beyond
 To use the plugin simply add an `apply from` script to your project's `build.gradle` file
 It's recommended that you use the `latest` script reference instead of a specific version so that you can automatically get plugin updates:
 
-    apply from: "https://launchpad.net/gradle-release/trunk/latest/+download/apply.groovy"
-If you do want to use a specific version, just change the `latest` reference to the specific version:
+    apply from: 'http://tellurianring.com/projects/gradle-plugins/gradle-release/apply.groovy'
+If you do want to use a specific version, just change the `version` reference to the specific version:
 
-    apply from: "https://launchpad.net/gradle-release/trunk/1.0/+download/apply.groovy"
+    apply from: 'http://tellurianring.com/projects/gradle-plugins/gradle-release/[version]/apply.groovy'
+
+Eg.
+
+    apply from: 'http://tellurianring.com/projects/gradle-plugins/gradle-release/1.0/apply.groovy'
 
 After you have your `build.gradle` file configured, simply run: `gradle release` and follow the on-screen instructions.
 
