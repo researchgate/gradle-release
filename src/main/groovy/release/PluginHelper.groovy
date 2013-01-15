@@ -162,9 +162,9 @@ class PluginHelper {
 	}
 
 	/**
-	 * Updates 'gradle.properties' file with new version specified.
-	 *
-	 * @param project current project
+	 * Updates properties file (<code>gradle.properties</code> by default) with new version specified.
+     * If configured in plugin convention then updates other properties in file additionally to <code>version</code> property
+     *
 	 * @param newVersion new version to store in the file
 	 */
 	void updateVersionProperty(String newVersion) {
@@ -173,9 +173,9 @@ class PluginHelper {
 		project.subprojects?.each { Project subProject ->
 			subProject.version = newVersion
 		}
-		File propertiesFile = findPropertiesFile()
-
-		project.ant.replace(file: propertiesFile, token: "version=${oldVersion}", value: "version=${newVersion}")
+        (releaseConvention().versionProperties + 'version').each {
+            project.ant.replace(file: findPropertiesFile(), token: "${it}=${oldVersion}", value: "${it}=${newVersion}")
+        }
 	}
 
 	File findPropertiesFile() {
