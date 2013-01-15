@@ -14,7 +14,7 @@ The `gradle release` task defines the following as the default release process:
 * Prompts you for the next version.
 * Commits the project with the new version.
 
-Current Version: 1.0
+Current Version: 1.1
 
 Current SCM support: [Bazaar](http://bazaar.canonical.com/en/), [Git](http://git-scm.com/), [Mercurial](http://mercurial.selenic.com/), and [Subversion](http://subversion.apache.org/)
 
@@ -24,10 +24,14 @@ The gradle-release plugin will work with Gradle 1.0M3 and beyond
 To use the plugin simply add an `apply from` script to your project's `build.gradle` file
 It's recommended that you use the `latest` script reference instead of a specific version so that you can automatically get plugin updates:
 
-    apply from: "https://launchpad.net/gradle-release/trunk/latest/+download/apply.groovy"
-If you do want to use a specific version, just change the `latest` reference to the specific version:
+    apply from: 'http://tellurianring.com/projects/gradle-plugins/gradle-release/apply.groovy'
+If you do want to use a specific version, just change the `version` reference to the specific version:
 
-    apply from: "https://launchpad.net/gradle-release/trunk/1.0/+download/apply.groovy"
+    apply from: 'http://tellurianring.com/projects/gradle-plugins/gradle-release/[version]/apply.groovy'
+
+Eg.
+
+    apply from: 'http://tellurianring.com/projects/gradle-plugins/gradle-release/1.1/apply.groovy'
 
 After you have your `build.gradle` file configured, simply run: `gradle release` and follow the on-screen instructions.
 
@@ -39,70 +43,70 @@ By default the plugin will fail when any un-committed, or SNAPSHOT dependencies 
 Below are some properties of the Release Plugin Convention that can be used to make your release process more lenient
 
 <table border="0">
-<tr>
-<th>Name</th>
-<th>Default value</th>
-<th>Description</th>
-</tr>
-<tr>
-<td>failOnCommitNeeded</td>
-<td>true</td>
-<td>Fail the release process when there un-committed changes</td>
-</tr>
-<tr>
-<td>failOnPublishNeeded</td>
-<td>true</td>
-<td>Fail when there are local commits that haven't been published upstream (DVCS support)</td>
-</tr>
-<tr>
-<td>failOnSnapshotDependencies</td>
-<td>true</td>
-<td>Fail when the project has dependencies on SNAPSHOT versions</td>
-</tr>
-<tr>
-<td>failOnUnversionedFiles</td>
-<td>true</td>
-<td>Fail when files are found that are not under version control</td>
-</tr>
-<tr>
-<td>failOnUpdateNeeded</td>
-<td>true</td>
-<td>Fail when the source needs to be updated, or there are changes available upstream that haven't been pulled</td>
-</tr>
-<tr>
-<td>revertOnFail</td>
-<td>true</td>
-<td>When a failure occurs should the plugin revert it's changes to gradle.properties?</td>
-</tr>
+	<tr>
+		<th>Name</th>
+		<th>Default value</th>
+		<th>Description</th>
+	</tr>
+	<tr>
+		<td>failOnCommitNeeded</td>
+		<td>true</td>
+		<td>Fail the release process when there un-committed changes</td>
+	</tr>
+	<tr>
+		<td>failOnPublishNeeded</td>
+		<td>true</td>
+		<td>Fail when there are local commits that haven't been published upstream (DVCS support)</td>
+	</tr>
+	<tr>
+		<td>failOnSnapshotDependencies</td>
+		<td>true</td>
+		<td>Fail when the project has dependencies on SNAPSHOT versions</td>
+	</tr>
+	<tr>
+		<td>failOnUnversionedFiles</td>
+		<td>true</td>
+		<td>Fail when files are found that are not under version control</td>
+	</tr>
+	<tr>
+		<td>failOnUpdateNeeded</td>
+		<td>true</td>
+		<td>Fail when the source needs to be updated, or there are changes available upstream that haven't been pulled</td>
+	</tr>
+	<tr>
+		<td>revertOnFail</td>
+		<td>true</td>
+		<td>When a failure occurs should the plugin revert it's changes to gradle.properties?</td>
+	</tr>
 </table>
 
 Below are some properties of the Release Plugin Convention that can be used to customize the build<br>
 <table>
-<tr>
-<th>Name</th>
-<th>Default value</th>
-<th>Description</th>
-</tr>
-<tr>
-<td>preCommitText</td>
-<td></td>
-<td>This will be prepended to all commits done by the plugin. A good place for code review, or ticket numbers</td>
-</tr>
-<tr>
-<td>preTagCommitMessage</td>
-<td>[Gradle Release Plugin] - pre tag commit: </td>
-<td>The commit message used to commit the non-SNAPSHOT version if SNAPSHOT was used</td>
-</tr>
-<tr>
-<td>tagCommitMessage</td>
-<td>[Gradle Release Plugin] - creating tag: </td>
-<td>The commit message used when creating the tag. Not used with BZR projects</td>
-</tr>
-<tr>
-<td>newVersionCommitMessage</td>
-<td>[Gradle Release Plugin] - new version commit:</td>
-<td>The commit message used when committing the next version</td>
-</tr>
+	<tr>
+		<th>Name</th>
+		<th>Default value</th>
+		<th>Description</th>
+	</tr>
+	<tr>
+		<td>preCommitText</td>
+		<td></td>
+		<td>This will be prepended to all commits done by the plugin. A good place for code review, or ticket numbers</td>
+	</tr>
+	<tr>
+		<td>preTagCommitMessage</td>
+		<td>[Gradle Release Plugin] - pre tag commit: </td>
+		<td>The commit message used to commit the non-SNAPSHOT version if SNAPSHOT was used</td>
+	</tr>
+	<tr>
+		<td>tagCommitMessage</td>
+		<td>[Gradle Release Plugin] - creating tag: </td>
+		<td>The commit message used when creating the tag. Not used with BZR projects</td>
+	</tr>
+	<tr>
+		<td>newVersionCommitMessage</td>
+		<td>[Gradle Release Plugin] - new version commit:</td>
+		<td>The commit message used when committing the next version</td>
+	</tr>
 </table>
 
 To set any of these properties to false, add a `release` configuration to your project's `build.gradle` file. Eg. To ignore un-versioned files, you would add the following to your `build.gradle` file:
