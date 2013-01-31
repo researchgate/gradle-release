@@ -5,6 +5,8 @@ import org.gradle.api.Project
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+import static org.apache.commons.lang.StringUtils.isNotBlank
+
 /**
  * Helper object extended by plugins.
  * @author evgenyg
@@ -204,7 +206,8 @@ class PluginHelper {
 	}
 
 	String tagName() {
-		(releaseConvention().includeProjectNameInTag ? project.rootProject.name + '-' : '') + project.version
+        String prefix = isNotBlank(releaseConvention().tagPrefix) ? "${releaseConvention().tagPrefix}-" : (releaseConvention().includeProjectNameInTag ? "${project.rootProject.name}-" : "")
+        return "${prefix}${project.version}"
 	}
 
 	String findProperty(String key, String defaultVal = "") {
