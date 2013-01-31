@@ -27,7 +27,7 @@ public class PluginHelperTagNameTests extends Specification {
         helper.tagName() == '1.1'
     }
 
-    def 'when includeProjectNameInTag then tag name starts from project name is version'() {
+    def 'when includeProjectNameInTag then tag name starts from project name'() {
         given:
         project.release {
             includeProjectNameInTag = true
@@ -36,7 +36,6 @@ public class PluginHelperTagNameTests extends Specification {
         helper.tagName() == 'ReleasePluginTest-1.1'
     }
 
-    @Unroll
     def 'when tagPrefix not blank then it added to tag ignoring project name'() {
         given:
         project.release {
