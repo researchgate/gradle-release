@@ -1,6 +1,8 @@
 package release
 
+import org.ajoberstar.gradle.git.tasks.GitBranchList
 import org.gradle.api.GradleException
+import org.gradle.api.Project
 
 /**
  * @author elberry
@@ -16,12 +18,21 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
     private static final String AHEAD = 'ahead'
     private static final String BEHIND = 'behind'
 
+    private GitBranchList branchList
+
+    @Override
+    void apply(Project project) {
+        super.apply(project)
+        project.tasks.add(name: 'gitBranchList', type: GitBranchList) {
+            type = GitBranchList.BranchType.LOCAL
+        }
+        this.branchList = project.tasks.getByName("gitBranchList")
+    }
+
     @Override
     void init() {
         if (convention().requireBranch) {
-
             def branch = gitCurrentBranch()
-
             if (!(branch == convention().requireBranch)) {
                 throw new GradleException("Current Git branch is \"$branch\" and not \"${ convention().requireBranch }\".")
             }
@@ -94,8 +105,8 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 
 
     private String gitCurrentBranch() {
-        def matches = gitExec('branch').readLines().grep(~/\s*\*.*/)
-        matches[0].trim() - (~/^\*\s+/)
+        branchList.execute()
+        return branchList.workingBranch.name
     }
 
     private Map<String, List<String>> gitStatus() {

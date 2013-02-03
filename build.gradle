@@ -11,8 +11,8 @@ dependencies {
 	compile gradleApi()
 	groovy localGroovy()
     compile files("lib/gradle-git-0.3.0-SNAPSHOT.jar"),
-        files("lib/gradle-git-0.3.0-SNAPSHOT-sources.jar")
-    runtime 'org.eclipse.jgit:org.eclipse.jgit:2.2.0.201212191850-r',
+        files("lib/gradle-git-0.3.0-SNAPSHOT-sources.jar"),
+        'org.eclipse.jgit:org.eclipse.jgit:2.2.0.201212191850-r',
         'org.eclipse.jgit:org.eclipse.jgit.ui:2.2.0.201212191850-r'
     testCompile( 'org.spockframework:spock-core:0.7-groovy-1.8' ) { exclude group: 'org.codehaus.groovy' }
 	testCompile 'junit:junit:4.10'

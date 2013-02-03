@@ -12,7 +12,7 @@ abstract class BaseScmPlugin<T> extends PluginHelper implements Plugin<Project> 
 	private final String pluginName = this.class.simpleName
 	private T convention
 
-	final void apply(Project project) {
+	void apply(Project project) {
 
 		this.project = project
 
