@@ -1,6 +1,9 @@
 package release
 
+import org.ajoberstar.gradle.git.api.TrackingStatus
 import org.ajoberstar.gradle.git.tasks.GitBranchList
+import org.ajoberstar.gradle.git.tasks.GitBranchTrackingStatus
+import org.ajoberstar.gradle.git.tasks.GitFetch
 import org.ajoberstar.gradle.git.tasks.GitStatus
 import org.gradle.api.GradleException
 import org.gradle.api.Project
@@ -18,7 +21,9 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
     private static final String BEHIND = 'behind'
 
     private GitBranchList gitBranchListTask
-    GitStatus gitStatusTask
+    private GitStatus gitStatusTask
+    private GitFetch gitFetchTask
+    private GitBranchTrackingStatus gitBranchTrackingStatus
 
     @Override
     void apply(Project project) {
@@ -27,6 +32,8 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
             type = GitBranchList.BranchType.LOCAL
         }
         this.gitStatusTask = project.tasks.add(name: 'releaseGitStatus', type: GitStatus)
+        this.gitFetchTask = project.tasks.add(name: 'releaseGitFetch', type: GitFetch)
+        this.gitBranchTrackingStatus = project.tasks.add(name: 'releaseGitBranchTrackingStatus', type: GitBranchTrackingStatus)
     }
 
     @Override
@@ -71,17 +78,14 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 
     @Override
     void checkUpdateNeeded() {
-
-        gitExec(['remote', 'update'], '')
-
-        def status = gitRemoteStatus()
-
-        if (status[AHEAD]) {
-            warnOrThrow(releaseConvention().failOnPublishNeeded, "You have ${status[AHEAD]} local change(s) to push.")
+        gitFetchTask.execute()
+        gitBranchTrackingStatus.setLocalBranch(gitCurrentBranch())
+        TrackingStatus st = gitBranchTrackingStatus.execute()
+        if (st.aheadCount > 0) {
+            warnOrThrow(releaseConvention().failOnPublishNeeded, "You have ${st.aheadCount} local change(s) to push.")
         }
-
-        if (status[BEHIND]) {
-            warnOrThrow(releaseConvention().failOnUpdateNeeded, "You have ${status[BEHIND]} remote change(s) to pull.")
+        if (st.behindCount > 0) {
+            warnOrThrow(releaseConvention().failOnUpdateNeeded, "You have ${st.behindCount} remote change(s) to pull.")
         }
     }
 
