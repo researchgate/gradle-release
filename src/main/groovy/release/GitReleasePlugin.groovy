@@ -1,6 +1,7 @@
 package release
 
 import org.ajoberstar.gradle.git.tasks.GitBranchList
+import org.ajoberstar.gradle.git.tasks.GitStatus
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 
@@ -13,20 +14,19 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 
     private static final String LINE = '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
 
-    private static final String UNCOMMITTED = 'uncommitted'
-    private static final String UNVERSIONED = 'unversioned'
     private static final String AHEAD = 'ahead'
     private static final String BEHIND = 'behind'
 
-    private GitBranchList branchList
+    private GitBranchList gitBranchListTask
+    GitStatus gitStatusTask
 
     @Override
     void apply(Project project) {
         super.apply(project)
-        project.tasks.add(name: 'gitBranchList', type: GitBranchList) {
+        this.gitBranchListTask = project.tasks.add(name: 'releaseGitBranchList', type: GitBranchList) {
             type = GitBranchList.BranchType.LOCAL
         }
-        this.branchList = project.tasks.getByName("gitBranchList")
+        this.gitStatusTask = project.tasks.add(name: 'releaseGitStatus', type: GitStatus)
     }
 
     @Override
@@ -46,19 +46,26 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 
     @Override
     void checkCommitNeeded() {
-
-        def status = gitStatus()
-
-        if (status[UNVERSIONED]) {
-            warnOrThrow(releaseConvention().failOnUnversionedFiles,
-                    (['You have unversioned files:', LINE, * status[UNVERSIONED], LINE] as String[]).join('\n'))
-        }
-
-        if (status[UNCOMMITTED]) {
+        gitStatusTask.execute()
+        if (!gitStatusTask.untracked.isEmpty()) {
             warnOrThrow(releaseConvention().failOnCommitNeeded,
-                    (['You have uncommitted files:', LINE, * status[UNCOMMITTED], LINE] as String[]).join('\n'))
+                ['You have unversioned files:', LINE, gitStatusTask.untracked.files*.name, LINE].flatten().join("\n"))
+        } else {
+            def modifiedFiles = []
+            if (!gitStatusTask.added.isEmpty()) {
+                modifiedFiles << gitStatusTask.added.files*.name
+            }
+            if (!gitStatusTask.changed.isEmpty()) {
+                modifiedFiles << gitStatusTask.changed.files*.name
+            }
+            if (!gitStatusTask.modified.isEmpty()) {
+                modifiedFiles << gitStatusTask.modified.files*.name
+            }
+            if (!modifiedFiles.isEmpty()) {
+                warnOrThrow(releaseConvention().failOnCommitNeeded,
+                    ['You have uncommitted files:', LINE, modifiedFiles, LINE].flatten().join("\n"))
+            }
         }
-
     }
 
 
@@ -102,21 +109,9 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
         gitExec(['reset', '--hard', 'HEAD', findPropertiesFile().name], "Error reverting changes made by the release plugin.")
     }
 
-
-
     private String gitCurrentBranch() {
-        branchList.execute()
-        return branchList.workingBranch.name
-    }
-
-    private Map<String, List<String>> gitStatus() {
-        gitExec('status', '--porcelain').readLines().groupBy {
-            if (it ==~ /^\s*\?{2}.*/) {
-                UNVERSIONED
-            } else {
-                UNCOMMITTED
-            }
-        }
+        gitBranchListTask.execute()
+        return gitBranchListTask.workingBranch.name
     }
 
     private Map<String, Integer> gitRemoteStatus() {

@@ -75,4 +75,47 @@ class GitReleasePluginTests extends Specification {
         remoteRepo.list().any { it == 'gradle.properties' }
     }
 
+    def '`checkCommitNeeded` should detect untracked files'() {
+        given:
+        project.file('untracked.txt').withWriter {it << "test"}
+        when:
+        project.checkCommitNeeded.execute()
+        then:
+        GradleException ex = thrown()
+        ex.cause.message.contains "You have unversioned files"
+        ex.cause.message.contains "untracked.txt"
+    }
+
+    def '`checkCommitNeeded` should detect added files'() {
+        when:
+        project.checkCommitNeeded.execute()
+        then:
+        GradleException ex = thrown()
+        ex.cause.message.contains "You have uncommitted files"
+        ex.cause.message.contains "gradle.properties"
+    }
+
+    def '`checkCommitNeeded` should detect changed files'() {
+        given:
+        project.file("test.txt").withWriter {it << "update test"}
+        when:
+        project.checkCommitNeeded.execute()
+        then:
+        GradleException ex = thrown()
+        ex.cause.message.contains "You have uncommitted files"
+        ex.cause.message.contains "test.txt"
+    }
+
+    def '`checkCommitNeeded` should detect modified files'() {
+        given:
+        project.file("test.txt").withWriter {it << "update test"}
+        exec(true, [:], localRepo, 'git', 'add', 'test.txt')
+        when:
+        project.checkCommitNeeded.execute()
+        then:
+        GradleException ex = thrown()
+        ex.cause.message.contains "You have uncommitted files"
+        ex.cause.message.contains "test.txt"
+    }
+
 }
