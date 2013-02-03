@@ -1,5 +1,6 @@
 package release
 
+import org.gradle.api.GradleException
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 
@@ -22,6 +23,11 @@ class GitReleasePluginTests extends Specification {
         project = ProjectBuilder.builder().withName("GitReleasePluginTest").withProjectDir(localRepo).build()
         project.version = "1.1"
         project.apply plugin: ReleasePlugin
+
+        project.file("test.txt").withWriter {it << "test"}
+        exec(true, [:], localRepo, 'git', 'add', 'test.txt')
+        exec(true, [:], localRepo, 'git', 'commit', "-m", "test", 'test.txt')
+
         def props = project.file("gradle.properties")
         props.withWriter { it << "version=${project.version}" }
         exec(true, [:], localRepo, 'git', 'add', 'gradle.properties')
@@ -38,6 +44,17 @@ class GitReleasePluginTests extends Specification {
         project.plugins.findPlugin(GitReleasePlugin)
     }
 
+    def 'when requireBranch is configured then throw exception when different branch'() {
+        given:
+        project.git.requireBranch = 'myBranch'
+        when:
+        project.plugins.findPlugin(GitReleasePlugin).init()
+        then:
+        GradleException ex = thrown()
+        ex.message == 'Current Git branch is "master" and not "myBranch".'
+
+    }
+
     def 'should push new version to remote tracking branch by default'() {
         when:
         project.commitNewVersion.execute()
@@ -49,7 +66,7 @@ class GitReleasePluginTests extends Specification {
     def 'when pushToCurrentBranch then push new version to remote branch with same name as working'() {
         given:
         project.git.pushToCurrentBranch = true
-        exec(true, [:], localRepo, 'git', 'checkout', '-B', 'myBranch')
+        exec(false, [:], localRepo, 'git', 'checkout', '-B', 'myBranch')
         when:
         project.commitNewVersion.execute()
         exec(false, [:], remoteRepo, 'git', 'checkout', 'myBranch')

@@ -81,7 +81,7 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
         gitExec(['commit', '-a', '-m', message], '')
         def pushCmd = ['push', 'origin']
         if (convention().pushToCurrentBranch) {
-            pushCmd << getCurrentBranch()
+            pushCmd << gitCurrentBranch()
         }
         gitExec(pushCmd, '', '! [rejected]', 'error: ', 'fatal: ')
     }
@@ -93,7 +93,7 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 
 
 
-    private String getCurrentBranch() {
+    private String gitCurrentBranch() {
         def matches = gitExec('branch').readLines().grep(~/\s*\*.*/)
         matches[0].trim() - (~/^\*\s+/)
     }
