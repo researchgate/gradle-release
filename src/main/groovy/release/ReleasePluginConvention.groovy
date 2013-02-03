@@ -36,6 +36,7 @@ class ReleasePluginConvention {
 
     String versionPropertyFile = 'gradle.properties'
     String versionProperties = []
+    String tagPrefix = null
 
 	void release(Closure closure) {
 		closure.delegate = this
