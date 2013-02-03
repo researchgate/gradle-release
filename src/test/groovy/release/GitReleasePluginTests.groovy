@@ -18,19 +18,15 @@ class GitReleasePluginTests extends Specification {
         exec(true, [:], testDir, 'git', 'init', "GitReleasePluginTestRemote")//create remote repo
         exec(true, [:], remoteRepo, 'git', 'config', '--add', 'receive.denyCurrentBranch', 'ignore')//suppress errors when pushing
 
+        new File(remoteRepo, "gradle.properties").withWriter { it << "version=0.0" }
+        exec(true, [:], remoteRepo, 'git', 'add', 'gradle.properties')
+        exec(true, [:], remoteRepo, 'git', 'commit', '-a', '-m', 'initial')
+
         exec(false, [:], testDir, 'git', 'clone', remoteRepo.canonicalPath, 'GitReleasePluginTestLocal')
 
         project = ProjectBuilder.builder().withName("GitReleasePluginTest").withProjectDir(localRepo).build()
         project.version = "1.1"
         project.apply plugin: ReleasePlugin
-
-        project.file("test.txt").withWriter {it << "test"}
-        exec(true, [:], localRepo, 'git', 'add', 'test.txt')
-        exec(true, [:], localRepo, 'git', 'commit', "-m", "test", 'test.txt')
-
-        def props = project.file("gradle.properties")
-        props.withWriter { it << "version=${project.version}" }
-        exec(true, [:], localRepo, 'git', 'add', 'gradle.properties')
     }
 
     def cleanup() {
@@ -56,66 +52,25 @@ class GitReleasePluginTests extends Specification {
     }
 
     def 'should push new version to remote tracking branch by default'() {
+        given:
+        project.file('gradle.properties').withWriter {it << "version=${project.version}"}
         when:
         project.commitNewVersion.execute()
         exec(true, [:], remoteRepo, 'git', 'reset', '--hard', 'HEAD')
         then:
-        remoteRepo.list().any { it == 'gradle.properties' }
+        remoteRepo.listFiles().any {it.name == 'gradle.properties' && it.text.contains("version=1.1")}
     }
 
     def 'when pushToCurrentBranch then push new version to remote branch with same name as working'() {
         given:
         project.git.pushToCurrentBranch = true
         exec(false, [:], localRepo, 'git', 'checkout', '-B', 'myBranch')
+        project.file('gradle.properties').withWriter {it << "version=${project.version}"}
         when:
         project.commitNewVersion.execute()
         exec(false, [:], remoteRepo, 'git', 'checkout', 'myBranch')
         exec(false, [:], remoteRepo, 'git', 'reset', '--hard', 'HEAD')
         then:
-        remoteRepo.list().any { it == 'gradle.properties' }
+        remoteRepo.listFiles().any {it.name == 'gradle.properties' && it.text.contains("version=1.1")}
     }
-
-    def '`checkCommitNeeded` should detect untracked files'() {
-        given:
-        project.file('untracked.txt').withWriter {it << "test"}
-        when:
-        project.checkCommitNeeded.execute()
-        then:
-        GradleException ex = thrown()
-        ex.cause.message.contains "You have unversioned files"
-        ex.cause.message.contains "untracked.txt"
-    }
-
-    def '`checkCommitNeeded` should detect added files'() {
-        when:
-        project.checkCommitNeeded.execute()
-        then:
-        GradleException ex = thrown()
-        ex.cause.message.contains "You have uncommitted files"
-        ex.cause.message.contains "gradle.properties"
-    }
-
-    def '`checkCommitNeeded` should detect changed files'() {
-        given:
-        project.file("test.txt").withWriter {it << "update test"}
-        when:
-        project.checkCommitNeeded.execute()
-        then:
-        GradleException ex = thrown()
-        ex.cause.message.contains "You have uncommitted files"
-        ex.cause.message.contains "test.txt"
-    }
-
-    def '`checkCommitNeeded` should detect modified files'() {
-        given:
-        project.file("test.txt").withWriter {it << "update test"}
-        exec(true, [:], localRepo, 'git', 'add', 'test.txt')
-        when:
-        project.checkCommitNeeded.execute()
-        then:
-        GradleException ex = thrown()
-        ex.cause.message.contains "You have uncommitted files"
-        ex.cause.message.contains "test.txt"
-    }
-
 }
