@@ -17,9 +17,6 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 
     private static final String LINE = '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
 
-    private static final String AHEAD = 'ahead'
-    private static final String BEHIND = 'behind'
-
     private GitBranchList gitBranchListTask
     private GitStatus gitStatusTask
     private GitFetch gitFetchTask
@@ -50,7 +47,6 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
     @Override
     GitReleasePluginConvention buildConventionInstance() { releaseConvention().git }
 
-
     @Override
     void checkCommitNeeded() {
         gitStatusTask.execute()
@@ -80,11 +76,13 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
     void checkUpdateNeeded() {
         gitFetchTask.execute()
         gitBranchTrackingStatus.setLocalBranch(gitCurrentBranch())
-        TrackingStatus st = gitBranchTrackingStatus.execute()
-        if (st.aheadCount > 0) {
+        gitBranchTrackingStatus.execute()
+        TrackingStatus st = gitBranchTrackingStatus.trackingStatus
+
+        if (st?.aheadCount > 0) {
             warnOrThrow(releaseConvention().failOnPublishNeeded, "You have ${st.aheadCount} local change(s) to push.")
         }
-        if (st.behindCount > 0) {
+        if (st?.behindCount > 0) {
             warnOrThrow(releaseConvention().failOnUpdateNeeded, "You have ${st.behindCount} remote change(s) to pull.")
         }
     }
@@ -118,34 +116,10 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
         return gitBranchListTask.workingBranch.name
     }
 
-    private Map<String, Integer> gitRemoteStatus() {
-        def branchStatus = gitExec('status', '-sb').readLines()[0]
-        def aheadMatcher = branchStatus =~ /.*ahead (\d+).*/
-        def behindMatcher = branchStatus =~ /.*behind (\d+).*/
-
-        def remoteStatus = [:]
-
-        if (aheadMatcher.matches()) {
-            remoteStatus[AHEAD] = aheadMatcher[0][1]
-        }
-        if (behindMatcher.matches()) {
-            remoteStatus[BEHIND] = behindMatcher[0][1]
-        }
-        remoteStatus
-    }
-
     String gitExec(Collection<String> params, String errorMessage, String... errorPattern) {
         def gitDir = project.rootProject.file(".git").canonicalPath.replaceAll("\\\\", "/")
         def workTree = project.rootProject.projectDir.canonicalPath.replaceAll("\\\\", "/")
         def cmdLine = ['git', "--git-dir=${gitDir}", "--work-tree=${workTree}"].plus(params)
         return exec(cmdLine, errorMessage, errorPattern)
-    }
-
-    String gitExec(String... commands) {
-        def gitDir = project.rootProject.file(".git").canonicalPath.replaceAll("\\\\", "/")
-        def workTree = project.rootProject.projectDir.canonicalPath.replaceAll("\\\\", "/")
-        def cmdLine = ['git', "--git-dir=${gitDir}", "--work-tree=${workTree}"]
-        cmdLine.addAll commands
-        return exec(cmdLine as String[])
     }
 }
