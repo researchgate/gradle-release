@@ -7,6 +7,7 @@ import org.ajoberstar.gradle.git.tasks.GitCommit
 import org.ajoberstar.gradle.git.tasks.GitFetch
 import org.ajoberstar.gradle.git.tasks.GitPush
 import org.ajoberstar.gradle.git.tasks.GitStatus
+import org.ajoberstar.gradle.git.tasks.GitTag
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 
@@ -25,6 +26,7 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
     private GitBranchTrackingStatus gitBranchTrackingStatus
     private GitCommit gitCommit
     private GitPush gitPush
+    private GitTag gitTag
 
     @Override
     void apply(Project project) {
@@ -39,6 +41,7 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
             commitAll = true
         }
         this.gitPush = project.tasks.add(name: 'releaseGitPush', type: GitPush)
+        this.gitTag = project.tasks.add(name: 'releaseGitTag', type: GitTag)
     }
 
     @Override
@@ -97,10 +100,20 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 
 
     @Override
-    void createReleaseTag(String message = "") {
-        def tagName = tagName()
-        gitExec(['tag', '-a', tagName, '-m', message ?: "Created by Release Plugin: ${tagName}"], "Duplicate tag [$tagName]", 'already exists')
-        gitExec(['push', 'origin', tagName], '', '! [rejected]', 'error: ', 'fatal: ')
+    void createReleaseTag(String msg = "") {
+        def tagNm = tagName()
+
+        gitTag.with {
+            message = msg ?: "Created by Release Plugin: ${tagNm}"
+            tagName = tagNm
+            execute()
+        }
+
+        gitPush.with {
+            pushTags = true
+            pushAll = false
+            execute()
+        }
     }
 
 
