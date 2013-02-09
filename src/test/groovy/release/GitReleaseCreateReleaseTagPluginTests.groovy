@@ -1,11 +1,12 @@
 package release
 
+import org.eclipse.jgit.api.Git
 import org.gradle.api.GradleException
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 
 @Mixin(PluginHelper)
-class GitReleasePluginTests extends Specification {
+class GitReleaseCreateReleaseTagPluginTests extends Specification {
 
     def testDir = new File("build/tmp/test/release")
 
@@ -33,52 +34,13 @@ class GitReleasePluginTests extends Specification {
         if (testDir.exists()) testDir.deleteDir()
     }
 
-    def 'should apply ReleasePlugin and GitReleasePlugin plugin'() {
-        expect:
-        project.plugins.findPlugin(ReleasePlugin)
-        and:
-        project.plugins.findPlugin(GitReleasePlugin)
-    }
-
-    def 'when requireBranch is configured then throw exception when different branch'() {
-        given:
-        project.git.requireBranch = 'myBranch'
-        when:
-        project.plugins.findPlugin(GitReleasePlugin).init()
-        then:
-        GradleException ex = thrown()
-        ex.message == 'Current Git branch is "master" and not "myBranch".'
-
-    }
-
-    def 'should push new version to remote tracking branch by default'() {
-        given:
-        project.file('gradle.properties').withWriter {it << "version=${project.version}"}
-        when:
-        project.commitNewVersion.execute()
-        exec(true, [:], remoteRepo, 'git', 'reset', '--hard', 'HEAD')
-        then:
-        remoteRepo.listFiles().any {it.name == 'gradle.properties' && it.text.contains("version=1.1")}
-    }
-
-    def 'when pushToCurrentBranch then push new version to remote branch with same name as working'() {
-        given:
-        project.git.pushToCurrentBranch = true
-        exec(false, [:], localRepo, 'git', 'checkout', '-B', 'myBranch')
-        project.file('gradle.properties').withWriter {it << "version=${project.version}"}
-        when:
-        project.commitNewVersion.execute()
-        exec(false, [:], remoteRepo, 'git', 'checkout', 'myBranch')
-        exec(false, [:], remoteRepo, 'git', 'reset', '--hard', 'HEAD')
-        then:
-        remoteRepo.listFiles().any {it.name == 'gradle.properties' && it.text.contains("version=1.1")}
-    }
-
     def 'when createReleaseTag then tag is created'() {
         given:
+        asserty Git.open(localRepo).tagList().call().size() == 0
         when:
         project.createReleaseTag.execute()
         then:
+        asserty Git.open(localRepo).tagList().call().size() == 1
         true
     }
 
