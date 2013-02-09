@@ -3,7 +3,9 @@ package release
 import org.ajoberstar.gradle.git.api.TrackingStatus
 import org.ajoberstar.gradle.git.tasks.GitBranchList
 import org.ajoberstar.gradle.git.tasks.GitBranchTrackingStatus
+import org.ajoberstar.gradle.git.tasks.GitCommit
 import org.ajoberstar.gradle.git.tasks.GitFetch
+import org.ajoberstar.gradle.git.tasks.GitPush
 import org.ajoberstar.gradle.git.tasks.GitStatus
 import org.gradle.api.GradleException
 import org.gradle.api.Project
@@ -21,6 +23,8 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
     private GitStatus gitStatusTask
     private GitFetch gitFetchTask
     private GitBranchTrackingStatus gitBranchTrackingStatus
+    private GitCommit gitCommit
+    private GitPush gitPush
 
     @Override
     void apply(Project project) {
@@ -31,6 +35,10 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
         this.gitStatusTask = project.tasks.add(name: 'releaseGitStatus', type: GitStatus)
         this.gitFetchTask = project.tasks.add(name: 'releaseGitFetch', type: GitFetch)
         this.gitBranchTrackingStatus = project.tasks.add(name: 'releaseGitBranchTrackingStatus', type: GitBranchTrackingStatus)
+        this.gitCommit = project.tasks.add(name: 'releaseGitCommit', type: GitCommit) {
+            commitAll = true
+        }
+        this.gitPush = project.tasks.add(name: 'releaseGitPush', type: GitPush)
     }
 
     @Override
@@ -97,13 +105,12 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 
 
     @Override
-    void commit(String message) {
-        gitExec(['commit', '-a', '-m', message], '')
-        def pushCmd = ['push', 'origin']
-        if (convention().pushToCurrentBranch) {
-            pushCmd << gitCurrentBranch()
+    void commit(String msg) {
+        gitCommit.with {
+            message = msg
+            execute()
         }
-        gitExec(pushCmd, '', '! [rejected]', 'error: ', 'fatal: ')
+        gitPush.execute()
     }
 
     @Override
