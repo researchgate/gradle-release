@@ -7,15 +7,15 @@ import spock.lang.Specification
 @Mixin(PluginHelper)
 class GitReleasePluginTests extends Specification {
 
-    def testDir = new File("build/tmp/test/release")
+    def testDir = new File("build/tmp/test/release/${getClass().simpleName}")
 
-    def localRepo = new File(testDir, "GitReleasePluginTestLocal")
-    def remoteRepo = new File(testDir, "GitReleasePluginTestRemote")
+    def localRepo = new File(testDir, "local")
+    def remoteRepo = new File(testDir, "remote")
 
     def setup() {
         testDir.mkdirs()
 
-        exec(true, [:], testDir, 'git', 'init', "GitReleasePluginTestRemote")//create remote repo
+        exec(true, [:], testDir, 'git', 'init', "remote")//create remote repo
         exec(true, [:], remoteRepo, 'git', 'config', '--add', 'receive.denyCurrentBranch', 'ignore')//suppress errors when pushing
 
         new File(remoteRepo, "gradle.properties").withWriter { it << "version=0.0" }
@@ -26,7 +26,7 @@ class GitReleasePluginTests extends Specification {
         exec(true, [:], remoteRepo, 'git', 'add', 'my.properties')
         exec(true, [:], remoteRepo, 'git', 'commit', '-a', '-m', 'initial')
 
-        exec(false, [:], testDir, 'git', 'clone', remoteRepo.canonicalPath, 'GitReleasePluginTestLocal')
+        exec(false, [:], testDir, 'git', 'clone', remoteRepo.canonicalPath, 'local')
 
         project = ProjectBuilder.builder().withName("GitReleasePluginTest").withProjectDir(localRepo).build()
         project.version = "1.1"

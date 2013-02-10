@@ -18,12 +18,12 @@ class GitReleasePluginCreateReleaseTagTests extends Specification {
     @Shared Git remoteGit
 
     def setupSpec() {
-        testDir = new File("build/tmp/test/release")
+        testDir = new File("build/tmp/test/release/${getClass().simpleName}")
         if (testDir.exists()) testDir.deleteDir()
         testDir.mkdirs()
 
-        localRepo = new File(testDir, "GitReleasePluginTestLocal")
-        remoteRepo = new File(testDir, "GitReleasePluginTestRemote")
+        localRepo = new File(testDir, "local")
+        remoteRepo = new File(testDir, "remote")
 
         remoteGit = Git.init().setDirectory(remoteRepo).call()
         remoteGit.repository.config.setString("receive", null, "denyCurrentBranch", "ignore")

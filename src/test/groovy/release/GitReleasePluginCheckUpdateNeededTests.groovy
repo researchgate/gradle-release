@@ -9,7 +9,7 @@ import sun.misc.SharedSecrets
 @Mixin(PluginHelper)
 class GitReleasePluginCheckUpdateNeededTests extends Specification {
 
-    static def testDir = new File("build/tmp/test/release/checkUpdateNeeded")
+    static def testDir = new File("build/tmp/test/release/${getClass().simpleName}")
 
     @Shared def localRepo = new File(testDir, "local")
     @Shared def remoteRepo = new File(testDir, "remote")
