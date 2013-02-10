@@ -1,44 +1,10 @@
 package release
 
-import org.eclipse.jgit.api.Git
 import org.gradle.api.GradleException
 import org.gradle.testfixtures.ProjectBuilder
-import spock.lang.Shared
-import spock.lang.Specification
 
 @Mixin(PluginHelper)
-class GitReleasePluginCreateReleaseTagTests extends Specification {
-
-    static def testDir
-
-    @Shared def localRepo
-    @Shared def remoteRepo
-
-    @Shared Git localGit
-    @Shared Git remoteGit
-
-    def setupSpec() {
-        testDir = new File("build/tmp/test/release/${getClass().simpleName}")
-        if (testDir.exists()) testDir.deleteDir()
-        testDir.mkdirs()
-
-        localRepo = new File(testDir, "local")
-        remoteRepo = new File(testDir, "remote")
-
-        remoteGit = Git.init().setDirectory(remoteRepo).call()
-        remoteGit.repository.config.setString("receive", null, "denyCurrentBranch", "ignore")
-        remoteGit.repository.config.save()
-
-        new File(remoteRepo, "gradle.properties").withWriter { it << "version=0.0" }
-        remoteGit.add().addFilepattern("gradle.properties").call()
-        remoteGit.commit().setAll(true).setMessage("initial").call()
-
-        localGit = Git.cloneRepository().setDirectory(localRepo).setURI(remoteRepo.canonicalPath).call()
-    }
-
-    def cleanupSpec() {
-        if (testDir.exists()) testDir.deleteDir()
-    }
+class GitReleasePluginCreateReleaseTagTests extends GitSpecification {
 
     def setup() {
         project = ProjectBuilder.builder().withName("GitReleasePluginTest").withProjectDir(localRepo).build()
