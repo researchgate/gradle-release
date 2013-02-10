@@ -11,7 +11,7 @@ public class PluginHelperVersionPropertyFileTests extends Specification {
 
     PluginHelper helper
 
-    def testDir = new File("build/tmp/test/release")
+    def testDir = new File("build/tmp/test/release/${getClass().simpleName}")
 
     def setup() {
         project = ProjectBuilder.builder().withName("ReleasePluginTest").withProjectDir(testDir).build()
