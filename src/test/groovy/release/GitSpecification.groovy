@@ -15,6 +15,12 @@ abstract class GitSpecification extends Specification {
     @Shared Git localGit
     @Shared Git remoteGit
 
+    protected void newFileToRemote(String name, String content) {
+        new File(remoteRepo, name).withWriter {it << content}
+        remoteGit.add().addFilepattern(name).call()
+        remoteGit.commit().setAll(true).setMessage("commit $name").call()
+    }
+
     def setupSpec() {
         if (testDir.exists()) testDir.deleteDir()
         testDir.mkdirs()
@@ -23,9 +29,7 @@ abstract class GitSpecification extends Specification {
         remoteGit.repository.config.setString("receive", null, "denyCurrentBranch", "ignore")
         remoteGit.repository.config.save()
 
-        new File(remoteRepo, "gradle.properties").withWriter { it << "version=0.0" }
-        remoteGit.add().addFilepattern("gradle.properties").call()
-        remoteGit.commit().setAll(true).setMessage("initial").call()
+        newFileToRemote('gradle.properties', 'version=0.0')
 
         localGit = Git.cloneRepository().setDirectory(localRepo).setURI(remoteRepo.canonicalPath).call()
     }
