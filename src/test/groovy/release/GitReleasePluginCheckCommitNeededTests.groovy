@@ -2,7 +2,6 @@ package release
 
 import org.gradle.api.GradleException
 import org.gradle.testfixtures.ProjectBuilder
-import spock.lang.Specification
 
 @Mixin(PluginHelper)
 class GitReleasePluginCheckCommitNeededTests extends GitSpecification {
@@ -28,7 +27,7 @@ class GitReleasePluginCheckCommitNeededTests extends GitSpecification {
 
     def '`checkCommitNeeded` should detect added files'() {
         given:
-        addToGit(localGit, 'added.txt') {it << 'added'}
+        gitAdd(localGit, 'added.txt') {it << 'added'}
         when:
         project.checkCommitNeeded.execute()
         then:
@@ -39,7 +38,7 @@ class GitReleasePluginCheckCommitNeededTests extends GitSpecification {
 
     def '`checkCommitNeeded` should detect changed files'() {
         given:
-        addAndCommitToGit(localGit, 'changed.txt') {it << 'changed1'}
+        gitAddAndCommit(localGit, 'changed.txt') {it << 'changed1'}
         project.file("changed.txt").withWriter {it << "changed2"}
         when:
         project.checkCommitNeeded.execute()
@@ -51,8 +50,8 @@ class GitReleasePluginCheckCommitNeededTests extends GitSpecification {
 
     def '`checkCommitNeeded` should detect modified files'() {
         given:
-        addAndCommitToGit(localGit, 'modified.txt') {it << 'modified1'}
-        addToGit(localGit, 'modified.txt') {it << 'modified2'}
+        gitAddAndCommit(localGit, 'modified.txt') {it << 'modified1'}
+        gitAdd(localGit, 'modified.txt') {it << 'modified2'}
         when:
         project.checkCommitNeeded.execute()
         then:
