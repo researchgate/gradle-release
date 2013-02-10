@@ -1,7 +1,6 @@
 package release
 
 import org.eclipse.jgit.api.Git
-import org.junit.Before
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -15,10 +14,14 @@ abstract class GitSpecification extends Specification {
     @Shared Git localGit
     @Shared Git remoteGit
 
-    protected void newFileToRemote(String name, String content) {
-        new File(remoteRepo, name).withWriter {it << content}
-        remoteGit.add().addFilepattern(name).call()
-        remoteGit.commit().setAll(true).setMessage("commit $name").call()
+    static void addToGit(Git git, String name, Closure content) {
+        new File(git.repository.getWorkTree(), name).withWriter content
+        git.add().addFilepattern(name).call()
+    }
+
+    static void addAndCommitToGit(Git git, String name, Closure content) {
+        addToGit(git, name, content)
+        git.commit().setAll(true).setMessage("commit $name").call()
     }
 
     def setupSpec() {
@@ -29,7 +32,9 @@ abstract class GitSpecification extends Specification {
         remoteGit.repository.config.setString("receive", null, "denyCurrentBranch", "ignore")
         remoteGit.repository.config.save()
 
-        newFileToRemote('gradle.properties', 'version=0.0')
+        addAndCommitToGit(remoteGit, 'gradle.properties') {
+            it << 'version=0.0'
+        }
 
         localGit = Git.cloneRepository().setDirectory(localRepo).setURI(remoteRepo.canonicalPath).call()
     }

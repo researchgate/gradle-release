@@ -5,41 +5,19 @@ import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 
 @Mixin(PluginHelper)
-class GitReleasePluginCheckCommitNeededTests extends Specification {
-
-    def testDir = new File("build/tmp/test/release/${getClass().simpleName}")
-
-    def localRepo = new File(testDir, "local")
-    def remoteRepo = new File(testDir, "remote")
-
+class GitReleasePluginCheckCommitNeededTests extends GitSpecification {
     def setup() {
-        testDir.mkdirs()
-
-        exec(true, [:], testDir, 'git', 'init', "remote")//create remote repo
-        exec(true, [:], remoteRepo, 'git', 'config', '--add', 'receive.denyCurrentBranch', 'ignore')//suppress errors when pushing
-
-        exec(false, [:], testDir, 'git', 'clone', remoteRepo.canonicalPath, 'local')
-
-        project = ProjectBuilder.builder().withName("GitReleasePluginTest").withProjectDir(localRepo).build()
-        project.version = "1.1"
+        project = ProjectBuilder.builder().withName("GitReleasePluginTest").withProjectDir(localGit.repository.getWorkTree()).build()
         project.apply plugin: ReleasePlugin
-
-        project.file("test.txt").withWriter {it << "test"}
-        exec(true, [:], localRepo, 'git', 'add', 'test.txt')
-        exec(true, [:], localRepo, 'git', 'commit', "-m", "test", 'test.txt')
-
-        def props = project.file("gradle.properties")
-        props.withWriter { it << "version=${project.version}" }
-        exec(true, [:], localRepo, 'git', 'add', 'gradle.properties')
     }
 
     def cleanup() {
-        if (testDir.exists()) testDir.deleteDir()
+        project.fileTree('.').matching {include: '*.txt'}.each {it.delete()}
     }
 
     def '`checkCommitNeeded` should detect untracked files'() {
         given:
-        project.file('untracked.txt').withWriter {it << "test"}
+        project.file('untracked.txt').withWriter {it << "untracked"}
         when:
         project.checkCommitNeeded.execute()
         then:
@@ -49,34 +27,37 @@ class GitReleasePluginCheckCommitNeededTests extends Specification {
     }
 
     def '`checkCommitNeeded` should detect added files'() {
+        given:
+        addToGit(localGit, 'added.txt') {it << 'added'}
         when:
         project.checkCommitNeeded.execute()
         then:
         GradleException ex = thrown()
         ex.cause.message.contains "You have uncommitted files"
-        ex.cause.message.contains "gradle.properties"
+        ex.cause.message.contains "added.txt"
     }
 
     def '`checkCommitNeeded` should detect changed files'() {
         given:
-        project.file("test.txt").withWriter {it << "update test"}
+        addAndCommitToGit(localGit, 'changed.txt') {it << 'changed1'}
+        project.file("changed.txt").withWriter {it << "changed2"}
         when:
         project.checkCommitNeeded.execute()
         then:
         GradleException ex = thrown()
         ex.cause.message.contains "You have uncommitted files"
-        ex.cause.message.contains "test.txt"
+        ex.cause.message.contains "changed.txt"
     }
 
     def '`checkCommitNeeded` should detect modified files'() {
         given:
-        project.file("test.txt").withWriter {it << "update test"}
-        exec(true, [:], localRepo, 'git', 'add', 'test.txt')
+        addAndCommitToGit(localGit, 'modified.txt') {it << 'modified1'}
+        addToGit(localGit, 'modified.txt') {it << 'modified2'}
         when:
         project.checkCommitNeeded.execute()
         then:
         GradleException ex = thrown()
         ex.cause.message.contains "You have uncommitted files"
-        ex.cause.message.contains "test.txt"
+        ex.cause.message.contains "modified.txt"
     }
 }

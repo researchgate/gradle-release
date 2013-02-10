@@ -7,7 +7,7 @@ import org.gradle.testfixtures.ProjectBuilder
 class GitReleasePluginCreateReleaseTagTests extends GitSpecification {
 
     def setup() {
-        project = ProjectBuilder.builder().withName("GitReleasePluginTest").withProjectDir(localRepo).build()
+        project = ProjectBuilder.builder().withName("GitReleasePluginTest").withProjectDir(localGit.repository.workTree).build()
         project.apply plugin: ReleasePlugin
     }
 
