@@ -12,9 +12,6 @@ abstract class GitSpecification extends Specification {
 
     @Shared File testDir = new File("build/tmp/test/${getClass().simpleName}")
 
-    @Shared File localRepo = new File(testDir, "local")
-    @Shared File remoteRepo = new File(testDir, "remote")
-
     @Shared Git localGit
     @Shared Git remoteGit
 
@@ -40,6 +37,8 @@ abstract class GitSpecification extends Specification {
         if (testDir.exists()) testDir.deleteDir()
         testDir.mkdirs()
 
+        File remoteRepo = new File(testDir, "remote")
+
         remoteGit = Git.init().setDirectory(remoteRepo).call()
         remoteGit.repository.config.setString("receive", null, "denyCurrentBranch", "ignore")
         remoteGit.repository.config.save()
@@ -48,7 +47,7 @@ abstract class GitSpecification extends Specification {
             it << 'version=0.0'
         }
 
-        localGit = Git.cloneRepository().setDirectory(localRepo).setURI(remoteRepo.canonicalPath).call()
+        localGit = Git.cloneRepository().setDirectory(new File(testDir, "local")).setURI(remoteRepo.canonicalPath).call()
     }
 
     def cleanupSpec() {

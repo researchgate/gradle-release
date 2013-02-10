@@ -11,12 +11,12 @@ class GitReleasePluginCheckCommitNeededTests extends GitSpecification {
     }
 
     def cleanup() {
-        project.fileTree('.').matching {include: '*.txt'}.each {it.delete()}
+        project.fileTree('.').matching { include: '*.txt' }.each { it.delete() }
     }
 
     def '`checkCommitNeeded` should detect untracked files'() {
         given:
-        project.file('untracked.txt').withWriter {it << "untracked"}
+        project.file('untracked.txt').withWriter { it << "untracked" }
         when:
         project.checkCommitNeeded.execute()
         then:
@@ -27,7 +27,7 @@ class GitReleasePluginCheckCommitNeededTests extends GitSpecification {
 
     def '`checkCommitNeeded` should detect added files'() {
         given:
-        gitAdd(localGit, 'added.txt') {it << 'added'}
+        gitAdd(localGit, 'added.txt') { it << 'added' }
         when:
         project.checkCommitNeeded.execute()
         then:
@@ -38,8 +38,8 @@ class GitReleasePluginCheckCommitNeededTests extends GitSpecification {
 
     def '`checkCommitNeeded` should detect changed files'() {
         given:
-        gitAddAndCommit(localGit, 'changed.txt') {it << 'changed1'}
-        project.file("changed.txt").withWriter {it << "changed2"}
+        gitAddAndCommit(localGit, 'changed.txt') { it << 'changed1' }
+        project.file("changed.txt").withWriter { it << "changed2" }
         when:
         project.checkCommitNeeded.execute()
         then:
@@ -50,8 +50,8 @@ class GitReleasePluginCheckCommitNeededTests extends GitSpecification {
 
     def '`checkCommitNeeded` should detect modified files'() {
         given:
-        gitAddAndCommit(localGit, 'modified.txt') {it << 'modified1'}
-        gitAdd(localGit, 'modified.txt') {it << 'modified2'}
+        gitAddAndCommit(localGit, 'modified.txt') { it << 'modified1' }
+        gitAdd(localGit, 'modified.txt') { it << 'modified2' }
         when:
         project.checkCommitNeeded.execute()
         then:

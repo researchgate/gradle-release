@@ -54,7 +54,7 @@ class GitReleasePluginTests extends GitSpecification {
         gitCheckoutBranch(remoteGit, 'myBranch')
         gitHardReset(remoteGit)
         then:
-        remoteRepo.listFiles().any { it.name == 'gradle.properties' && it.text.contains("version=2.2") }
+        remoteGit.repository.workTree.listFiles().any { it.name == 'gradle.properties' && it.text.contains("version=2.2") }
     }
 
     def 'revert should discard uncommited changes to configured *.properties'() {
