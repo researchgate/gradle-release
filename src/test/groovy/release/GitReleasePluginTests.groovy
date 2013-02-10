@@ -22,6 +22,10 @@ class GitReleasePluginTests extends Specification {
         exec(true, [:], remoteRepo, 'git', 'add', 'gradle.properties')
         exec(true, [:], remoteRepo, 'git', 'commit', '-a', '-m', 'initial')
 
+        new File(remoteRepo, "my.properties").withWriter { it << "version=0.0" }
+        exec(true, [:], remoteRepo, 'git', 'add', 'my.properties')
+        exec(true, [:], remoteRepo, 'git', 'commit', '-a', '-m', 'initial')
+
         exec(false, [:], testDir, 'git', 'clone', remoteRepo.canonicalPath, 'GitReleasePluginTestLocal')
 
         project = ProjectBuilder.builder().withName("GitReleasePluginTest").withProjectDir(localRepo).build()
@@ -74,28 +78,16 @@ class GitReleasePluginTests extends Specification {
         remoteRepo.listFiles().any {it.name == 'gradle.properties' && it.text.contains("version=1.1")}
     }
 
-    def 'when createReleaseTag then tag is created'() {
+    def 'revert should discard uncommited changes to configured *.properties'() {
         given:
+        project.release {
+            versionPropertyFile = 'my.properties'
+        }
+        project.file('my.properties').withWriter {it << "some new content"}
         when:
-        project.createReleaseTag.execute()
+        project.plugins.findPlugin(GitReleasePlugin).revert()
         then:
-        true
-    }
-
-    def 'when createReleaseTag then tag is pushed to remote'() {
-        given:
-        when:
-        project.createReleaseTag.execute()
-        then:
-        true
-    }
-
-    def 'when createReleaseTag and tag already exist then exception'() {
-        given:
-        when:
-        project.createReleaseTag.execute()
-        then:
-        true
+        project.file('my.properties').text == 'version=0.0'
     }
 
 }

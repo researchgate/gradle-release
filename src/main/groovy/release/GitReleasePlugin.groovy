@@ -3,6 +3,7 @@ package release
 import org.ajoberstar.gradle.git.api.TrackingStatus
 import org.ajoberstar.gradle.git.tasks.GitBranchList
 import org.ajoberstar.gradle.git.tasks.GitBranchTrackingStatus
+import org.ajoberstar.gradle.git.tasks.GitCheckout
 import org.ajoberstar.gradle.git.tasks.GitCommit
 import org.ajoberstar.gradle.git.tasks.GitFetch
 import org.ajoberstar.gradle.git.tasks.GitPush
@@ -27,6 +28,7 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
     private GitCommit gitCommit
     private GitPush gitPush
     private GitTag gitTag
+    private GitCheckout gitCheckout;
 
     @Override
     void apply(Project project) {
@@ -42,6 +44,9 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
         }
         this.gitPush = project.tasks.add(name: 'releaseGitPush', type: GitPush)
         this.gitTag = project.tasks.add(name: 'releaseGitTag', type: GitTag)
+        this.gitCheckout = project.tasks.add(name: 'releaseGitCheckout', type: GitCheckout) {
+            startingPoint = 'HEAD'
+        }
     }
 
     @Override
@@ -128,18 +133,12 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 
     @Override
     void revert() {
-        gitExec(['reset', '--hard', 'HEAD', findPropertiesFile().name], "Error reverting changes made by the release plugin.")
+        gitCheckout.include(findPropertiesFile().name)
+        gitCheckout.execute()
     }
 
     private String gitCurrentBranch() {
         gitBranchListTask.execute()
         return gitBranchListTask.workingBranch.name
-    }
-
-    String gitExec(Collection<String> params, String errorMessage, String... errorPattern) {
-        def gitDir = project.rootProject.file(".git").canonicalPath.replaceAll("\\\\", "/")
-        def workTree = project.rootProject.projectDir.canonicalPath.replaceAll("\\\\", "/")
-        def cmdLine = ['git', "--git-dir=${gitDir}", "--work-tree=${workTree}"].plus(params)
-        return exec(cmdLine, errorMessage, errorPattern)
     }
 }
