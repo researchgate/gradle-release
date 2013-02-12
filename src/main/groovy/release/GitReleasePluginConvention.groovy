@@ -7,5 +7,4 @@ package release
  */
 class GitReleasePluginConvention {
     String requireBranch = 'master'
-    boolean pushToCurrentBranch = false
 }
