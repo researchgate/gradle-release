@@ -34,9 +34,7 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
     @Override
     void apply(Project project) {
         super.apply(project)
-        this.gitBranchListTask = project.tasks.add(name: 'releaseGitBranchList', type: GitBranchList) {
-            type = GitBranchList.BranchType.LOCAL
-        }
+        this.gitBranchListTask = project.tasks.add(name: 'releaseGitBranchList', type: GitBranchList)
         this.gitStatusTask = project.tasks.add(name: 'releaseGitStatus', type: GitStatus)
         this.gitFetchTask = project.tasks.add(name: 'releaseGitFetch', type: GitFetch)
         this.gitBranchTrackingStatus = project.tasks.add(name: 'releaseGitBranchTrackingStatus', type: GitBranchTrackingStatus)
