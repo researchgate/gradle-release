@@ -9,6 +9,7 @@ import org.ajoberstar.gradle.git.tasks.GitFetch
 import org.ajoberstar.gradle.git.tasks.GitPush
 import org.ajoberstar.gradle.git.tasks.GitStatus
 import org.ajoberstar.gradle.git.tasks.GitTag
+import org.eclipse.jgit.lib.Constants
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 
@@ -45,7 +46,7 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
         this.gitPush = project.tasks.add(name: 'releaseGitPush', type: GitPush)
         this.gitTag = project.tasks.add(name: 'releaseGitTag', type: GitTag)
         this.gitCheckout = project.tasks.add(name: 'releaseGitCheckout', type: GitCheckout) {
-            startingPoint = 'HEAD'
+            startPoint = Constants.HEAD
         }
     }
 
