@@ -88,6 +88,11 @@ Below are some properties of the Release Plugin Convention that can be used to c
 		<th>Description</th>
 	</tr>
 	<tr>
+		<td>tagPrefix</td>
+		<td></td>
+		<td>Prefixes tag name when release tag is created. Useful when you want the tag to include project name or some other prefix.</td>
+	</tr>
+	<tr>
 		<td>preCommitText</td>
 		<td></td>
 		<td>This will be prepended to all commits done by the plugin. A good place for code review, or ticket numbers</td>

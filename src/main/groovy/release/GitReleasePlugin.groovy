@@ -95,7 +95,11 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 
     private String gitCurrentBranch() {
         def matches = gitExec('branch').readLines().grep(~/\s*\*.*/)
-        matches[0].trim() - (~/^\*\s+/)
+        if(matches) {
+			   return matches[0]?.trim() - (~/^\*\s+/)
+		  } else {
+			   return convention().requireBranch
+		  }
     }
 
     private Map<String, List<String>> gitStatus() {

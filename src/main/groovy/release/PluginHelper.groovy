@@ -5,8 +5,6 @@ import org.gradle.api.Project
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-import static org.apache.commons.lang.StringUtils.isNotBlank
-
 /**
  * Helper object extended by plugins.
  * @author evgenyg
@@ -144,7 +142,7 @@ class PluginHelper {
 
 	boolean promptYesOrNo(String message, boolean defaultValue = false) {
 		def defaultStr = defaultValue ? 'Y' : 'n'
-		String consoleVal = System.console().readLine("${PROMPT} ${message} (Y|n)[${defaultStr}] ")
+		String consoleVal = readLine("${message} (Y|n)", defaultStr)
 		if (consoleVal) {
 			return consoleVal.toLowerCase().startsWith('y')
 		}
@@ -159,8 +157,11 @@ class PluginHelper {
 	 * @return User input entered or default value if user enters no data
 	 */
 	String readLine(String message, String defaultValue = null) {
-		System.console().readLine("$PROMPT $message " + (defaultValue ? "[$defaultValue] " : '')) ?:
-			defaultValue
+		long time = System.currentTimeMillis()
+		String _message = "$PROMPT $message"
+		project.ant.input(message: _message, addproperty: "release.readLine.$time", defaultvalue: defaultValue)
+
+		return project.ant.getProperty("release.readLine.$time")
 	}
 
 	/**
@@ -206,7 +207,7 @@ class PluginHelper {
 	}
 
 	String tagName() {
-        String prefix = isNotBlank(releaseConvention().tagPrefix) ? "${releaseConvention().tagPrefix}-" : (releaseConvention().includeProjectNameInTag ? "${project.rootProject.name}-" : "")
+        String prefix = releaseConvention().tagPrefix ? "${releaseConvention().tagPrefix}-" : (releaseConvention().includeProjectNameInTag ? "${project.rootProject.name}-" : "")
         return "${prefix}${project.version}"
 	}
 
