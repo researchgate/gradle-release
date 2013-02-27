@@ -53,8 +53,8 @@ class PluginHelper {
 		Object convention = project.convention.plugins[pluginName]
 
 		assert convention, "Project contains no \"$pluginName\" plugin convention"
-		assert conventionType.isInstance(convention),      \
-                 "Project contains \"$pluginName\" plugin convention, " +
+		assert conventionType.isInstance(convention),       \
+                  "Project contains \"$pluginName\" plugin convention, " +
 				"but it's of type [${ convention.class.name }] rather than [${ conventionType.name }]"
 
 		(T) convention
@@ -125,7 +125,7 @@ class PluginHelper {
 
 		log.info(" >>> Running $commands: [$out][$err]")
 
-		if ([out, err]*.toString().any { String s -> errorPattern.any { s.contains(it) }}) {
+		if ([out, err]*.toString().any { String s -> errorPattern.any { s.contains(it) } }) {
 			throw new GradleException("${ errorMessage ?: 'Failed to run [' + commands.join(' ') + ']' } - [$out][$err]")
 		}
 	}
@@ -158,33 +158,38 @@ class PluginHelper {
 	 */
 	String readLine(String message, String defaultValue = null) {
 		long time = System.currentTimeMillis()
-		String _message = "$PROMPT $message"
-		project.ant.input(message: _message, addproperty: "release.readLine.$time", defaultvalue: defaultValue)
-
-		return project.ant.getProperty("release.readLine.$time")
+		String _message = "$PROMPT $message" + (defaultValue ? " [$defaultValue] " : "")
+		if (System.console()) {
+			return System.console().readLine(_message) ?: defaultValue
+		}
+		println "$_message (WAITING FOR INPUT BELOW)"
+		return System.in.newReader().readLine() ?: defaultValue
 	}
 
 	/**
 	 * Updates properties file (<code>gradle.properties</code> by default) with new version specified.
-     * If configured in plugin convention then updates other properties in file additionally to <code>version</code> property
-     *
+	 * If configured in plugin convention then updates other properties in file additionally to <code>version</code> property
+	 *
 	 * @param newVersion new version to store in the file
 	 */
 	void updateVersionProperty(String newVersion) {
-		def oldVersion = project.version
-		project.version = newVersion
-		project.subprojects?.each { Project subProject ->
-			subProject.version = newVersion
+		def oldVersion = "${project.version}"
+		if (oldVersion != newVersion) {
+			project.version = newVersion
+			project.ext.set('versionModified', true)
+			project.subprojects?.each { Project subProject ->
+				subProject.version = newVersion
+			}
+			(releaseConvention().versionProperties + 'version').each {
+				project.ant.replace(file: findPropertiesFile(), token: "${it}=${oldVersion}", value: "${it}=${newVersion}")
+			}
 		}
-        (releaseConvention().versionProperties + 'version').each {
-            project.ant.replace(file: findPropertiesFile(), token: "${it}=${oldVersion}", value: "${it}=${newVersion}")
-        }
 	}
 
 	File findPropertiesFile() {
 		File propertiesFile = project.file(releaseConvention().versionPropertyFile)
 		if (!propertiesFile.file) {
-			if(!project.version || "unspecified" == project.version) {
+			if (!project.version || "unspecified" == project.version) {
 				project.version = useAutomaticVersion() ? "1.0" : readLine("Version property not set, please set it now:", "1.0")
 			}
 			boolean createIt = project.hasProperty('version') && promptYesOrNo("[$propertiesFile.canonicalPath] not found, create it with version = ${project.version}")
@@ -207,8 +212,8 @@ class PluginHelper {
 	}
 
 	String tagName() {
-        String prefix = releaseConvention().tagPrefix ? "${releaseConvention().tagPrefix}-" : (releaseConvention().includeProjectNameInTag ? "${project.rootProject.name}-" : "")
-        return "${prefix}${project.version}"
+		String prefix = releaseConvention().tagPrefix ? "${releaseConvention().tagPrefix}-" : (releaseConvention().includeProjectNameInTag ? "${project.rootProject.name}-" : "")
+		return "${prefix}${project.version}"
 	}
 
 	String findProperty(String key, String defaultVal = "") {

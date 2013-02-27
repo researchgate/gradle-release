@@ -1,6 +1,5 @@
 package release
 
-import java.util.regex.Matcher
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -8,6 +7,8 @@ import org.gradle.api.Task
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.tasks.GradleBuild
 import org.gradle.api.tasks.TaskState
+
+import java.util.regex.Matcher
 
 /**
  * @author elberry
@@ -109,15 +110,15 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
 		def message = ""
 
-        project.allprojects.each {project ->
-            def snapshotDependencies = [] as Set
-            project.configurations.each {cfg ->
-                snapshotDependencies += cfg.dependencies?.matching(matcher)?.collect(collector)
-            }
-            if (snapshotDependencies.size() > 0) {
-                message += "\n\t${project.name}: ${snapshotDependencies}"
-            }
-        }
+		project.allprojects.each { project ->
+			def snapshotDependencies = [] as Set
+			project.configurations.each { cfg ->
+				snapshotDependencies += cfg.dependencies?.matching(matcher)?.collect(collector)
+			}
+			if (snapshotDependencies.size() > 0) {
+				message += "\n\t${project.name}: ${snapshotDependencies}"
+			}
+		}
 
 		if (message) {
 			message = "Snapshot dependencies detected: ${message}"
@@ -128,7 +129,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 	void commitTag() {
 		def message = releaseConvention().tagCommitMessage +
 				" '${tagName()}'."
-		if(releaseConvention().preCommitText) {
+		if (releaseConvention().preCommitText) {
 			message = "${releaseConvention().preCommitText} ${message}"
 		}
 		scmPlugin.createReleaseTag(message)
@@ -136,11 +137,9 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
 	void confirmReleaseVersion() {
 		def version = "$project.version"
-
-        if (!useAutomaticVersion()) {
+		if (!useAutomaticVersion()) {
 			version = readLine("This release version:", version)
-        }
-
+		}
 		updateVersionProperty(version)
 	}
 
@@ -160,12 +159,12 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
 
 	void preTagCommit() {
-		if (project.properties['usesSnapshot']) {
+		if (project.properties['usesSnapshot'] || project.properties['versionModified']) {
 			// should only be committed if the project was using a snapshot version.
 			def message = releaseConvention().preTagCommitMessage +
 					" '${tagName()}'."
 
-			if(releaseConvention().preCommitText) {
+			if (releaseConvention().preCommitText) {
 				message = "${releaseConvention().preCommitText} ${message}"
 			}
 			scmPlugin.commit(message)
@@ -206,7 +205,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 	def commitNewVersion() {
 		def message = releaseConvention().newVersionCommitMessage +
 				" '${tagName()}'."
-		if(releaseConvention().preCommitText) {
+		if (releaseConvention().preCommitText) {
 			message = "${releaseConvention().preCommitText} ${message}"
 		}
 		scmPlugin.commit(message)
@@ -221,8 +220,8 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 		propertiesFile.withReader { properties.load(it) }
 
 		assert properties.version, "[$propertiesFile.canonicalPath] contains no 'version' property"
-		assert releaseConvention().versionPatterns.keySet().any { (properties.version =~ it).find() },             \
-                           "[$propertiesFile.canonicalPath] version [$properties.version] doesn't match any of known version patterns: " +
+		assert releaseConvention().versionPatterns.keySet().any { (properties.version =~ it).find() },               \
+                             "[$propertiesFile.canonicalPath] version [$properties.version] doesn't match any of known version patterns: " +
 				releaseConvention().versionPatterns.keySet()
 	}
 
