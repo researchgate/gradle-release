@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory
 class PluginHelper {
 
 	private static final String LINE_SEP = System.getProperty('line.separator')
-	private static final String PROMPT = "${LINE_SEP}>"
+	private static final String PROMPT = "${LINE_SEP}??>"
 
 	@SuppressWarnings('StatelessClass')
 	Project project
