@@ -157,7 +157,6 @@ class PluginHelper {
 	 * @return User input entered or default value if user enters no data
 	 */
 	String readLine(String message, String defaultValue = null) {
-		long time = System.currentTimeMillis()
 		String _message = "$PROMPT $message" + (defaultValue ? " [$defaultValue] " : "")
 		if (System.console()) {
 			return System.console().readLine(_message) ?: defaultValue
