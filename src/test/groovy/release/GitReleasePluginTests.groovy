@@ -1,34 +1,20 @@
 package release
 
+import org.gradle.api.GradleException
 import org.gradle.testfixtures.ProjectBuilder
-import spock.lang.Specification
 
 @Mixin(PluginHelper)
-class GitReleasePluginTests extends Specification {
-
-    def testDir = new File("build/tmp/test/release")
-
-    def localRepo = new File(testDir, "GitReleasePluginTestLocal")
-    def remoteRepo = new File(testDir, "GitReleasePluginTestRemote")
+class GitReleasePluginTests extends GitSpecification {
 
     def setup() {
-        testDir.mkdirs()
-
-        exec(true, [:], testDir, 'git', 'init', "GitReleasePluginTestRemote")//create remote repo
-        exec(true, [:], remoteRepo, 'git', 'config', '--add', 'receive.denyCurrentBranch', 'ignore')//suppress errors when pushing
-
-        exec(false, [:], testDir, 'git', 'clone', remoteRepo.canonicalPath, 'GitReleasePluginTestLocal')
-
-        project = ProjectBuilder.builder().withName("GitReleasePluginTest").withProjectDir(localRepo).build()
+        project = ProjectBuilder.builder().withName("GitReleasePluginTest").withProjectDir(localGit.repository.workTree).build()
         project.version = "1.1"
         project.apply plugin: ReleasePlugin
-        def props = project.file("gradle.properties")
-        props.withWriter { it << "version=${project.version}" }
-        exec(true, [:], localRepo, 'git', 'add', 'gradle.properties')
     }
 
     def cleanup() {
-        if (testDir.exists()) testDir.deleteDir()
+        gitCheckoutBranch(localGit)
+        gitCheckoutBranch(remoteGit)
     }
 
     def 'should apply ReleasePlugin and GitReleasePlugin plugin'() {
@@ -38,24 +24,50 @@ class GitReleasePluginTests extends Specification {
         project.plugins.findPlugin(GitReleasePlugin)
     }
 
-    def 'should push new version to remote tracking branch by default'() {
+    def 'when requireBranch is configured then throw exception when different branch'() {
+        given:
+        project.git.requireBranch = 'myBranch'
         when:
-        project.commitNewVersion.execute()
-        exec(true, [:], remoteRepo, 'git', 'reset', '--hard', 'HEAD')
+        project.plugins.findPlugin(GitReleasePlugin).init()
         then:
-        remoteRepo.list().any { it == 'gradle.properties' }
+        GradleException ex = thrown()
+        ex.message == 'Current Git branch is "master" and not "myBranch".'
+
     }
 
-    def 'when pushToCurrentBranch then push new version to remote branch with same name as working'() {
+    def 'should push new version to remote tracking branch by default'() {
         given:
-        project.git.pushToCurrentBranch = true
-        exec(true, [:], localRepo, 'git', 'checkout', '-B', 'myBranch')
+        project.file('gradle.properties').withWriter { it << "version=${project.version}" }
         when:
         project.commitNewVersion.execute()
-        exec(false, [:], remoteRepo, 'git', 'checkout', 'myBranch')
-        exec(false, [:], remoteRepo, 'git', 'reset', '--hard', 'HEAD')
+        gitHardReset(remoteGit)
+        then: 'remote repo contains updated properties file'
+        remoteGit.repository.workTree.listFiles().any { it.name == 'gradle.properties' && it.text.contains("version=$project.version") }
+    }
+
+    def 'when tracking branch missing then push new version to remote branch with same name as local'() {
+        given:
+        gitCheckoutBranch(localGit, 'myBranch', true)
+        project.file('gradle.properties').withWriter { it << "version=2.2" }
+        when:
+        project.commitNewVersion.execute()
+        gitCheckoutBranch(remoteGit, 'myBranch')
+        gitHardReset(remoteGit)
         then:
-        remoteRepo.list().any { it == 'gradle.properties' }
+        remoteGit.repository.workTree.listFiles().any { it.name == 'gradle.properties' && it.text.contains("version=2.2") }
+    }
+
+    def 'revert should discard uncommited changes to configured *.properties'() {
+        given: 'custom properties file modified and not commited'
+        project.release {
+            versionPropertyFile = 'my.properties'
+        }
+        gitAddAndCommit(localGit, 'my.properties') { it << 'version=0.0' }
+        project.file('my.properties').withWriter { it << 'version=X.X' }
+        when:
+        project.plugins.findPlugin(GitReleasePlugin).revert()
+        then:
+        project.file('my.properties').text == 'version=0.0'
     }
 
 }
