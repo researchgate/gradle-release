@@ -34,15 +34,13 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
     @Override
     void apply(Project project) {
         super.apply(project)
-        this.gitBranchListTask = project.tasks.add(name: 'releaseGitBranchList', type: GitBranchList)
-        this.gitStatusTask = project.tasks.add(name: 'releaseGitStatus', type: GitStatus)
-        this.gitFetchTask = project.tasks.add(name: 'releaseGitFetch', type: GitFetch)
-        this.gitBranchTrackingStatus = project.tasks.add(name: 'releaseGitBranchTrackingStatus', type: GitBranchTrackingStatus)
-        this.gitCommit = project.tasks.add(name: 'releaseGitCommit', type: GitCommit) {
-            commitAll = true
-        }
-        this.gitPush = project.tasks.add(name: 'releaseGitPush', type: GitPush)
-        this.gitTag = project.tasks.add(name: 'releaseGitTag', type: GitTag)
+        this.gitBranchListTask = project.tasks.add('releaseGitBranchList', GitBranchList)
+        this.gitStatusTask = project.tasks.add('releaseGitStatus', GitStatus)
+        this.gitFetchTask = project.tasks.add('releaseGitFetch', GitFetch)
+        this.gitBranchTrackingStatus = project.tasks.add('releaseGitBranchTrackingStatus', GitBranchTrackingStatus)
+        this.gitCommit = project.tasks.add('releaseGitCommit', GitCommit)
+        this.gitPush = project.tasks.add('releaseGitPush', GitPush)
+        this.gitTag = project.tasks.add('releaseGitTag', GitTag)
         this.gitCheckout = project.tasks.add(name: 'releaseGitCheckout', type: GitCheckout) {
             startPoint = Constants.HEAD
         }
@@ -124,6 +122,7 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
     @Override
     void commit(String msg) {
         gitCommit.with {
+            include releaseConvention().versionPropertyFile
             message = msg
             execute()
         }
