@@ -58,7 +58,7 @@ class GitReleasePluginCommitNewVersionTests extends GitSpecification {
             versionPropertyFile = 'custom.properties'
         }
         gitAdd(localGit, "custom.properties") { it << "version=4.4" }
-        project.file('gradle.properties').withWriter { it << "version=3.3" }
+        project.file('gradle.properties').withWriter { it << "version=4.4" }
         when: 'calling task and resetting remote git to get valid state'
         project.commitNewVersion.execute()
         gitHardReset(remoteGit)
