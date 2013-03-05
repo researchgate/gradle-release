@@ -49,6 +49,11 @@ uploadInstallers {
 			host = releaseRepoHost
 			addArtifactPattern "${releaseRepoBase}/[module]/[revision]/[artifact].[ext]"
 		}
+	}
+}
+
+uploadLatestInstallers {
+	repositories {
 		add(new org.apache.ivy.plugins.resolver.SFTPResolver()) {
 			host = releaseRepoHost
 			addArtifactPattern "${releaseRepoBase}/[module]/[artifact].[ext]"
