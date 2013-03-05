@@ -3,7 +3,6 @@ apply from: 'installation/apply-local.groovy'
 
 configurations {
 	installers {}
-	latestInstallers {}
 }
 
 repositories {
@@ -21,18 +20,14 @@ dependencies {
 // This updates the apply script with the new version.
 updateVersion << {
 	def applyFile = new File("installation", "apply.groovy")
-	def readmeFile = new File("README.md")
 	def oldVersion = project.getProperty("release.oldVersion")
 	def newVersion = project.getProperty("release.newVersion")
 	ant.replace(file: applyFile, token: "${group}:${name}:${oldVersion}", value: "${group}:${name}:${newVersion}")
-	ant.replaceregexp(file: readmeFile, match: "Current Version: .*?\$", replace: "Current Version: ${oldVersion}", byline: true)
-	ant.replaceregexp(file: readmeFile, match: "gradle-release/\\d+\\.\\d+/apply.groovy", replace: "gradle-release/${oldVersion}/apply.groovy", byline: true)
 }
 
 artifacts {
 	archives jar
 	installers file('installation/apply.groovy')
-	latestInstallers file('installation/apply.groovy')
 }
 
 uploadArchives {
@@ -50,15 +45,6 @@ uploadInstallers {
 		add(new org.apache.ivy.plugins.resolver.SFTPResolver()) {
 			host = releaseRepoHost
 			addArtifactPattern "${releaseRepoBase}/[module]/[revision]/[artifact].[ext]"
-		}
-	}
-}
-
-uploadLatestInstallers {
-	repositories {
-		add(new org.apache.ivy.plugins.resolver.SFTPResolver()) {
-			host = releaseRepoHost
-			addArtifactPattern "${releaseRepoBase}/[module]/[artifact].[ext]"
 		}
 	}
 }
