@@ -7,73 +7,73 @@ import spock.lang.Specification
 @Mixin(PluginHelper)
 class GitReleasePluginTests extends Specification {
 
-	private static final String GIT = '/usr/local/git/bin/git'
+	private static final String GIT = System.properties['git'] ?: 'git'
 	def testDir = new File("build/tmp/test/release")
 
-    def localRepo = new File(testDir, "GitReleasePluginTestLocal")
-    def remoteRepo = new File(testDir, "GitReleasePluginTestRemote")
+	def localRepo = new File(testDir, "GitReleasePluginTestLocal")
+	def remoteRepo = new File(testDir, "GitReleasePluginTestRemote")
 
-    def setup() {
-        testDir.mkdirs()
+	def setup() {
+		testDir.mkdirs()
 
-        exec(true, [:], testDir, GIT, 'init', "GitReleasePluginTestRemote")//create remote repo
-        exec(true, [:], remoteRepo, GIT, 'config', '--add', 'receive.denyCurrentBranch', 'ignore')//suppress errors when pushing
+		exec(true, [:], testDir, GIT, 'init', "GitReleasePluginTestRemote")//create remote repo
+		exec(true, [:], remoteRepo, GIT, 'config', '--add', 'receive.denyCurrentBranch', 'ignore')//suppress errors when pushing
 
-        exec(false, [:], testDir, GIT, 'clone', remoteRepo.canonicalPath, 'GitReleasePluginTestLocal')
+		exec(false, [:], testDir, GIT, 'clone', remoteRepo.canonicalPath, 'GitReleasePluginTestLocal')
 
-        project = ProjectBuilder.builder().withName("GitReleasePluginTest").withProjectDir(localRepo).build()
-        project.version = "1.1"
-        project.apply plugin: ReleasePlugin
+		project = ProjectBuilder.builder().withName("GitReleasePluginTest").withProjectDir(localRepo).build()
+		project.version = "1.1"
+		project.apply plugin: ReleasePlugin
 
-        project.file("test.txt").withWriter {it << "test"}
-        exec(true, [:], localRepo, GIT, 'add', 'test.txt')
-        exec(true, [:], localRepo, GIT, 'commit', "-m", "test", 'test.txt')
+		project.file("test.txt").withWriter { it << "test" }
+		exec(true, [:], localRepo, GIT, 'add', 'test.txt')
+		exec(true, [:], localRepo, GIT, 'commit', "-m", "test", 'test.txt')
 
-        def props = project.file("gradle.properties")
-        props.withWriter { it << "version=${project.version}" }
-        exec(true, [:], localRepo, GIT, 'add', 'gradle.properties')
-    }
+		def props = project.file("gradle.properties")
+		props.withWriter { it << "version=${project.version}" }
+		exec(true, [:], localRepo, GIT, 'add', 'gradle.properties')
+	}
 
-    def cleanup() {
-        if (testDir.exists()) testDir.deleteDir()
-    }
+	def cleanup() {
+		if (testDir.exists()) testDir.deleteDir()
+	}
 
-    def 'should apply ReleasePlugin and GitReleasePlugin plugin'() {
-        expect:
-        project.plugins.findPlugin(ReleasePlugin)
-        and:
-        project.plugins.findPlugin(GitReleasePlugin)
-    }
+	def 'should apply ReleasePlugin and GitReleasePlugin plugin'() {
+		expect:
+		project.plugins.findPlugin(ReleasePlugin)
+		and:
+		project.plugins.findPlugin(GitReleasePlugin)
+	}
 
-    def 'when requireBranch is configured then throw exception when different branch'() {
-        given:
-        project.git.requireBranch = 'myBranch'
-        when:
-        project.plugins.findPlugin(GitReleasePlugin).init()
-        then:
-        GradleException ex = thrown()
-        ex.message == 'Current Git branch is "master" and not "myBranch".'
+	def 'when requireBranch is configured then throw exception when different branch'() {
+		given:
+		project.git.requireBranch = 'myBranch'
+		when:
+		project.plugins.findPlugin(GitReleasePlugin).init()
+		then:
+		GradleException ex = thrown()
+		ex.message == 'Current Git branch is "master" and not "myBranch".'
 
-    }
+	}
 
-    def 'should push new version to remote tracking branch by default'() {
-        when:
-        project.commitNewVersion.execute()
-        exec(true, [:], remoteRepo, GIT, 'reset', '--hard', 'HEAD')
-        then:
-        remoteRepo.list().any { it == 'gradle.properties' }
-    }
+	def 'should push new version to remote tracking branch by default'() {
+		when:
+		project.commitNewVersion.execute()
+		exec(true, [:], remoteRepo, GIT, 'reset', '--hard', 'HEAD')
+		then:
+		remoteRepo.list().any { it == 'gradle.properties' }
+	}
 
-    def 'when pushToCurrentBranch then push new version to remote branch with same name as working'() {
-        given:
-        project.git.pushToCurrentBranch = true
-        exec(false, [:], localRepo, GIT, 'checkout', '-B', 'myBranch')
-        when:
-        project.commitNewVersion.execute()
-        exec(false, [:], remoteRepo, GIT, 'checkout', 'myBranch')
-        exec(false, [:], remoteRepo, GIT, 'reset', '--hard', 'HEAD')
-        then:
-        remoteRepo.list().any { it == 'gradle.properties' }
-    }
+	def 'when pushToCurrentBranch then push new version to remote branch with same name as working'() {
+		given:
+		project.git.pushToCurrentBranch = true
+		exec(false, [:], localRepo, GIT, 'checkout', '-B', 'myBranch')
+		when:
+		project.commitNewVersion.execute()
+		exec(false, [:], remoteRepo, GIT, 'checkout', 'myBranch')
+		exec(false, [:], remoteRepo, GIT, 'reset', '--hard', 'HEAD')
+		then:
+		remoteRepo.list().any { it == 'gradle.properties' }
+	}
 
 }
