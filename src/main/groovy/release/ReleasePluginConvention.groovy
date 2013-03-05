@@ -1,6 +1,7 @@
 package release
 
 import java.util.regex.Matcher
+import org.gradle.api.Project
 
 /**
  * @author elberry
@@ -29,7 +30,7 @@ class ReleasePluginConvention {
 	def requiredTasks = []
 	def versionPatterns = [
 			// Increments last number: "2.5-SNAPSHOT" => "2.6-SNAPSHOT"
-			/(\d+)([^\d]*$)/: { Matcher m -> m.replaceAll("${ (m[0][1] as int) + 1 }${ m[0][2] }") }
+			/(\d+)([^\d]*$)/: { Matcher m, Project p -> m.replaceAll("${ (m[0][1] as int) + 1 }${ m[0][2] }") }
 	]
 
 	def git = new GitReleasePluginConvention()

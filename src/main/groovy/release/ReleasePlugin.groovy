@@ -184,7 +184,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 			Matcher matcher = version =~ pattern
 
 			if (matcher.find()) {
-				String nextVersion = handler(matcher)
+				String nextVersion = handler(matcher, project)
 				if (project.properties['usesSnapshot']) {
 					nextVersion += '-SNAPSHOT'
 				}
