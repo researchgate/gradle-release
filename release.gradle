@@ -43,7 +43,7 @@ uploadArchives {
 	}
 }
 
-uploadInstallers {
+task uploadInstallers {
 	repositories {
 		add(new org.apache.ivy.plugins.resolver.SFTPResolver()) {
 			host = releaseRepoHost
@@ -52,7 +52,7 @@ uploadInstallers {
 	}
 }
 
-uploadLatestInstallers {
+task uploadLatestInstallers {
 	repositories {
 		add(new org.apache.ivy.plugins.resolver.SFTPResolver()) {
 			host = releaseRepoHost
