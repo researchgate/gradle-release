@@ -39,7 +39,12 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
         this.gitFetchTask = project.tasks.add('releaseGitFetch', GitFetch)
         this.gitBranchTrackingStatus = project.tasks.add('releaseGitBranchTrackingStatus', GitBranchTrackingStatus)
         this.gitCommit = project.tasks.add('releaseGitCommit', GitCommit)
-        this.gitPush = project.tasks.add('releaseGitPush', GitPush)
+
+        this.gitPush = project.tasks.add(name: 'releaseGitPush', type: GitPush) {
+            pushAll = false
+        }
+        this.gitPush.outputs.upToDateWhen { false }
+
         this.gitTag = project.tasks.add('releaseGitTag', GitTag)
         this.gitCheckout = project.tasks.add(name: 'releaseGitCheckout', type: GitCheckout) {
             startPoint = Constants.HEAD
@@ -65,7 +70,7 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
         gitStatusTask.execute()
         if (!gitStatusTask.untracked.isEmpty()) {
             warnOrThrow(releaseConvention().failOnCommitNeeded,
-                ['You have unversioned files:', LINE, gitStatusTask.untracked.files*.name, LINE].flatten().join("\n"))
+                    ['You have unversioned files:', LINE, gitStatusTask.untracked.files*.name, LINE].flatten().join("\n"))
         } else {
             def modifiedFiles = []
             if (!gitStatusTask.added.isEmpty()) {
@@ -79,7 +84,7 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
             }
             if (!modifiedFiles.isEmpty()) {
                 warnOrThrow(releaseConvention().failOnCommitNeeded,
-                    ['You have uncommitted files:', LINE, modifiedFiles, LINE].flatten().join("\n"))
+                        ['You have uncommitted files:', LINE, modifiedFiles, LINE].flatten().join("\n"))
             }
         }
     }
@@ -113,7 +118,6 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 
         gitPush.with {
             pushTags = true
-            pushAll = false
             execute()
         }
     }
@@ -126,7 +130,11 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
             message = msg
             execute()
         }
-        gitPush.execute()
+        new GitPush(pushTags: false, force: true).push()
+//        gitPush.with {
+//            pushTags = false
+//            execute()
+//        }
     }
 
     @Override
