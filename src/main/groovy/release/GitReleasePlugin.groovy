@@ -9,9 +9,11 @@ import org.ajoberstar.gradle.git.tasks.GitFetch
 import org.ajoberstar.gradle.git.tasks.GitPush
 import org.ajoberstar.gradle.git.tasks.GitStatus
 import org.ajoberstar.gradle.git.tasks.GitTag
+import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.Constants
 import org.gradle.api.GradleException
 import org.gradle.api.Project
+import org.gradle.api.UncheckedIOException
 
 /**
  * @author elberry
@@ -28,6 +30,7 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
     private GitBranchTrackingStatus gitBranchTrackingStatus
     private GitCommit gitCommit
     private GitPush gitPush
+    private GitPush gitPush2
     private GitTag gitTag
     private GitCheckout gitCheckout;
 
@@ -43,7 +46,7 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
         this.gitPush = project.tasks.add(name: 'releaseGitPush', type: GitPush) {
             pushAll = false
         }
-        this.gitPush.outputs.upToDateWhen { false }
+        this.gitPush2 = project.tasks.add(name: 'releaseGitPush2', type: GitPush)
 
         this.gitTag = project.tasks.add('releaseGitTag', GitTag)
         this.gitCheckout = project.tasks.add(name: 'releaseGitCheckout', type: GitCheckout) {
@@ -130,11 +133,7 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
             message = msg
             execute()
         }
-        new GitPush(pushTags: false, force: true).push()
-//        gitPush.with {
-//            pushTags = false
-//            execute()
-//        }
+        gitPush2.execute()
     }
 
     @Override
