@@ -9,6 +9,7 @@ class GitReleasePluginTests extends GitSpecification {
     def setup() {
         project = ProjectBuilder.builder().withName("GitReleasePluginTest").withProjectDir(localGit.repository.workTree).build()
         project.version = "1.1"
+        project.apply plugin: 'java'
         project.apply plugin: ReleasePlugin
     }
 
@@ -41,11 +42,40 @@ class GitReleasePluginTests extends GitSpecification {
             versionPropertyFile = 'my.properties'
         }
         gitAddAndCommit(localGit, 'my.properties') { it << 'version=0.0' }
-        project.file('my.properties').withWriter { it << 'version=X.X' }
+        project.file('my.properties').withWriter { it << 'versio=X.X' }
         when:
         project.plugins.findPlugin(GitReleasePlugin).revert()
         then:
         project.file('my.properties').text == 'version=0.0'
     }
 
+    def 'integration test'() {
+        given:
+        project.version = '1.1'
+        project.setProperty('gradle.release.useAutomaticVersion', "true")
+        gitAddAndCommit(localGit, "gradle.properties") { it << "version=$project.version" }
+        localGit.push().setForce(true).call()
+        when:
+        project.initScmPlugin.execute()
+        project.checkCommitNeeded.execute()
+        project.checkUpdateNeeded.execute()
+        project.unSnapshotVersion.execute()
+        project.confirmReleaseVersion.execute()
+        project.checkSnapshotDependencies.execute()
+        project.tasks['build'].execute()
+        project.preTagCommit.execute()
+        project.createReleaseTag.execute()
+        project.updateVersion.execute()
+        project.commitNewVersion.execute()
+        gitHardReset(remoteGit)
+        def status = localGit.status().call()
+        then:
+        status.getModified().size() == 0
+        and:
+        status.getAdded().size() == 0
+        and:
+        status.getChanged().size() == 0
+        and:
+        remoteGit.repository.workTree.listFiles().any { it.name == 'gradle.properties' && it.text.contains("version=1.2") }
+    }
 }
