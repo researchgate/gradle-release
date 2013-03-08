@@ -206,7 +206,7 @@ class PluginHelper {
 		if (doThrow) {
 			throw new GradleException(message)
 		} else {
-			log.warn(message)
+			log.warn("!!WARNING!! $message")
 		}
 	}
 

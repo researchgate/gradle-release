@@ -13,6 +13,8 @@ import org.gradle.api.GradleException
 class SvnReleasePlugin extends BaseScmPlugin<SvnReleasePluginConvention> {
 
 	private static final String ERROR = 'Commit failed'
+	private static final def urlPattern = ~/URL:\s(.*?)(\/(trunk|branches|tags).*?)$/
+	private static final def revPattern = ~/Revision:\s(.*?)$/
 
 	void init() {
 		findSvnUrl()
@@ -49,6 +51,11 @@ class SvnReleasePlugin extends BaseScmPlugin<SvnReleasePluginConvention> {
 
 	@Override
 	void checkUpdateNeeded() {
+		def props = project.properties
+		String svnUrl = props.releaseSvnUrl
+		String svnRev = props.releaseSvnRev
+		String svnRoot = props.releaseSvnRoot
+		String svnRemoteRev = ""
 		// svn status -q -u
 		String out = exec('svn', 'status', '-q', '-u')
 		def missing = []
@@ -61,6 +68,19 @@ class SvnReleasePlugin extends BaseScmPlugin<SvnReleasePluginConvention> {
 		}
 		if (missing) {
 			warnOrThrow(releaseConvention().failOnUpdateNeeded, "You are missing ${missing.size()} changes.")
+		}
+
+		out = exec(true, [LC_COLLATE: "C", LC_CTYPE: "en_US.UTF-8"], 'svn', 'info', project.ext['releaseSvnUrl'])
+		out.eachLine { line ->
+			Matcher matcher = line =~ revPattern
+			if (matcher.matches()) {
+				svnRemoteRev = matcher.group(1)
+				project.ext.set('releaseRemoteSvnRev', svnRemoteRev)
+			}
+		}
+		if (svnRev != svnRemoteRev) {
+			// warn that there's a difference in local revision versus remote
+			warnOrThrow(releaseConvention().failOnUpdateNeeded, "Local revision (${svnRev}) does not match remote (${svnRemoteRev}), local revision is used in tag creation.")
 		}
 	}
 
@@ -91,8 +111,6 @@ class SvnReleasePlugin extends BaseScmPlugin<SvnReleasePluginConvention> {
 
 	private void findSvnUrl() {
 		String out = exec(true, [LC_COLLATE: "C", LC_CTYPE: "en_US.UTF-8"], 'svn', 'info')
-		def urlPattern = ~/URL:\s(.*?)(\/(trunk|branches|tags).*?)$/
-		def revPattern = ~/Revision:\s(.*?)$/
 
 		out.eachLine { line ->
 			Matcher matcher = line =~ urlPattern
