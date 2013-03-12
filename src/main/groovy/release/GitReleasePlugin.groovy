@@ -1,19 +1,10 @@
 package release
 
 import org.ajoberstar.gradle.git.api.TrackingStatus
-import org.ajoberstar.gradle.git.tasks.GitBranchList
-import org.ajoberstar.gradle.git.tasks.GitBranchTrackingStatus
-import org.ajoberstar.gradle.git.tasks.GitCheckout
-import org.ajoberstar.gradle.git.tasks.GitCommit
-import org.ajoberstar.gradle.git.tasks.GitFetch
-import org.ajoberstar.gradle.git.tasks.GitPush
-import org.ajoberstar.gradle.git.tasks.GitStatus
-import org.ajoberstar.gradle.git.tasks.GitTag
-import org.eclipse.jgit.api.Git
+import org.ajoberstar.gradle.git.tasks.*
 import org.eclipse.jgit.lib.Constants
 import org.gradle.api.GradleException
 import org.gradle.api.Project
-import org.gradle.api.UncheckedIOException
 
 /**
  * @author elberry
@@ -24,34 +15,9 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 
     private static final String LINE = '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
 
-    private GitBranchList gitBranchListTask
-    private GitStatus gitStatusTask
-    private GitFetch gitFetchTask
-    private GitBranchTrackingStatus gitBranchTrackingStatus
-    private GitCommit gitCommit
-    private GitPush gitPush
-    private GitPush gitPush2
-    private GitTag gitTag
-    private GitCheckout gitCheckout;
-
     @Override
     void apply(Project project) {
         super.apply(project)
-        this.gitBranchListTask = project.tasks.add('releaseGitBranchList', GitBranchList)
-        this.gitStatusTask = project.tasks.add('releaseGitStatus', GitStatus)
-        this.gitFetchTask = project.tasks.add('releaseGitFetch', GitFetch)
-        this.gitBranchTrackingStatus = project.tasks.add('releaseGitBranchTrackingStatus', GitBranchTrackingStatus)
-        this.gitCommit = project.tasks.add('releaseGitCommit', GitCommit)
-
-        this.gitPush = project.tasks.add(name: 'releaseGitPush', type: GitPush) {
-            pushAll = false
-        }
-        this.gitPush2 = project.tasks.add(name: 'releaseGitPush2', type: GitPush)
-
-        this.gitTag = project.tasks.add('releaseGitTag', GitTag)
-        this.gitCheckout = project.tasks.add(name: 'releaseGitCheckout', type: GitCheckout) {
-            startPoint = Constants.HEAD
-        }
     }
 
     @Override
@@ -64,26 +30,27 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
         }
     }
 
-
     @Override
     GitReleasePluginConvention buildConventionInstance() { releaseConvention().git }
 
     @Override
     void checkCommitNeeded() {
-        gitStatusTask.execute()
-        if (!gitStatusTask.untracked.isEmpty()) {
+        GitStatus task = configureGitTask(GitStatus)
+        task.execute()
+
+        if (!task.untracked.isEmpty()) {
             warnOrThrow(releaseConvention().failOnCommitNeeded,
-                    ['You have unversioned files:', LINE, gitStatusTask.untracked.files*.name, LINE].flatten().join("\n"))
+                    ['You have unversioned files:', LINE, task.untracked.files*.name, LINE].flatten().join("\n"))
         } else {
             def modifiedFiles = []
-            if (!gitStatusTask.added.isEmpty()) {
-                modifiedFiles << gitStatusTask.added.files*.name
+            if (!task.added.isEmpty()) {
+                modifiedFiles << task.added.files*.name
             }
-            if (!gitStatusTask.changed.isEmpty()) {
-                modifiedFiles << gitStatusTask.changed.files*.name
+            if (!task.changed.isEmpty()) {
+                modifiedFiles << task.changed.files*.name
             }
-            if (!gitStatusTask.modified.isEmpty()) {
-                modifiedFiles << gitStatusTask.modified.files*.name
+            if (!task.modified.isEmpty()) {
+                modifiedFiles << task.modified.files*.name
             }
             if (!modifiedFiles.isEmpty()) {
                 warnOrThrow(releaseConvention().failOnCommitNeeded,
@@ -92,13 +59,15 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
         }
     }
 
-
     @Override
     void checkUpdateNeeded() {
-        gitFetchTask.execute()
-        gitBranchTrackingStatus.setLocalBranch(gitCurrentBranch())
-        gitBranchTrackingStatus.execute()
-        TrackingStatus st = gitBranchTrackingStatus.trackingStatus
+        configureGitTask(GitFetch).execute()
+
+        TrackingStatus st = configureGitTask(GitBranchTrackingStatus).with {
+            localBranch = gitCurrentBranch()
+            execute()
+            trackingStatus
+        }
 
         if (st?.aheadCount > 0) {
             warnOrThrow(releaseConvention().failOnPublishNeeded, "You have ${st.aheadCount} local change(s) to push.")
@@ -108,42 +77,51 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
         }
     }
 
-
     @Override
     void createReleaseTag(String msg = "") {
         def tagNm = tagName()
-
-        gitTag.with {
+        configureGitTask(GitTag).with {
             message = msg ?: "Created by Release Plugin: ${tagNm}"
             tagName = tagNm
             execute()
         }
-
-        gitPush.with {
+        configureGitTask(GitPush).with {
             pushTags = true
             execute()
         }
     }
 
-
     @Override
     void commit(String msg) {
-        gitCommit.with {
-            include releaseConvention().versionPropertyFile
+        configureGitTask(GitAdd).with {
+            include(releaseConvention().versionPropertyFile)
+            execute()
+        }
+        configureGitTask(GitCommit).with {
+            include(releaseConvention().versionPropertyFile)
             message = msg
             execute()
         }
-        gitPush2.execute()
+        configureGitTask(GitPush).execute()
     }
 
     @Override
     void revert() {
-        gitCheckout.include(findPropertiesFile().name)
-        gitCheckout.execute()
+        configureGitTask(GitCheckout).with {
+            startPoint = Constants.HEAD
+            include(findPropertiesFile().name)
+            execute()
+        }
     }
 
     private String gitCurrentBranch() {
-        gitBranchListTask.execute()
-        return gitBranchListTask.workingBranch.name
+        return configureGitTask(GitBranchList).with {
+            execute()
+            workingBranch.name
+        }
+    }
+
+    private <T> T configureGitTask(Class<T> clz) {
+        return project.tasks.replace("release${clz.simpleName}", clz)
     }
 }
