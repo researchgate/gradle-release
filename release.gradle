@@ -1,9 +1,12 @@
 apply plugin: 'groovy'
+apply plugin: 'maven'
 apply from: 'installation/apply-local.groovy'
 
 configurations {
+	releaseArtifacts {}
 	installers {}
 	latestInstallers {}
+	deployerJars {}
 }
 
 repositories {
@@ -12,10 +15,12 @@ repositories {
 }
 
 dependencies {
-	compile gradleApi()
+	compile gradleApi(),
+			'org.ajoberstar:gradle-git:0.4.0'
 	groovy localGroovy()
-	testCompile( 'org.spockframework:spock-core:0.5-groovy-1.8' ) { exclude group: 'org.codehaus.groovy' }
+	testCompile('org.spockframework:spock-core:0.5-groovy-1.8') { exclude group: 'org.codehaus.groovy' }
 	testCompile 'junit:junit:4.10'
+	deployerJars 'org.apache.maven.wagon:wagon-ftp:2.2'
 }
 
 // This updates the apply script with the new version.
@@ -30,17 +35,25 @@ updateVersion << {
 }
 
 artifacts {
-	archives jar
+	releaseArtifacts jar
 	installers file('installation/apply.groovy')
 	latestInstallers file('installation/apply.groovy')
 }
 
-uploadArchives {
+uploadReleaseArtifacts {
 	repositories {
-		add(new org.apache.ivy.plugins.resolver.SFTPResolver()) {
-			host = releaseRepoHost
-			addIvyPattern "${releaseRepoBase}/[module]/[revision]/[artifact]-[revision].[ext]"
-			addArtifactPattern "${releaseRepoBase}/[module]/[revision]/[artifact]-[revision].[ext]"
+		/*
+		ivy {
+			url = btUrl
+			credentials {
+				username btUser
+				password btPass
+			}
+		}
+		*/
+		mavenDeployer {
+			configuration = configurations.deployerJars
+			repository(url: releaseRepoUrl) { authentication(userName: releaseRepoUser, password: releaseRepoPass) }
 		}
 	}
 }
@@ -63,5 +76,5 @@ uploadLatestInstallers {
 	}
 }
 
-createReleaseTag.dependsOn uploadArchives
+createReleaseTag.dependsOn uploadReleaseArtifacts
 createReleaseTag.dependsOn uploadInstallers

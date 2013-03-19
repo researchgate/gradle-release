@@ -1,13 +1,11 @@
 buildscript {
 	repositories {
-		ivy {
-			name = 'gradle_release'
-			artifactPattern 'http://tellurianring.com/projects/gradle-plugins/[module]/[revision]/[artifact]-[revision].[ext]'
-			ivyPattern 'http://tellurianring.com/projects/gradle-plugins/[module]/[revision]/[artifact]-[revision].[ext]'
-		}
+		maven { url "http://tellurianring.com/projects/gradle-plugins/repo"}
+		mavenCentral()
 	}
 	dependencies {
-		classpath 'gradle-release:gradle-release:1.2.0.1'
+		classpath 'gradle-release:gradle-release:1.2-SNAPSHOT',
+				'org.ajoberstar:gradle-git:0.4.0'
 	}
 }
 // Check to make sure release.ReleasePlugin isn't already added.
