@@ -1,6 +1,10 @@
 package release
 
+import org.ajoberstar.gradle.git.api.TrackingStatus
+import org.ajoberstar.gradle.git.tasks.*
+import org.eclipse.jgit.lib.Constants
 import org.gradle.api.GradleException
+import org.gradle.api.Project
 
 /**
  * @author elberry
@@ -9,139 +13,115 @@ import org.gradle.api.GradleException
  */
 class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 
-	private static final String LINE = '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
+    private static final String LINE = '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
 
-	private static final String UNCOMMITTED = 'uncommitted'
-	private static final String UNVERSIONED = 'unversioned'
-	private static final String AHEAD = 'ahead'
-	private static final String BEHIND = 'behind'
+    @Override
+    void apply(Project project) {
+        super.apply(project)
+    }
 
-	@Override
-	void init() {
-		if (convention().requireBranch) {
+    @Override
+    void init() {
+        if (convention().requireBranch) {
+            def branch = gitCurrentBranch()
+            if (!(branch == convention().requireBranch)) {
+                throw new GradleException("Current Git branch is \"$branch\" and not \"${ convention().requireBranch }\".")
+            }
+        }
+    }
 
-			def branch = gitCurrentBranch()
+    @Override
+    GitReleasePluginConvention buildConventionInstance() { releaseConvention().git }
 
-			if (!(branch == convention().requireBranch)) {
-				throw new GradleException("Current Git branch is \"$branch\" and not \"${ convention().requireBranch }\".")
-			}
-		}
-	}
+    @Override
+    void checkCommitNeeded() {
+        GitStatus task = configureGitTask(GitStatus)
+        task.execute()
 
+        if (!task.untracked.isEmpty()) {
+            warnOrThrow(releaseConvention().failOnCommitNeeded,
+                    ['You have unversioned files:', LINE, task.untracked.files*.name, LINE].flatten().join("\n"))
+        } else {
+            def modifiedFiles = []
+            if (!task.added.isEmpty()) {
+                modifiedFiles << task.added.files*.name
+            }
+            if (!task.changed.isEmpty()) {
+                modifiedFiles << task.changed.files*.name
+            }
+            if (!task.modified.isEmpty()) {
+                modifiedFiles << task.modified.files*.name
+            }
+            if (!modifiedFiles.isEmpty()) {
+                warnOrThrow(releaseConvention().failOnCommitNeeded,
+                        ['You have uncommitted files:', LINE, modifiedFiles, LINE].flatten().join("\n"))
+            }
+        }
+    }
 
-	@Override
-	GitReleasePluginConvention buildConventionInstance() { releaseConvention().git }
+    @Override
+    void checkUpdateNeeded() {
+        configureGitTask(GitFetch).execute()
 
+        TrackingStatus st = configureGitTask(GitBranchTrackingStatus).with {
+            localBranch = gitCurrentBranch()
+            execute()
+            trackingStatus
+        }
 
-	@Override
-	void checkCommitNeeded() {
+        if (st?.aheadCount > 0) {
+            warnOrThrow(releaseConvention().failOnPublishNeeded, "You have ${st.aheadCount} local change(s) to push.")
+        }
+        if (st?.behindCount > 0) {
+            warnOrThrow(releaseConvention().failOnUpdateNeeded, "You have ${st.behindCount} remote change(s) to pull.")
+        }
+    }
 
-		def status = gitStatus()
+    @Override
+    void createReleaseTag(String msg = "") {
+        def tagNm = tagName()
+        configureGitTask(GitTag).with {
+            message = msg ?: "Created by Release Plugin: ${tagNm}"
+            tagName = tagNm
+            execute()
+        }
+        configureGitTask(GitPush).with {
+            pushTags = true
+            execute()
+        }
+    }
 
-		if (status[UNVERSIONED]) {
-			warnOrThrow(releaseConvention().failOnUnversionedFiles,
-					(['You have unversioned files:', LINE, * status[UNVERSIONED], LINE] as String[]).join('\n'))
-		}
+    @Override
+    void commit(String msg) {
+        configureGitTask(GitAdd).with {
+            include(releaseConvention().versionPropertyFile)
+            execute()
+        }
+        configureGitTask(GitCommit).with {
+            include(releaseConvention().versionPropertyFile)
+            message = msg
+            execute()
+        }
+        configureGitTask(GitPush).execute()
+    }
 
-		if (status[UNCOMMITTED]) {
-			warnOrThrow(releaseConvention().failOnCommitNeeded,
-					(['You have uncommitted files:', LINE, * status[UNCOMMITTED], LINE] as String[]).join('\n'))
-		}
+    @Override
+    void revert() {
+        configureGitTask(GitCheckout).with {
+            startPoint = Constants.HEAD
+            include(findPropertiesFile().name)
+            execute()
+        }
+    }
 
-	}
+    private String gitCurrentBranch() {
+        return configureGitTask(GitBranchList).with {
+            execute()
+            workingBranch.name
+        }
+    }
 
-
-	@Override
-	void checkUpdateNeeded() {
-
-		gitExec(['remote', 'update'], '')
-
-		def status = gitRemoteStatus()
-
-		if (status[AHEAD]) {
-			warnOrThrow(releaseConvention().failOnPublishNeeded, "You have ${status[AHEAD]} local change(s) to push.")
-		}
-
-		if (status[BEHIND]) {
-			warnOrThrow(releaseConvention().failOnUpdateNeeded, "You have ${status[BEHIND]} remote change(s) to pull.")
-		}
-	}
-
-
-	@Override
-	void createReleaseTag(String message = "") {
-		def tagName = tagName()
-		gitExec(['tag', '-a', tagName, '-m', message ?: "Created by Release Plugin: ${tagName}"], "Duplicate tag [$tagName]", 'already exists')
-		gitExec(['push', 'origin', tagName], '', '! [rejected]', 'error: ', 'fatal: ')
-	}
-
-
-	@Override
-	void commit(String message) {
-		gitExec(['commit', '-a', '-m', message], '')
-		def pushCmd = ['push', 'origin']
-		if (convention().pushToCurrentBranch) {
-			pushCmd << gitCurrentBranch()
-		} else {
-			pushCmd << "master"
-		}
-		gitExec(pushCmd, '', '! [rejected]', 'error: ', 'fatal: ')
-	}
-
-	@Override
-	void revert() {
-		gitExec(['reset', '--hard', 'HEAD', findPropertiesFile().name], "Error reverting changes made by the release plugin.")
-	}
-
-
-
-	private String gitCurrentBranch() {
-		def matches = gitExec('branch').readLines().grep(~/\s*\*.*/)
-		if (matches) {
-			return matches[0]?.trim() - (~/^\*\s+/)
-		} else {
-			return convention().requireBranch
-		}
-	}
-
-	private Map<String, List<String>> gitStatus() {
-		gitExec('status', '--porcelain').readLines().groupBy {
-			if (it ==~ /^\s*\?{2}.*/) {
-				UNVERSIONED
-			} else {
-				UNCOMMITTED
-			}
-		}
-	}
-
-	private Map<String, Integer> gitRemoteStatus() {
-		def branchStatus = gitExec('status', '-sb').readLines()[0]
-		def aheadMatcher = branchStatus =~ /.*ahead (\d+).*/
-		def behindMatcher = branchStatus =~ /.*behind (\d+).*/
-
-		def remoteStatus = [:]
-
-		if (aheadMatcher.matches()) {
-			remoteStatus[AHEAD] = aheadMatcher[0][1]
-		}
-		if (behindMatcher.matches()) {
-			remoteStatus[BEHIND] = behindMatcher[0][1]
-		}
-		remoteStatus
-	}
-
-	String gitExec(Collection<String> params, String errorMessage, String... errorPattern) {
-		def gitDir = project.rootProject.file(".git").canonicalPath.replaceAll("\\\\", "/")
-		def workTree = project.rootProject.projectDir.canonicalPath.replaceAll("\\\\", "/")
-		def cmdLine = ['git', "--git-dir=${gitDir}", "--work-tree=${workTree}"].plus(params)
-		return exec(cmdLine, errorMessage, errorPattern)
-	}
-
-	String gitExec(String... commands) {
-		def gitDir = project.rootProject.file(".git").canonicalPath.replaceAll("\\\\", "/")
-		def workTree = project.rootProject.projectDir.canonicalPath.replaceAll("\\\\", "/")
-		def cmdLine = ['git', "--git-dir=${gitDir}", "--work-tree=${workTree}"]
-		cmdLine.addAll commands
-		return exec(cmdLine as String[])
-	}
+    private <T> T configureGitTask(Class<T> clz) {
+        return project.tasks.replace("release${clz.simpleName}", clz)
+    }
 }
