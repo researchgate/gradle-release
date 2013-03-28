@@ -16,7 +16,7 @@ repositories {
 
 dependencies {
 	compile gradleApi(),
-			'org.ajoberstar:gradle-git:0.4.0'
+			'org.ajoberstar:gradle-git:0.5.0'
 	groovy localGroovy()
 	testCompile('org.spockframework:spock-core:0.5-groovy-1.8') { exclude group: 'org.codehaus.groovy' }
 	testCompile 'junit:junit:4.10'
