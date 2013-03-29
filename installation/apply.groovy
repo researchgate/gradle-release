@@ -1,10 +1,10 @@
 buildscript {
 	repositories {
-		maven { url "http://tellurianring.com/projects/gradle-plugins/repo"}
 		mavenCentral()
+		maven { url "https://oss.sonatype.org/content/groups/public"}
 	}
 	dependencies {
-		classpath 'gradle-release:gradle-release:1.2-SNAPSHOT',
+		classpath 'com.github.townsfolk:gradle-release:1.2-SNAPSHOT',
 				'org.ajoberstar:gradle-git:0.4.0'
 	}
 }

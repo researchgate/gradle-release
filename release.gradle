@@ -1,7 +1,10 @@
+//// PLUGINS
 apply plugin: 'groovy'
 apply plugin: 'maven'
+apply plugin: 'signing'
 apply from: 'installation/apply-local.groovy'
 
+//// CONFIGURATION
 configurations {
 	releaseArtifacts {}
 	installers {}
@@ -23,8 +26,16 @@ dependencies {
 	deployerJars 'org.apache.maven.wagon:wagon-ftp:2.2'
 }
 
-// This updates the apply script with the new version.
+signing {
+	sign configurations.releaseArtifacts
+}
+
+//// TASKS
+createReleaseTag.dependsOn uploadReleaseArtifacts
+createReleaseTag.dependsOn uploadInstallers
+
 updateVersion << {
+	// This updates the apply script with the new version.
 	def applyFile = new File("installation", "apply.groovy")
 	def readmeFile = new File("README.md")
 	def oldVersion = project.getProperty("release.oldVersion")
@@ -34,30 +45,55 @@ updateVersion << {
 	ant.replaceregexp(file: readmeFile, match: "gradle-release/\\d+\\.\\d+/apply.groovy", replace: "gradle-release/${oldVersion}/apply.groovy", byline: true)
 }
 
-artifacts {
-	releaseArtifacts jar
-	installers file('installation/apply.groovy')
-	latestInstallers file('installation/apply.groovy')
-}
-
 uploadReleaseArtifacts {
 	repositories {
-		/*
-		ivy {
-			url = btUrl
-			credentials {
-				username btUser
-				password btPass
-			}
-		}
-		*/
 		mavenDeployer {
-			configuration = configurations.deployerJars
-			repository(url: releaseRepoUrl) { authentication(userName: releaseRepoUser, password: releaseRepoPass) }
+			beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+			repository(url: 'https://oss.sonatype.org/content/repositories/snapshots') {
+				authentication(userName: releaseRepoUser, password: releaseRepoPass)
+			}
+			pom.project {
+				name 'gradle-release'
+				packaging 'jar'
+				description 'gradle-release is a plugin for providing a Maven-like release process to project using Gradle.'
+				url 'https://github.com/townsfolk/gradle-release'
+
+				scm {
+					url 'scm:git@github.com:townsfolk/gradle-release.git'
+					connection 'scm:git@github.com:townsfolk/gradle-release.git'
+					developerConnection 'scm:git@github.com:townsfolk/gradle-release.git'
+				}
+
+				licenses {
+					license {
+						name 'The MIT License (MIT)'
+						url 'http://opensource.org/licenses/MIT'
+						distribution 'repo'
+					}
+				}
+
+				developers {
+					developer {
+						id 'townsfolk'
+						name 'Eric Berry'
+					}
+				}
+			}
 		}
 	}
 }
 
+task javadocJar(type: Jar, dependsOn: javadoc) {
+	classifier = 'javadoc'
+	from 'build/docs/javadoc'
+}
+
+task sourcesJar(type: Jar) {
+	classifier = 'sources'
+	from sourceSets.main.allSource
+}
+
+//// DEPLOYMENT
 uploadInstallers {
 	repositories {
 		add(new org.apache.ivy.plugins.resolver.SFTPResolver()) {
@@ -76,5 +112,10 @@ uploadLatestInstallers {
 	}
 }
 
-createReleaseTag.dependsOn uploadReleaseArtifacts
-createReleaseTag.dependsOn uploadInstallers
+artifacts {
+	releaseArtifacts jar
+	releaseArtifacts javadocJar
+	releaseArtifacts sourcesJar
+	installers file('installation/apply.groovy')
+	latestInstallers file('installation/apply.groovy')
+}
