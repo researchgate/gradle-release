@@ -4,8 +4,7 @@ buildscript {
 		maven { url "https://oss.sonatype.org/content/groups/public"}
 	}
 	dependencies {
-		classpath 'com.github.townsfolk:gradle-release:1.2-SNAPSHOT',
-				'org.ajoberstar:gradle-git:0.4.0'
+		classpath 'com.github.townsfolk:gradle-release:1.2-SNAPSHOT'
 	}
 }
 // Check to make sure release.ReleasePlugin isn't already added.
