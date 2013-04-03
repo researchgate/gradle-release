@@ -18,11 +18,11 @@ repositories {
 }
 
 dependencies {
-	compile gradleApi(),
-			"org.ajoberstar:gradle-git:$gradleGitVersion"
+	compile gradleApi()
 	groovy localGroovy()
 	testCompile("org.spockframework:spock-core:$spockVersion") { exclude group: 'org.codehaus.groovy' }
-	testCompile "junit:junit:$junitVersion"
+	testCompile "junit:junit:$junitVersion",
+			"org.ajoberstar:gradle-git:$gradleGitVersion"
 }
 
 signing {
