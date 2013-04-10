@@ -117,9 +117,9 @@ class PluginHelper {
 	void exec(List<String> commands, String errorMessage, String... errorPattern) {
 		def out = new StringBuffer()
 		def err = new StringBuffer()
-		def process = commands.execute()
 
 		log.info(" >>> Running $commands")
+		def process = commands.execute()
 
 		process.waitForProcessOutput(out, err)
 
@@ -179,8 +179,14 @@ class PluginHelper {
 			project.subprojects?.each { Project subProject ->
 				subProject.version = newVersion
 			}
-			(releaseConvention().versionProperties + 'version').each {
-				project.ant.replace(file: findPropertiesFile(), token: "${it}=${oldVersion}", value: "${it}=${newVersion}")
+			def versionProperties = releaseConvention().versionProperties + 'version'
+			def propFile = findPropertiesFile()
+			versionProperties.each { prop ->
+				try {
+					project.ant.replace(file: propFile, token: "${prop}=${oldVersion}", value: "${prop}=${newVersion}", failOnNoReplacements: true)
+				} catch (org.apache.tools.ant.BuildException be) {
+					throw new GradleException("Incorrect format for version property. Please ensure property is in \"${prop}=${newVersion}\" format.")
+				}
 			}
 		}
 	}

@@ -223,6 +223,12 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 		assert releaseConvention().versionPatterns.keySet().any { (properties.version =~ it).find() },               \
                              "[$propertiesFile.canonicalPath] version [$properties.version] doesn't match any of known version patterns: " +
 				releaseConvention().versionPatterns.keySet()
+		try {
+			// test to make sure the version property is in the correct version=[version] format.
+			project.ant.replace(file: propertiesFile, token: "version=${project.version}", value: "version=${project.version}", failOnNoReplacements: true, preserveLastModified: true)
+		} catch (org.apache.tools.ant.BuildException be) {
+			throw new GradleException("Incorrect format for version property. Please ensure property is in \"version=${project.version}\" format.")
+		}
 	}
 
 	/**

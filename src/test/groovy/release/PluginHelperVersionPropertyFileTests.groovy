@@ -83,4 +83,14 @@ public class PluginHelperVersionPropertyFileTests extends Specification {
         assert proj2.version == project.version
     }
 
+	 def 'should fail when version contains spaces'() {
+		 given:
+		 helper.updateVersionProperty(" 2.2 ")
+		 project.version = "2.2"
+		 when:
+		 helper.updateVersionProperty("2.3")
+		 then:
+		 thrown(org.gradle.api.GradleException)
+	 }
+
 }

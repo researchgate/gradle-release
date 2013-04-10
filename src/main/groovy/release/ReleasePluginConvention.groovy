@@ -36,7 +36,7 @@ class ReleasePluginConvention {
 	def git = new GitReleasePluginConvention()
 
     String versionPropertyFile = 'gradle.properties'
-    String versionProperties = []
+    def versionProperties = []
     String tagPrefix = null
 
 	void release(Closure closure) {
