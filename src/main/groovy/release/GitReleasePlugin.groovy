@@ -96,7 +96,7 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 
 	@Override
 	void revert() {
-		gitExec(['reset', '--hard', 'HEAD', findPropertiesFile().name], "Error reverting changes made by the release plugin.")
+		gitExec(['checkout', findPropertiesFile().name], "Error reverting changes made by the release plugin.")
 	}
 
 
