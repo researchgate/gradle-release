@@ -14,7 +14,7 @@ The `gradle release` task defines the following as the default release process:
 * Prompts you for the next version.
 * Commits the project with the new version.
 
-Current Version: 1.1
+Current Version: 1.2
 
 Current SCM support: [Bazaar](http://bazaar.canonical.com/en/), [Git](http://git-scm.com/), [Mercurial](http://mercurial.selenic.com/), and [Subversion](http://subversion.apache.org/)
 
@@ -31,7 +31,7 @@ If you do want to use a specific version, just change the `version` reference to
 
 Eg.
 
-    apply from: 'http://tellurianring.com/projects/gradle-plugins/gradle-release/1.1/apply.groovy'
+    apply from: 'http://tellurianring.com/projects/gradle-plugins/gradle-release/1.2/apply.groovy'
 
 After you have your `build.gradle` file configured, simply run: `gradle release` and follow the on-screen instructions.
 
