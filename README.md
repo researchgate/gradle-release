@@ -18,9 +18,12 @@ Current Version: 1.2
 
 Current SCM support: [Bazaar](http://bazaar.canonical.com/en/), [Git](http://git-scm.com/), [Mercurial](http://mercurial.selenic.com/), and [Subversion](http://subversion.apache.org/)
 
-## Installation & Usage
+## Installation
 
 The gradle-release plugin will work with Gradle 1.0M3 and beyond
+
+### Using the "apply from" script
+
 To use the plugin simply add an `apply from` script to your project's `build.gradle` file
 It's recommended that you use the `latest` script reference instead of a specific version so that you can automatically get plugin updates:
 
@@ -32,6 +35,27 @@ If you do want to use a specific version, just change the `version` reference to
 Eg.
 
     apply from: 'http://tellurianring.com/projects/gradle-plugins/gradle-release/1.2/apply.groovy'
+
+### Applying directly from the maven repo
+
+The binary files are hosted in Sonatype's Nexus repository.
+
+    https://oss.sonatype.org/content/groups/public
+
+To use it directly or through your own Maven Repository proxy define a `buildscript` closure in your `build.gradle` file.
+
+    buildscript {
+       repositories {
+          mavenCentral()
+          maven { url "https://oss.sonatype.org/content/groups/public"}
+       }
+       dependencies {
+          classpath 'com.github.townsfolk:gradle-release:1.2'
+       }
+    }
+    apply plugin: 'release'
+
+## Usage
 
 After you have your `build.gradle` file configured, simply run: `gradle release` and follow the on-screen instructions.
 
@@ -126,11 +150,11 @@ Below are some properties of the Release Plugin Convention that are specific to 
 		<td>Git</td>
 		<td>requireBranch</td>
 		<td>master</td>
-		<td>Defines the branch which releases must be done off of. Eg. set to `release` to require releases are done on the `release` branch. Set to `''` to ignore.</td>
+		<td>Defines the branch which releases must be done off of. Eg. set to `release` to require releases are done on the `release` branch. Set to '' to ignore.</td>
 	</tr>
 </table>
 
-To set any of these properties to false, add a `release` configuration to your project's `build.gradle` file. Eg. To ignore un-versioned files, you would add the following to your `build.gradle` file:
+To set any of these properties to false, add a "release" configuration to your project's ```build.gradle``` file. Eg. To ignore un-versioned files, you would add the following to your ```build.gradle``` file:
 
     release {
       failOnUnversionedFiles = false
