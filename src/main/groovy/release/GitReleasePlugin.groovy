@@ -5,6 +5,7 @@ import org.gradle.api.GradleException
 /**
  * @author elberry
  * @author evgenyg
+ * @author szpak
  * Created: Tue Aug 09 23:24:40 PDT 2011
  */
 class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
@@ -133,16 +134,32 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 	}
 
 	String gitExec(Collection<String> params, String errorMessage, String... errorPattern) {
-		def gitDir = project.rootProject.file(".git").canonicalPath.replaceAll("\\\\", "/")
-		def workTree = project.rootProject.projectDir.canonicalPath.replaceAll("\\\\", "/")
+		def gitDir = resolveGitDir()
+		def workTree = resolveWorkTree()
 		def cmdLine = ['git', "--git-dir=${gitDir}", "--work-tree=${workTree}"].plus(params)
 		log.debug("gitExec - 1 - {cmdLine: ${cmdLine}, errorMessage: ${errorMessage}, errorPattern: ${errorPattern}}")
 		return exec(cmdLine, errorMessage, errorPattern)
 	}
 
+	private String resolveGitDir() {
+		if (convention().scmRootDir) {
+			project.rootProject.file(convention().scmRootDir + "/.git").canonicalPath.replaceAll("\\\\", "/")
+		} else {
+			project.rootProject.file(".git").canonicalPath.replaceAll("\\\\", "/")
+		}
+	}
+
+	private String resolveWorkTree() {
+		if (convention().scmRootDir) {
+			project.rootProject.file(convention().scmRootDir).canonicalPath.replaceAll("\\\\", "/")
+		} else {
+			project.rootProject.projectDir.canonicalPath.replaceAll("\\\\", "/")
+		}
+	}
+
 	String gitExec(String... commands) {
-		def gitDir = project.rootProject.file(".git").canonicalPath.replaceAll("\\\\", "/")
-		def workTree = project.rootProject.projectDir.canonicalPath.replaceAll("\\\\", "/")
+		def gitDir = resolveGitDir()
+		def workTree = resolveWorkTree()
 		def cmdLine = ['git', "--git-dir=${gitDir}", "--work-tree=${workTree}"]
 		cmdLine.addAll commands
 		log.debug("gitExec - 2 - {cmdLine: ${cmdLine}}")
