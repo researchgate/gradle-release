@@ -85,7 +85,7 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 		} else {
 			def requireBranch = convention().requireBranch
 			log.debug("commit - {requireBranch: ${requireBranch}}")
-			if(requireBranch != null) {
+			if(requireBranch) {
 				pushCmd << requireBranch
 			} else {
 				pushCmd << 'master'
