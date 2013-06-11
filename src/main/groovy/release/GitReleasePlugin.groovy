@@ -72,20 +72,35 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 	void createReleaseTag(String message = "") {
 		def tagName = tagName()
 		gitExec(['tag', '-a', tagName, '-m', message ?: "Created by Release Plugin: ${tagName}"], "Duplicate tag [$tagName]", 'already exists')
-		gitExec(['push', 'origin', tagName], '', '! [rejected]', 'error: ', 'fatal: ')
+		if (releaseConvention().pushChanges) {
+			pushTag(tagName)
+		} else {
+			log.info("Pushing changes to remote repository disabled")
+		}
 	}
 
+	private void pushTag(String tagName) {
+		gitExec(['push', 'origin', tagName], '', '! [rejected]', 'error: ', 'fatal: ')
+	}
 
 	@Override
 	void commit(String message) {
 		gitExec(['commit', '-a', '-m', message], '')
+		if (releaseConvention().pushChanges) {
+			pushChanges()
+		} else {
+			log.info("Pushing changes to remote repository disabled")
+		}
+	}
+
+	private void pushChanges() {
 		def pushCmd = ['push', 'origin']
 		if (convention().pushToCurrentBranch) {
 			pushCmd << gitCurrentBranch()
 		} else {
 			def requireBranch = convention().requireBranch
 			log.debug("commit - {requireBranch: ${requireBranch}}")
-			if(requireBranch != null) {
+			if (requireBranch) {
 				pushCmd << requireBranch
 			} else {
 				pushCmd << 'master'

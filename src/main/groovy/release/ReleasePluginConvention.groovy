@@ -16,6 +16,7 @@ class ReleasePluginConvention {
 	boolean failOnUnversionedFiles = true
 	boolean failOnUpdateNeeded = true
 	boolean revertOnFail = true // will use the SCM plugin to revert any uncommitted changes in the project.
+    boolean pushChanges = true  // push changes to remote repo (supported only in DVCS)
 	String preCommitText = "" // good place for code review overrides and ticket numbers
 	String preTagCommitMessage = "[Gradle Release Plugin] - pre tag commit: "
 	String tagCommitMessage = "[Gradle Release Plugin] - creating tag: "

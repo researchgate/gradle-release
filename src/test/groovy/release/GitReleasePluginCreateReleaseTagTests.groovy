@@ -17,6 +17,7 @@ class GitReleasePluginCreateReleaseTagTests extends GitSpecification {
         when:
         project.createReleaseTag.execute()
         then:
+        //TODO: MZA: It won't work with parallel tests
         localGit.tagList().call()*.name == ["refs/tags/${tagName()}"]
         remoteGit.tagList().call()*.name == ["refs/tags/${tagName()}"]
     }
@@ -31,4 +32,16 @@ class GitReleasePluginCreateReleaseTagTests extends GitSpecification {
         thrown GradleException
     }
 
+    def 'createReleaseTag with disabled pushing changes should only create tag and not push to remote'() {
+        given:
+        project.version = '1.3'
+        project.release {
+            pushChanges = false
+        }
+        when:
+        project.createReleaseTag.execute()
+        then:
+        localGit.tagList().call().findAll { it.name == "refs/tags/${tagName()}" }.size() == 1
+        remoteGit.tagList().call().findAll { it.name == "refs/tags/${tagName()}" }.isEmpty()
+    }
 }
