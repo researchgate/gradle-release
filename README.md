@@ -1,3 +1,8 @@
+## Need help, or someone to take over
+
+I Haven't had any time lately to work on this project. I'm very thankful to those in the Gradle community who've submitted patches.
+Unfortunately, those patches really have comprised practically all work that's been done on this project over the last few months.
+
 ## Introduction
 
 The gradle-release plugin is designed to work similar to the Maven release plugin.
