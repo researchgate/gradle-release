@@ -84,7 +84,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
 		project.gradle.taskGraph.afterTask { Task task, TaskState state ->
 			if (state.failure && task.name == "release") {
-				if (releaseConvention().revertOnFail && project.file("gradle.properties")?.exists()) {
+				if (releaseConvention().revertOnFail && project.file(releaseConvention().versionPropertyFile)?.exists()) {
 					log.error("Release process failed, reverting back any changes made by Release Plugin.")
 					this.scmPlugin.revert()
 				} else {
