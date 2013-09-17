@@ -23,7 +23,6 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 	private BaseScmPlugin scmPlugin
 
 	void apply(Project project) {
-
 		this.project = project
 
 		setConvention('release', new ReleasePluginConvention())
@@ -85,7 +84,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
 		project.gradle.taskGraph.afterTask { Task task, TaskState state ->
 			if (state.failure && task.name == "release") {
-				if (releaseConvention().revertOnFail && project.file("gradle.properties")?.exists()) {
+				if (releaseConvention().revertOnFail && project.file(releaseConvention().versionPropertyFile)?.exists()) {
 					log.error("Release process failed, reverting back any changes made by Release Plugin.")
 					this.scmPlugin.revert()
 				} else {
@@ -97,8 +96,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
 
 	void initScmPlugin() {
-
-		checkPropertiesFile()
+        checkPropertiesFile()
 		scmPlugin.init()
 	}
 
@@ -223,6 +221,10 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 		assert releaseConvention().versionPatterns.keySet().any { (properties.version =~ it).find() },               \
                              "[$propertiesFile.canonicalPath] version [$properties.version] doesn't match any of known version patterns: " +
 				releaseConvention().versionPatterns.keySet()
+        // set the project version from the properties file if it was not otherwise specified
+        if ( !isVersionDefined() ) {
+            project.version = properties.version
+        }
 		try {
 			// test to make sure the version property is in the correct version=[version] format.
 			project.ant.replace(file: propertiesFile, token: "version=${project.version}", value: "version=${project.version}", failOnNoReplacements: true, preserveLastModified: true)

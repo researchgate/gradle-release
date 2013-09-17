@@ -191,10 +191,11 @@ class PluginHelper {
 		}
 	}
 
+
 	File findPropertiesFile() {
 		File propertiesFile = project.file(releaseConvention().versionPropertyFile)
 		if (!propertiesFile.file) {
-			if (!project.version || "unspecified" == project.version) {
+			if (!isVersionDefined()) {
 				project.version = useAutomaticVersion() ? "1.0" : readLine("Version property not set, please set it now:", "1.0")
 			}
 			boolean createIt = project.hasProperty('version') && promptYesOrNo("[$propertiesFile.canonicalPath] not found, create it with version = ${project.version}")
@@ -208,7 +209,11 @@ class PluginHelper {
 		propertiesFile
 	}
 
-	void warnOrThrow(boolean doThrow, String message) {
+    boolean isVersionDefined() {
+        project.version && "unspecified" != project.version
+    }
+
+    void warnOrThrow(boolean doThrow, String message) {
 		if (doThrow) {
 			throw new GradleException(message)
 		} else {
