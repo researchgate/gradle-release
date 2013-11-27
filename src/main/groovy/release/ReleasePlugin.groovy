@@ -1,5 +1,7 @@
 package release
 
+import java.util.regex.Matcher
+
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -8,15 +10,12 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.tasks.GradleBuild
 import org.gradle.api.tasks.TaskState
 
-import java.util.regex.Matcher
-
 /**
  * @author elberry
  * @author evgenyg
  * Created: Tue Aug 09 15:32:00 PDT 2011
  */
 class ReleasePlugin extends PluginHelper implements Plugin<Project> {
-
 	static final String RELEASE_GROUP = "Release"
 
 	@SuppressWarnings('StatelessClass')
@@ -94,15 +93,12 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 		}
 	}
 
-
 	void initScmPlugin() {
         checkPropertiesFile()
 		scmPlugin.init()
 	}
 
-
 	void checkSnapshotDependencies() {
-
 		def matcher = { Dependency d -> d.version?.contains('SNAPSHOT') }
 		def collector = { Dependency d -> "${d.group ?: ''}:${d.name}:${d.version ?: ''}" }
 
@@ -134,13 +130,19 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 	}
 
 	void confirmReleaseVersion() {
-		def version = "$project.version"
-		if (!useAutomaticVersion()) {
-			version = readLine("This release version:", version)
-		}
+		def version = getReleaseVersion();
 		updateVersionProperty(version)
 	}
 
+    String getReleaseVersion(String candidateVersion = "${project.version}") {
+        String releaseVersion = project.properties['releaseVersion'];
+
+        if (useAutomaticVersion()) {
+            return releaseVersion ?: candidateVersion;
+        }
+
+        return readLine("This release version:", releaseVersion ?: candidateVersion);
+    }
 
 	void unSnapshotVersion() {
 		def version = project.version.toString()
@@ -155,7 +157,6 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 		}
 	}
 
-
 	void preTagCommit() {
 		if (project.properties['usesSnapshot'] || project.properties['versionModified']) {
 			// should only be committed if the project was using a snapshot version.
@@ -168,7 +169,6 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 			scmPlugin.commit(message)
 		}
 	}
-
 
 	void updateVersion() {
 		def version = project.version.toString()
@@ -186,9 +186,9 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 				if (project.properties['usesSnapshot']) {
 					nextVersion += '-SNAPSHOT'
 				}
-				if (!useAutomaticVersion()) {
-					nextVersion = readLine("Enter the next version (current one released as [$version]):", nextVersion)
-				}
+
+				nextVersion = getNextVersion(nextVersion);
+
 				project.ext.set("release.oldVersion", project.version)
 				project.ext.set("release.newVersion", nextVersion)
 				updateVersionProperty(nextVersion)
@@ -199,6 +199,15 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 		throw new GradleException("Failed to increase version [$version] - unknown pattern")
 	}
 
+    String getNextVersion(String candidateVersion) {
+        String nextVersion = project.properties['newVersion'];
+
+        if (useAutomaticVersion()) {
+            return nextVersion ?: candidateVersion;
+        }
+
+        return readLine("Enter the next version (current one released as [${project.version}]):", nextVersion ?: candidateVersion);
+    }
 
 	def commitNewVersion() {
 		def message = releaseConvention().newVersionCommitMessage +
@@ -211,7 +220,6 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
 
 	def checkPropertiesFile() {
-
 		File propertiesFile = findPropertiesFile()
 
 		Properties properties = new Properties()
@@ -225,6 +233,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
         if ( !isVersionDefined() ) {
             project.version = properties.version
         }
+
 		try {
 			// test to make sure the version property is in the correct version=[version] format.
 			project.ant.replace(file: propertiesFile, token: "version=${project.version}", value: "version=${project.version}", failOnNoReplacements: true, preserveLastModified: true)
