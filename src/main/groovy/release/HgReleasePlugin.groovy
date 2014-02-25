@@ -44,7 +44,7 @@ class HgReleasePlugin extends BaseScmPlugin<HgReleasePluginConvention> {
 	@Override
 	void checkUpdateNeeded() {
 		def modifications = ['in': [], 'out': []]
-		exec('hg', 'in', '-q').eachLine { line ->
+		exec('hg', 'in', '-q', '-b', hgCurrentBranch()).eachLine { line ->
 			modifications['in'] << line
 		}
 		exec('hg', 'out', '-q').eachLine { line ->
@@ -75,4 +75,8 @@ class HgReleasePlugin extends BaseScmPlugin<HgReleasePluginConvention> {
 	void revert() {
 		exec(['hg', 'revert', findPropertiesFile().name], 'Error reverting changes made by the release plugin.', ERROR)
 	}
+
+    private String hgCurrentBranch() {
+        exec('hg', 'branch').readLines()[0]
+    }
 }
