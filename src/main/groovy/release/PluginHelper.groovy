@@ -78,13 +78,18 @@ class PluginHelper {
 	 * @return command "stdout" output
 	 */
 	String exec(boolean failOnStderr = true, Map env = [:], File directory = null, String... commands) {
-
 		def out = new StringBuffer()
 		def err = new StringBuffer()
 		def logMessage = "Running \"${commands.join(' ')}\"${ directory ? ' in [' + directory.canonicalPath + ']' : '' }"
-		def process = (env || directory) ?
-			(commands as List).execute(env.collect { "$it.key=$it.value" } as String[], directory) :
-			(commands as List).execute()
+
+        def process = null;
+
+        if (env || directory) {
+            def processEnv = env << System.getenv();
+            process = (commands as List).execute(processEnv.collect { "$it.key=$it.value" } as String[], directory)
+        } else {
+            process = (commands as List).execute();
+        }
 
 		log.info(logMessage)
 
@@ -94,12 +99,14 @@ class PluginHelper {
 
 		if (err.toString()) {
 			def message = "$logMessage produced an error: [${err.toString().trim()}]"
+
 			if (failOnStderr) {
 				throw new GradleException(message)
 			} else {
 				log.warn(message)
 			}
 		}
+
 		out.toString()
 	}
 
