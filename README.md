@@ -1,7 +1,6 @@
-## Need help, or someone to take over
+# gradle-release plugin
 
-I Haven't had any time lately to work on this project. I'm very thankful to those in the Gradle community who've submitted patches.
-Unfortunately, those patches really have comprised practically all work that's been done on this project over the last few months.
+[![Build Status](https://travis-ci.org/researchgate/gradle-release.svg?branch=master)](https://travis-ci.org/researchgate/gradle-release)
 
 ## Introduction
 
@@ -192,7 +191,7 @@ This means the gradle-release plugin does not support sub projects that have dif
 
 In a continuous integration environment like Jenkins or Hudson, you don't want to have an interactive release process. To avoid having to enter any information manually during the process, you can tell the plugin to automatically set and update the version number.
 
-You can do this by setting the `gradle.release.useAutomaticVersion` property on the command line, or in Jenkins when you execute gradle. The version to release and the next version can be optionally defined using the properties `releaseVersion` and `nextVersion`. 
+You can do this by setting the `gradle.release.useAutomaticVersion` property on the command line, or in Jenkins when you execute gradle. The version to release and the next version can be optionally defined using the properties `releaseVersion` and `nextVersion`.
 
     -Pgradle.release.useAutomaticVersion=true -PreleaseVersion=1.0.0 -PnewVersion=1.1.0-SNAPSHOT
 
