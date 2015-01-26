@@ -3,6 +3,9 @@ apply plugin: 'idea'
 
 defaultTasks 'clean', 'build'
 
+sourceCompatibility = 1.6
+targetCompatibility = 1.6
+
 repositories {
 	mavenCentral()
 }
