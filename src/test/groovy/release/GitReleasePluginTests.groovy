@@ -19,6 +19,8 @@ class GitReleasePluginTests extends Specification {
         exec(true, [:], remoteRepo, 'git', 'config', '--add', 'receive.denyCurrentBranch', 'ignore')//suppress errors when pushing
 
         exec(false, [:], testDir, 'git', 'clone', remoteRepo.canonicalPath, 'GitReleasePluginTestLocal')
+        exec(true, [:], localRepo, 'git', 'config', '--add', 'user.name', 'Unit Test')
+        exec(true, [:], localRepo, 'git', 'config', '--add', 'user.email', 'unit@test')
 
         project = ProjectBuilder.builder().withName("GitReleasePluginTest").withProjectDir(localRepo).build()
         project.version = "1.1"
