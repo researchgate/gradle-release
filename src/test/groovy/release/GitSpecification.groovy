@@ -1,6 +1,7 @@
 package release
 
 import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.lib.StoredConfig
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -38,6 +39,7 @@ abstract class GitSpecification extends Specification {
         testDir.mkdirs()
 
         File remoteRepo = new File(testDir, "remote")
+        File localRepo = new File(testDir, "local")
 
         remoteGit = Git.init().setDirectory(remoteRepo).call()
         remoteGit.repository.config.setString("receive", null, "denyCurrentBranch", "ignore")
@@ -47,7 +49,11 @@ abstract class GitSpecification extends Specification {
             it << 'version=0.0'
         }
 
-        localGit = Git.cloneRepository().setDirectory(new File(testDir, "local")).setURI(remoteRepo.canonicalPath).call()
+        localGit = Git.cloneRepository().setDirectory(localRepo).setURI(remoteRepo.canonicalPath).call()
+        StoredConfig config = localGit.getRepository().getConfig();
+        config.setString("user", null, "name", "Unit Test");
+        config.setString("user", null, "email", "unit@test");
+        config.save();
     }
 
     def cleanupSpec() {
