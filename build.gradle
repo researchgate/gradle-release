@@ -14,6 +14,6 @@ dependencies {
 	compile gradleApi()
 	compile localGroovy()
 	testCompile("org.spockframework:spock-core:$spockVersion") { exclude group: 'org.codehaus.groovy' }
-	testCompile "junit:junit:$junitVersion",
-			"org.ajoberstar:gradle-git:$gradleGitVersion"
+	testCompile "junit:junit:$junitVersion"
+	testCompile "org.eclipse.jgit:org.eclipse.jgit:$jgitVersion"
 }
