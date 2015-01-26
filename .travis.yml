@@ -1,4 +1,5 @@
 language: groovy
-branches:
-  only:
-    - master
+jdk:
+  - oraclejdk8
+  - oraclejdk7
+  - openjdk6
