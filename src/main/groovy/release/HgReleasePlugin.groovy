@@ -9,16 +9,12 @@ class HgReleasePlugin extends BaseScmPlugin<HgReleasePluginConvention> {
 
 	private static final String ERROR = 'abort:'
 
-
 	@Override
 	void init() {
 	}
 
-
-
 	@Override
 	HgReleasePluginConvention buildConventionInstance() { new HgReleasePluginConvention() }
-
 
 	@Override
 	void checkCommitNeeded() {
@@ -40,14 +36,13 @@ class HgReleasePlugin extends BaseScmPlugin<HgReleasePluginConvention> {
 		}
 	}
 
-
 	@Override
 	void checkUpdateNeeded() {
 		def modifications = ['in': [], 'out': []]
 		exec('hg', 'in', '-q', '-b', hgCurrentBranch()).eachLine { line ->
 			modifications['in'] << line
 		}
-		exec('hg', 'out', '-q').eachLine { line ->
+		exec('hg', 'out', '-q', '-b', hgCurrentBranch()).eachLine { line ->
 			modifications['out'] << line
 		}
 		if (modifications['in']) {
@@ -58,13 +53,11 @@ class HgReleasePlugin extends BaseScmPlugin<HgReleasePluginConvention> {
 		}
 	}
 
-
 	@Override
 	void createReleaseTag(String message = "") {
 		def tagName = tagName()
 		exec(['hg', 'tag', "-m", message ?: "Created by Release Plugin: ${tagName}", tagName], 'Error creating tag', ERROR)
 	}
-
 
 	@Override
 	void commit(String message) {
@@ -76,7 +69,7 @@ class HgReleasePlugin extends BaseScmPlugin<HgReleasePluginConvention> {
 		exec(['hg', 'revert', findPropertiesFile().name], 'Error reverting changes made by the release plugin.', ERROR)
 	}
 
-    private String hgCurrentBranch() {
-        exec('hg', 'branch').readLines()[0]
-    }
+  private String hgCurrentBranch() {
+    exec('hg', 'branch').readLines()[0]
+  }
 }
