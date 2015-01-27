@@ -121,12 +121,20 @@ class PluginHelper {
 	 * @param errorMessage error message to throw, optional
 	 * @param errorPattern error patterns to look for, optional
 	 */
-	void exec(List<String> commands, String errorMessage, String... errorPattern) {
+	String exec(List<String> commands, String errorMessage, Map env = [:], String... errorPattern) {
 		def out = new StringBuffer()
 		def err = new StringBuffer()
 
 		log.info(" >>> Running $commands")
-		def process = commands.execute()
+
+		def process = null
+		if (env) {
+			def processEnv = env << System.getenv();
+			process = commands.execute(processEnv.collect { "$it.key=$it.value" } as String[], null)
+		} else {
+			process = commands.execute()
+		}
+
 
 		process.waitForProcessOutput(out, err)
 
@@ -135,6 +143,8 @@ class PluginHelper {
 		if ([out, err]*.toString().any { String s -> errorPattern.any { s.contains(it) } }) {
 			throw new GradleException("${ errorMessage ?: 'Failed to run [' + commands.join(' ') + ']' } - [$out][$err]")
 		}
+
+		return out;
 	}
 
 	/**

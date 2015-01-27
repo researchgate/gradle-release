@@ -15,9 +15,11 @@ class SvnReleasePlugin extends BaseScmPlugin<SvnReleasePluginConvention> {
 	private static final String ERROR = 'Commit failed'
 	private static final def urlPattern = ~/URL:\s(.*?)(\/(trunk|branches|tags).*?)$/
 	private static final def revPattern = ~/Revision:\s(.*?)$/
+	private static final def commitPattern = ~/Committed revision\s(.*?)\.$/
 
 	void init() {
 		findSvnUrl()
+		project.ext.set('releaseSvnRev', null)
 	}
 
 
@@ -53,7 +55,7 @@ class SvnReleasePlugin extends BaseScmPlugin<SvnReleasePluginConvention> {
 	void checkUpdateNeeded() {
 		def props = project.properties
 		String svnUrl = props.releaseSvnUrl
-		String svnRev = props.releaseSvnRev
+		String svnRev = props.initialSvnRev
 		String svnRoot = props.releaseSvnRoot
 		String svnRemoteRev = ""
 		// svn status -q -u
@@ -84,7 +86,6 @@ class SvnReleasePlugin extends BaseScmPlugin<SvnReleasePluginConvention> {
 		}
 	}
 
-
 	@Override
 	void createReleaseTag(String message = "") {
 		def props = project.properties
@@ -96,18 +97,26 @@ class SvnReleasePlugin extends BaseScmPlugin<SvnReleasePluginConvention> {
 		exec('svn', 'cp', "${svnUrl}@${svnRev}", "${svnRoot}/tags/${svnTag}", '-m', message ?: "Created by Release Plugin: ${svnTag}")
 	}
 
-
 	@Override
 	void commit(String message) {
-		exec(['svn', 'ci', '-m', message], 'Error committing new version', ERROR)
+		String out = exec(['svn', 'ci', '-m', message], 'Error committing new version', [LC_COLLATE: "C", LC_CTYPE: "en_US.UTF-8"], ERROR)
+
+		// After the firstcommit we need to find the new revision so the tag is made from the correct revision
+		if (project.properties.releaseSvnRev == null) {
+			out.eachLine { line ->
+				Matcher matcher = line =~ commitPattern
+				if (matcher.matches()) {
+					String revision = matcher.group(1)
+					project.ext.set('releaseSvnRev', revision)
+				}
+			}
+		}
 	}
 
 	@Override
 	void revert() {
 		exec(['svn', 'revert', findPropertiesFile().name], 'Error reverting changes made by the release plugin.', ERROR)
 	}
-
-
 
 	private void findSvnUrl() {
 		String out = exec(true, [LC_COLLATE: "C", LC_CTYPE: "en_US.UTF-8"], 'svn', 'info')
@@ -123,7 +132,7 @@ class SvnReleasePlugin extends BaseScmPlugin<SvnReleasePluginConvention> {
 			matcher = line =~ revPattern
 			if (matcher.matches()) {
 				String revision = matcher.group(1)
-				project.ext.set('releaseSvnRev', revision)
+				project.ext.set('initialSvnRev', revision)
 			}
 		}
 		if (!project.hasProperty('releaseSvnUrl')) {
