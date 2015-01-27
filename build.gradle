@@ -17,3 +17,7 @@ dependencies {
 	testCompile "junit:junit:$junitVersion"
 	testCompile "org.eclipse.jgit:org.eclipse.jgit:$jgitVersion"
 }
+
+task wrapper(type: Wrapper) {
+	gradleVersion = '1.12'
+}
