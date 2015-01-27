@@ -144,7 +144,7 @@ class PluginHelper {
 			throw new GradleException("${ errorMessage ?: 'Failed to run [' + commands.join(' ') + ']' } - [$out][$err]")
 		}
 
-		return out;
+		out.toString()
 	}
 
 	/**
