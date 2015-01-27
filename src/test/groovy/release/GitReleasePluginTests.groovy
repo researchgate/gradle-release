@@ -23,6 +23,11 @@ class GitReleasePluginTests extends Specification {
         exec(true, [:], localRepo, 'git', 'config', '--add', 'user.email', 'unit@test')
 
         project = ProjectBuilder.builder().withName("GitReleasePluginTest").withProjectDir(localRepo).build()
+        
+        ['user.email':'some@some.com', 'user.name':'someone'].each {k, v ->
+            exec(true, [:], localRepo, 'git', 'config', k, v)
+        }
+
         project.version = "1.1"
         project.apply plugin: ReleasePlugin
 
