@@ -1,23 +1,49 @@
-apply plugin: 'groovy'
-apply plugin: 'idea'
+plugins {
+	id 'groovy'
+	id 'idea'
+	id 'nu.studer.plugindev' version '1.0.3'
+//	id 'net.researchgate.release' version '1.3'
+}
 
 defaultTasks 'clean', 'build'
 
-sourceCompatibility = 1.6
-targetCompatibility = 1.6
-
 repositories {
 	mavenCentral()
+	maven { url "https://oss.sonatype.org/content/groups/public"}
 }
 
 dependencies {
-	compile gradleApi()
-	compile localGroovy()
 	testCompile("org.spockframework:spock-core:$spockVersion") { exclude group: 'org.codehaus.groovy' }
 	testCompile "junit:junit:$junitVersion"
 	testCompile "org.eclipse.jgit:org.eclipse.jgit:$jgitVersion"
 }
 
-task wrapper(type: Wrapper) {
-	gradleVersion = '1.12'
+plugindev {
+	pluginImplementationClass 'net.researchgate.release.ReleasePlugin'
+	pluginDescription 'gradle-release is a plugin for providing a Maven-like release process to project using Gradle.'
+	pluginLicenses 'MIT'
+	pluginTags 'gradle', 'plugin', 'release'
+	authorId 'danez'
+	authorName 'Daniel Tschinder'
+	authorEmail 'daniel.tschinder@researchgate.net'
+	projectUrl 'https://github.com/researchgate/gradle-release'
+	projectInceptionYear '2011'
+	done() // do not omit this
 }
+
+bintray {
+	user = bintrayUser
+	key = bintrayApiKey
+	pkg {
+		repo = 'gradle-plugins'
+		userOrg = 'researchgate'
+		version {
+			gpg {
+				sign = true
+				passphrase = project.hasProperty('bintrayGpgPassphrase') ? project.bintrayGpgPassphrase : ''
+			}
+		}
+	}
+}
+
+wrapper.gradleVersion = '2.2.1'
