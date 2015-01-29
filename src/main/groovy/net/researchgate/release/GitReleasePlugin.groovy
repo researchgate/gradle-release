@@ -2,12 +2,6 @@ package net.researchgate.release
 
 import org.gradle.api.GradleException
 
-/**
- * @author elberry
- * @author evgenyg
- * @author szpak
- * Created: Tue Aug 09 23:24:40 PDT 2011
- */
 class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 
 	private static final String LINE = '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
@@ -29,10 +23,8 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 		}
 	}
 
-
 	@Override
 	GitReleasePluginConvention buildConventionInstance() { releaseConvention().git }
-
 
 	@Override
 	void checkCommitNeeded() {
@@ -48,14 +40,12 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 			warnOrThrow(releaseConvention().failOnCommitNeeded,
 					(['You have uncommitted files:', LINE, * status[UNCOMMITTED], LINE] as String[]).join('\n'))
 		}
-
 	}
-
 
 	@Override
 	void checkUpdateNeeded() {
 
-		gitExec(['remote', 'update'], '')
+		exec(['git', 'remote', 'update'], '')
 
 		def status = gitRemoteStatus()
 
@@ -72,43 +62,42 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 	@Override
 	void createReleaseTag(String message = "") {
 		def tagName = tagName()
-		gitExec(['tag', '-a', tagName, '-m', message ?: "Created by Release Plugin: ${tagName}"], "Duplicate tag [$tagName]", 'already exists')
-		gitExec(['push', 'origin', tagName], '', '! [rejected]', 'error: ', 'fatal: ')
+		exec(['git', 'tag', '-a', tagName, '-m', message ?: "Created by Release Plugin: ${tagName}"], "Duplicate tag [$tagName]", 'already exists')
+		exec(['git', 'push', 'origin', tagName], '', '! [rejected]', 'error: ', 'fatal: ')
 	}
 
 
 	@Override
 	void commit(String message) {
-		gitExec(['commit', '-a', '-m', message], '')
-		def pushCmd = ['push', 'origin']
+		exec(['git', 'commit', '-a', '-m', message], '')
+		def branch
 		if (convention().pushToCurrentBranch) {
-			pushCmd << gitCurrentBranch()
+            branch = gitCurrentBranch()
 		} else {
 			def requireBranch = convention().requireBranch
 			log.debug("commit - {requireBranch: ${requireBranch}}")
 			if(requireBranch) {
-				pushCmd << requireBranch
+				branch = requireBranch
 			} else {
-				pushCmd << 'master'
+				branch = 'master'
 			}
 		}
-		gitExec(pushCmd, '', '! [rejected]', 'error: ', 'fatal: ')
+		exec(['git', 'push', 'origin', branch], 'Failed to push to remote', '! [rejected]', 'error: ', 'fatal: ')
 	}
 
 	@Override
 	void revert() {
-		gitExec(['checkout', findPropertiesFile().name], "Error reverting changes made by the release plugin.")
+		exec(['git', 'checkout', findPropertiesFile().name], "Error reverting changes made by the release plugin.")
 	}
 
-
-
 	private String gitCurrentBranch() {
-		def matches = gitExec('branch').readLines().grep(~/\s*\*.*/)
+		def matches = exec('git', 'branch').readLines().grep(~/\s*\*.*/)
 		matches[0].trim() - (~/^\*\s+/)
 	}
 
 	private Map<String, List<String>> gitStatus() {
-		gitExec('status', '--porcelain').readLines().groupBy {
+        exec('pwd')
+		exec('git', 'status', '--porcelain').readLines().groupBy {
 			if (it ==~ /^\s*\?{2}.*/) {
 				UNVERSIONED
 			} else {
@@ -118,7 +107,7 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 	}
 
 	private Map<String, Integer> gitRemoteStatus() {
-		def branchStatus = gitExec('status', '-sb').readLines()[0]
+		def branchStatus = exec('git', 'status', '-sb').readLines()[0]
 		def aheadMatcher = branchStatus =~ /.*ahead (\d+).*/
 		def behindMatcher = branchStatus =~ /.*behind (\d+).*/
 
@@ -131,38 +120,5 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 			remoteStatus[BEHIND] = behindMatcher[0][1]
 		}
 		remoteStatus
-	}
-
-	String gitExec(Collection<String> params, String errorMessage, String... errorPattern) {
-		def gitDir = resolveGitDir()
-		def workTree = resolveWorkTree()
-		def cmdLine = ['git', "--git-dir=${gitDir}", "--work-tree=${workTree}"].plus(params)
-		log.debug("gitExec - 1 - {cmdLine: ${cmdLine}, errorMessage: ${errorMessage}, errorPattern: ${errorPattern}}")
-		return exec(cmdLine, errorMessage, errorPattern)
-	}
-
-	private String resolveGitDir() {
-		if (convention().scmRootDir) {
-			project.rootProject.file(convention().scmRootDir + "/.git").canonicalPath.replaceAll("\\\\", "/")
-		} else {
-			project.rootProject.file(".git").canonicalPath.replaceAll("\\\\", "/")
-		}
-	}
-
-	private String resolveWorkTree() {
-		if (convention().scmRootDir) {
-			project.rootProject.file(convention().scmRootDir).canonicalPath.replaceAll("\\\\", "/")
-		} else {
-			project.rootProject.projectDir.canonicalPath.replaceAll("\\\\", "/")
-		}
-	}
-
-	String gitExec(String... commands) {
-		def gitDir = resolveGitDir()
-		def workTree = resolveWorkTree()
-		def cmdLine = ['git', "--git-dir=${gitDir}", "--work-tree=${workTree}"]
-		cmdLine.addAll commands
-		log.debug("gitExec - 2 - {cmdLine: ${cmdLine}}")
-		return exec(cmdLine as String[])
 	}
 }

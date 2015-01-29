@@ -83,13 +83,15 @@ class PluginHelper {
 		def err = new StringBuffer()
 		def logMessage = "Running \"${commands.join(' ')}\"${ directory ? ' in [' + directory.canonicalPath + ']' : '' }"
 
-        def process;
+        directory = directory ? directory : project.rootDir
 
+        def process
         if (env || directory) {
             def processEnv = env << System.getenv();
             process = (commands as List).execute(processEnv.collect { "$it.key=$it.value" } as String[], directory)
         } else {
-            process = (commands as List).execute();
+            //noinspection GroovyAssignabilityCheck
+            process = (commands as List).execute(null, project.rootDir);
         }
 
 		log.info(logMessage)
@@ -128,14 +130,14 @@ class PluginHelper {
 
 		log.info(" >>> Running $commands")
 
-		def process = null
+		def process
 		if (env) {
 			def processEnv = env << System.getenv();
-			process = commands.execute(processEnv.collect { "$it.key=$it.value" } as String[], null)
+			process = commands.execute(processEnv.collect { "$it.key=$it.value" } as String[], project.rootDir)
 		} else {
-			process = commands.execute()
+            //noinspection GroovyAssignabilityCheck
+			process = commands.execute(null, project.rootDir)
 		}
-
 
 		process.waitForProcessOutput(out, err)
 
@@ -148,16 +150,6 @@ class PluginHelper {
 		out.toString()
 	}
 
-	/**
-	 * Capitalizes first letter of the String specified.
-	 *
-	 * @param s String to capitalize
-	 * @return String specified with first letter capitalized
-	 */
-	String capitalize(String s) {
-		s[0].toUpperCase() + (s.size() > 1 ? s[1..-1] : '')
-	}
-
 	boolean promptYesOrNo(String message, boolean defaultValue = false) {
 		def defaultStr = defaultValue ? 'Y' : 'n'
 		String consoleVal = readLine("${message} (Y|n)", defaultStr)
@@ -165,22 +157,6 @@ class PluginHelper {
 			return consoleVal.toLowerCase().startsWith('y')
 		}
 		defaultValue
-	}
-
-	/**
-	 * Reads user input from the console.
-	 *
-	 * @param message Message to display
-	 * @param defaultValue (optional) default value to display
-	 * @return User input entered or default value if user enters no data
-	 */
-	String readLine(String message, String defaultValue = null) {
-		String _message = "$PROMPT $message" + (defaultValue ? " [$defaultValue] " : "")
-		if (System.console()) {
-			return System.console().readLine(_message) ?: defaultValue
-		}
-		println "$_message (WAITING FOR INPUT BELOW)"
-		return System.in.newReader().readLine() ?: defaultValue
 	}
 
 	/**
@@ -209,7 +185,6 @@ class PluginHelper {
 		}
 	}
 
-
 	File findPropertiesFile() {
 		File propertiesFile = project.file(releaseConvention().versionPropertyFile)
 		if (!propertiesFile.file) {
@@ -231,6 +206,7 @@ class PluginHelper {
         project.version && "unspecified" != project.version
     }
 
+
     void warnOrThrow(boolean doThrow, String message) {
 		if (doThrow) {
 			throw new GradleException(message)
@@ -247,4 +223,31 @@ class PluginHelper {
 	String findProperty(String key, String defaultVal = "") {
 		System.properties[key] ?: project.properties[key] ?: defaultVal
 	}
+
+    /**
+     * Capitalizes first letter of the String specified.
+     *
+     * @param s String to capitalize
+     * @return String specified with first letter capitalized
+     */
+    protected static String capitalize(String s) {
+        s[0].toUpperCase() + (s.size() > 1 ? s[1..-1] : '')
+    }
+
+    /**
+     * Reads user input from the console.
+     *
+     * @param message Message to display
+     * @param defaultValue (optional) default value to display
+     * @return User input entered or default value if user enters no data
+     */
+    protected static String readLine(String message, String defaultValue = null) {
+        String _message = "$PROMPT $message" + (defaultValue ? " [$defaultValue] " : "")
+        if (System.console()) {
+            return System.console().readLine(_message) ?: defaultValue
+        }
+        println "$_message (WAITING FOR INPUT BELOW)"
+
+        return System.in.newReader().readLine() ?: defaultValue
+    }
 }
