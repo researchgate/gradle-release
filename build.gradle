@@ -8,8 +8,7 @@ plugins {
 defaultTasks 'clean', 'build'
 
 repositories {
-	mavenCentral()
-	maven { url "https://oss.sonatype.org/content/groups/public"}
+	maven { url "https://oss.sonatype.org/content/groups/public"} // for spock SNAPSHOTs
 }
 
 dependencies {
