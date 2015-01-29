@@ -1,5 +1,6 @@
 package net.researchgate.release
 
+import org.apache.tools.ant.BuildException
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.slf4j.Logger
@@ -82,7 +83,7 @@ class PluginHelper {
 		def err = new StringBuffer()
 		def logMessage = "Running \"${commands.join(' ')}\"${ directory ? ' in [' + directory.canonicalPath + ']' : '' }"
 
-        def process = null;
+        def process;
 
         if (env || directory) {
             def processEnv = env << System.getenv();
@@ -201,8 +202,8 @@ class PluginHelper {
 			versionProperties.each { prop ->
 				try {
 					project.ant.replace(file: propFile, token: "${prop}=${oldVersion}", value: "${prop}=${newVersion}", failOnNoReplacements: true)
-				} catch (org.apache.tools.ant.BuildException be) {
-					throw new GradleException("Unable to update version property. Please check file permissions, and ensure property is in \"${prop}=${newVersion}\" format.")
+				} catch (BuildException be) {
+					throw new GradleException("Unable to update version property. Please check file permissions, and ensure property is in \"${prop}=${newVersion}\" format.", be)
 				}
 			}
 		}
