@@ -2,6 +2,7 @@ plugins {
 	id 'groovy'
 	id 'idea'
 	id 'nu.studer.plugindev' version '1.0.3'
+//	id 'net.researchgate.release' version '1.3'
 }
 
 defaultTasks 'clean', 'build'
@@ -31,6 +32,8 @@ plugindev {
 }
 
 bintray {
+	user = bintrayUser
+	key = bintrayApiKey
 	pkg {
 		repo = 'gradle-plugins'
 		userOrg = 'researchgate'
