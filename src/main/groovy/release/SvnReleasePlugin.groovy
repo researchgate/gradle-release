@@ -17,15 +17,15 @@ class SvnReleasePlugin extends BaseScmPlugin<SvnReleasePluginConvention> {
 	private static final def revPattern = ~/Revision:\s(.*?)$/
 	private static final def commitPattern = ~/Committed revision\s(.*?)\.$/
 
+	private static final def environment = [LANG: "C", LC_MESSAGES: "C", LC_ALL: ""];
+
 	void init() {
 		findSvnUrl()
 		project.ext.set('releaseSvnRev', null)
 	}
 
-
 	@Override
 	SvnReleasePluginConvention buildConventionInstance() { new SvnReleasePluginConvention() }
-
 
 	@Override
 	void checkCommitNeeded() {
@@ -50,13 +50,11 @@ class SvnReleasePlugin extends BaseScmPlugin<SvnReleasePluginConvention> {
 		}
 	}
 
-
 	@Override
 	void checkUpdateNeeded() {
 		def props = project.properties
 		String svnUrl = props.releaseSvnUrl
 		String svnRev = props.initialSvnRev
-		String svnRoot = props.releaseSvnRoot
 		String svnRemoteRev = ""
 		// svn status -q -u
 		String out = exec('svn', 'status', '-q', '-u')
@@ -72,7 +70,7 @@ class SvnReleasePlugin extends BaseScmPlugin<SvnReleasePluginConvention> {
 			warnOrThrow(releaseConvention().failOnUpdateNeeded, "You are missing ${missing.size()} changes.")
 		}
 
-		out = exec(true, [LC_COLLATE: "C", LC_CTYPE: "en_US.UTF-8"], 'svn', 'info', project.ext['releaseSvnUrl'])
+		out = exec(true, environment, 'svn', 'info', svnUrl)
 		out.eachLine { line ->
 			Matcher matcher = line =~ revPattern
 			if (matcher.matches()) {
@@ -99,7 +97,7 @@ class SvnReleasePlugin extends BaseScmPlugin<SvnReleasePluginConvention> {
 
 	@Override
 	void commit(String message) {
-		String out = exec(['svn', 'ci', '-m', message], 'Error committing new version', [LC_COLLATE: "C", LC_CTYPE: "en_US.UTF-8"], ERROR)
+		String out = exec(['svn', 'ci', '-m', message], 'Error committing new version', environment, ERROR)
 
 		// After the firstcommit we need to find the new revision so the tag is made from the correct revision
 		if (project.properties.releaseSvnRev == null) {
@@ -119,7 +117,7 @@ class SvnReleasePlugin extends BaseScmPlugin<SvnReleasePluginConvention> {
 	}
 
 	private void findSvnUrl() {
-		String out = exec(true, [LC_COLLATE: "C", LC_CTYPE: "en_US.UTF-8"], 'svn', 'info')
+		String out = exec(true, environment, 'svn', 'info')
 
 		out.eachLine { line ->
 			Matcher matcher = line =~ urlPattern
