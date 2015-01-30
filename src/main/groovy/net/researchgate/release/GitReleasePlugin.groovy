@@ -2,6 +2,8 @@ package net.researchgate.release
 
 import org.gradle.api.GradleException
 
+import java.util.regex.Matcher
+
 class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 
 	private static final String LINE = '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
@@ -44,7 +46,6 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 
 	@Override
 	void checkUpdateNeeded() {
-
 		exec(['git', 'remote', 'update'], '')
 
 		def status = gitRemoteStatus()
@@ -63,32 +64,53 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 	void createReleaseTag(String message = "") {
 		def tagName = tagName()
 		exec(['git', 'tag', '-a', tagName, '-m', message ?: "Created by Release Plugin: ${tagName}"], "Duplicate tag [$tagName]", 'already exists')
-		exec(['git', 'push', 'origin', tagName], '', '! [rejected]', 'error: ', 'fatal: ')
+        if (shouldPush()) {
+            exec(['git', 'push', 'origin', tagName], '', '! [rejected]', 'error: ', 'fatal: ')
+        }
 	}
 
 
 	@Override
 	void commit(String message) {
 		exec(['git', 'commit', '-a', '-m', message], '')
-		def branch
-		if (convention().pushToCurrentBranch) {
-            branch = gitCurrentBranch()
-		} else {
-			def requireBranch = convention().requireBranch
-			log.debug("commit - {requireBranch: ${requireBranch}}")
-			if(requireBranch) {
-				branch = requireBranch
-			} else {
-				branch = 'master'
-			}
-		}
-		exec(['git', 'push', 'origin', branch], 'Failed to push to remote', '! [rejected]', 'error: ', 'fatal: ')
+        if (shouldPush()) {
+            def branch
+            if (convention().pushToCurrentBranch) {
+                branch = gitCurrentBranch()
+            } else {
+                def requireBranch = convention().requireBranch
+                log.debug("commit - {requireBranch: ${requireBranch}}")
+                if(requireBranch) {
+                    branch = requireBranch
+                } else {
+                    branch = 'master'
+                }
+            }
+            exec(['git', 'push', convention().pushToRemote, branch], 'Failed to push to remote', '! [rejected]', 'error: ', 'fatal: ')
+        }
 	}
 
 	@Override
 	void revert() {
 		exec(['git', 'checkout', findPropertiesFile().name], "Error reverting changes made by the release plugin.")
 	}
+
+    private boolean shouldPush() {
+        def shouldPush = false
+        if (convention().pushToRemote) {
+            exec('git', 'remote').eachLine { line ->
+                Matcher matcher = line =~ ~/^\s*(.*)\s*$/
+                if (matcher.matches() && matcher.group(1) == convention().pushToRemote) {
+                    shouldPush = true;
+                }
+            }
+            if (!shouldPush && convention().pushToRemote != 'origin') {
+                throw new GradleException("Could not push to remote ${convention().pushToRemote} as repository has no such remote");
+            }
+        }
+
+        shouldPush
+    }
 
 	private String gitCurrentBranch() {
 		def matches = exec('git', 'branch').readLines().grep(~/\s*\*.*/)

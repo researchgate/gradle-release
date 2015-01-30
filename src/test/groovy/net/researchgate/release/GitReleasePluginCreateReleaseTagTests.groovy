@@ -31,4 +31,38 @@ class GitReleasePluginCreateReleaseTagTests extends GitSpecification {
         thrown GradleException
     }
 
+    def 'createReleaseTag with disabled pushing changes should only create tag and not push to remote'() {
+        given:
+        project.version = '1.3'
+        project.git.pushToRemote = null
+        when:
+        project.createReleaseTag.execute()
+        then:
+        localGit.tagList().call().findAll { it.name == "refs/tags/${tagName()}" }.size() == 1
+        remoteGit.tagList().call().findAll { it.name == "refs/tags/${tagName()}" }.isEmpty()
+    }
+
+    def 'createReleaseTag with configured but non existent remote should throw exception'() {
+        given:
+        project.version = '1.4'
+        project.git.pushToRemote = 'myremote'
+        when:
+        project.createReleaseTag.execute()
+        then:
+        GradleException ex = thrown()
+        ex.cause.message.contains "myremote"
+    }
+
+    def 'createReleaseTag with configured remote should push to it'() {
+        given:
+        project.version = '1.5'
+        project.git.pushToRemote = 'myremote'
+        localGit.repository.config.setString("remote", "myremote", "url", remoteGit.repository.directory.canonicalPath);
+        localGit.repository.config.save();
+        when:
+        project.createReleaseTag.execute()
+        then:
+        localGit.tagList().call().findAll { it.name == "refs/tags/${tagName()}" }.size() == 1
+        remoteGit.tagList().call().findAll { it.name == "refs/tags/${tagName()}" }.size() == 1
+    }
 }
