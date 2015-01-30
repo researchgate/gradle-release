@@ -1,6 +1,7 @@
 # gradle-release plugin
 
 [![Build Status](https://travis-ci.org/researchgate/gradle-release.svg?branch=master)](https://travis-ci.org/researchgate/gradle-release)
+[![Download](https://api.bintray.com/packages/researchgate/gradle-plugins/gradle-release/images/download.svg)](https://bintray.com/researchgate/gradle-plugins/gradle-release/_latestVersion)
 
 ## Introduction
 
@@ -18,46 +19,37 @@ The `gradle release` task defines the following as the default release process:
 * Prompts you for the next version.
 * Commits the project with the new version.
 
-Current Version: 1.2
-
 Current SCM support: [Bazaar](http://bazaar.canonical.com/en/), [Git](http://git-scm.com/), [Mercurial](http://mercurial.selenic.com/), and [Subversion](http://subversion.apache.org/)
 
 ## Installation
 
 The gradle-release plugin will work with Gradle 1.0M3 and beyond
 
-### Using the "apply from" script
+### Gradle 1.x and 2.0
 
-To use the plugin simply add an `apply from` script to your project's `build.gradle` file
-It's recommended that you use the `latest` script reference instead of a specific version so that you can automatically get plugin updates:
-
-    apply from: 'http://tellurianring.com/projects/gradle-plugins/gradle-release/apply.groovy'
-If you do want to use a specific version, just change the `version` reference to the specific version:
-
-    apply from: 'http://tellurianring.com/projects/gradle-plugins/gradle-release/[version]/apply.groovy'
-
-Eg.
-
-    apply from: 'http://tellurianring.com/projects/gradle-plugins/gradle-release/1.2/apply.groovy'
-
-### Applying directly from the maven repo
-
-The binary files are hosted in Sonatype's Nexus repository.
-
-    https://oss.sonatype.org/content/groups/public
-
-To use it directly or through your own Maven Repository proxy define a `buildscript` closure in your `build.gradle` file.
-
-    buildscript {
-       repositories {
-          mavenCentral()
-          maven { url "https://oss.sonatype.org/content/groups/public"}
-       }
-       dependencies {
-          classpath 'com.github.townsfolk:gradle-release:1.2'
-       }
+```groovy
+buildscript {
+    repositories {
+        jcenter()
     }
-    apply plugin: 'release'
+    dependencies {
+        classpath 'net.researchgate:gradle-release:2.0.0'
+    }
+}
+
+apply plugin: 'net.researchgate.release'
+```
+
+### Gradle 2.1 and higher
+
+```groovy
+plugins {
+  id 'net.researchgate.release' version '2.0.0'
+}
+```
+
+Please refer to the [Gradle DSL PluginDependenciesSpec](http://www.gradle.org/docs/current/dsl/org.gradle.plugin.use.PluginDependenciesSpec.html) to
+understand the behavior and limitations when using the new syntax to declare plugin dependencies.
 
 ## Usage
 
@@ -202,6 +194,6 @@ $ gradle release -Pgradle.release.useAutomaticVersion=true -PreleaseVersion=1.0.
 
 To ask questions or report bugs, please use the GitHub project.
 
-* Project Page: [https://github.com/townsfolk/gradle-release](https://github.com/townsfolk/gradle-release)
-* Asking Questions: [https://github.com/townsfolk/gradle-release/issues](https://github.com/townsfolk/gradle-release/issues)
-* Reporting Bugs: [https://github.com/townsfolk/gradle-release/issues](https://github.com/townsfolk/gradle-release/issues)
+* Project Page: [https://github.com/researchgate/gradle-release](https://github.com/researchgate/gradle-release)
+* Asking Questions: [https://github.com/researchgate/gradle-release/issues](https://github.com/researchgate/gradle-release/issues)
+* Reporting Bugs: [https://github.com/researchgate/gradle-release/issues](https://github.com/researchgate/gradle-release/issues)
