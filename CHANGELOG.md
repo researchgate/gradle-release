@@ -6,13 +6,13 @@
 
 ### New Features
 
-* COMMON: Release version and new version as build parameters (#44, #67, thanks thokuest)
+* COMMON: The release version and new version can be supplied as cli parameters (#44, #67, thanks thokuest)
 * GIT: Option to disable pushing to remote (#41, #33, thanks szpak)
 * GIT: Option to change name of remote to push to
 
 ### Changes
 
-* Package of classes had to be changed from ```release```to ```net.researchgate.release```. (This is only relevant for you if you imported some of the classes directly into your code.)
+* Package of classes had to be changed from ```release```to ```net.researchgate.release```. (This is only relevant if you imported some of the classes directly in your code.)
 * COMMON: Better error message if updating of version fails
 
 ### Bugfixes
