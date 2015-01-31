@@ -150,15 +150,6 @@ class PluginHelper {
 		out.toString()
 	}
 
-	boolean promptYesOrNo(String message, boolean defaultValue = false) {
-		def defaultStr = defaultValue ? 'Y' : 'n'
-		String consoleVal = readLine("${message} (Y|n)", defaultStr)
-		if (consoleVal) {
-			return consoleVal.toLowerCase().startsWith('y')
-		}
-		defaultValue
-	}
-
 	/**
 	 * Updates properties file (<code>gradle.properties</code> by default) with new version specified.
 	 * If configured in plugin convention then updates other properties in file additionally to <code>version</code> property
@@ -206,7 +197,6 @@ class PluginHelper {
         project.version && "unspecified" != project.version
     }
 
-
     void warnOrThrow(boolean doThrow, String message) {
 		if (doThrow) {
 			throw new GradleException(message)
@@ -214,6 +204,7 @@ class PluginHelper {
 			log.warn("!!WARNING!! $message")
 		}
 	}
+
 
 	String tagName() {
 		String prefix = releaseConvention().tagPrefix ? "${releaseConvention().tagPrefix}-" : (releaseConvention().includeProjectNameInTag ? "${project.rootProject.name}-" : "")
@@ -249,5 +240,14 @@ class PluginHelper {
         println "$_message (WAITING FOR INPUT BELOW)"
 
         return System.in.newReader().readLine() ?: defaultValue
+    }
+
+    private static boolean promptYesOrNo(String message, boolean defaultValue = false) {
+        def defaultStr = defaultValue ? 'Y' : 'n'
+        String consoleVal = readLine("${message} (Y|n)", defaultStr)
+        if (consoleVal) {
+            return consoleVal.toLowerCase().startsWith('y')
+        }
+        defaultValue
     }
 }

@@ -193,7 +193,9 @@ In a continuous integration environment like Jenkins or Hudson, you don't want t
 
 You can do this by setting the `gradle.release.useAutomaticVersion` property on the command line, or in Jenkins when you execute gradle. The version to release and the next version can be optionally defined using the properties `releaseVersion` and `nextVersion`.
 
-    -Pgradle.release.useAutomaticVersion=true -PreleaseVersion=1.0.0 -PnewVersion=1.1.0-SNAPSHOT
+```bash
+$ gradle release -Pgradle.release.useAutomaticVersion=true -PreleaseVersion=1.0.0 -PnewVersion=1.1.0-SNAPSHOT
+```
 
 
 ## Getting Help
