@@ -168,9 +168,11 @@ class PluginHelper {
 			def propFile = findPropertiesFile()
 			versionProperties.each { prop ->
 				try {
-					project.ant.replace(file: propFile, token: "${prop}=${oldVersion}", value: "${prop}=${newVersion}", failOnNoReplacements: true)
+                    project.ant.propertyfile(file: propFile, comment: '') {
+                        entry(key: prop, value: project.version)
+                    }
 				} catch (BuildException be) {
-					throw new GradleException("Unable to update version property. Please check file permissions, and ensure property is in \"${prop}=${newVersion}\" format.", be)
+					throw new GradleException("Unable to update version property.", be)
 				}
 			}
 		}
