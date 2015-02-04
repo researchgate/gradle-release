@@ -168,7 +168,7 @@ class PluginHelper {
 			def propFile = findPropertiesFile()
 			versionProperties.each { prop ->
 				try {
-                    project.ant.propertyfile(file: propFile, comment: '') {
+                    project.ant.propertyfile(file: propFile) {
                         entry(key: prop, value: project.version)
                     }
 				} catch (BuildException be) {

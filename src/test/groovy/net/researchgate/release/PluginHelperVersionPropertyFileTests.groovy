@@ -44,7 +44,7 @@ public class PluginHelperVersionPropertyFileTests extends Specification {
         given:
         helper.updateVersionProperty("2.2")
         expect:
-        project.file("gradle.properties").readLines()[0] == 'version=2.2'
+        project.file("gradle.properties").readLines()[1] == 'version=2.2'
     }
 
     def 'when configured then update `version` and additional properties from props file'() {
@@ -61,9 +61,9 @@ public class PluginHelperVersionPropertyFileTests extends Specification {
         helper.updateVersionProperty("2.2")
         def lines = project.file("custom.properties").readLines()
         then:
-        lines[0] == 'version=2.2'
-        lines[1] == 'version1=2.2'
-        lines[2] == 'version2=1.1'
+        lines[1] == 'version=2.2'
+        lines[2] == 'version1=2.2'
+        lines[3] == 'version2=1.1'
     }
 
     def 'should update version of project and subprojects'() {
@@ -80,14 +80,14 @@ public class PluginHelperVersionPropertyFileTests extends Specification {
         assert proj2.version == project.version
     }
 
-	 def 'should fail when version contains spaces'() {
+	 def 'should not fail when version contains spaces'() {
 		 given:
 		 helper.updateVersionProperty(" 2.2 ")
 		 project.version = "2.2"
 		 when:
 		 helper.updateVersionProperty("2.3")
 		 then:
-		 thrown(org.gradle.api.GradleException)
+         assert project.version == '2.3'
 	 }
 
 }
