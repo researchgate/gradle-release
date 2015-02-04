@@ -2,7 +2,7 @@
 
 
 ## 2.0.0
-##### Released: 8. Feb 2015
+##### Released: 4. Feb 2015
 
 ### New Features
 
