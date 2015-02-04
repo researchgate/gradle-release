@@ -37,15 +37,15 @@ plugindev {
 }
 
 bintray {
-	user = hasProperty('bintrayUser') ? bintrayUser : ''
-	key = hasProperty('bintrayApiKey') ? bintrayApiKey : ''
+	user = project.hasProperty('bintrayUser') ? bintrayUser : ''
+	key = project.hasProperty('bintrayApiKey') ? bintrayApiKey : ''
 	pkg {
 		repo = 'gradle-plugins'
 		userOrg = 'researchgate'
 		version {
 			gpg {
 				sign = true
-				passphrase = hasProperty('bintrayGpgPassphrase') ? bintrayGpgPassphrase : ''
+				passphrase = project.hasProperty('bintrayGpgPassphrase') ? bintrayGpgPassphrase : ''
 			}
 		}
 	}
