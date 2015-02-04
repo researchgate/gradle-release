@@ -3,7 +3,8 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath "nu.studer:gradle-plugindev-plugin:1.0.3"
+        classpath 'nu.studer:gradle-plugindev-plugin:1.0.3'
+        classpath 'org.codehaus.groovy:groovy-backports-compat23:2.4.0'
     }
 }
 
