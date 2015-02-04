@@ -50,6 +50,7 @@ bintray {
 			}
 		}
 	}
+    publish = true
 }
 
 wrapper.gradleVersion = '1.12'
