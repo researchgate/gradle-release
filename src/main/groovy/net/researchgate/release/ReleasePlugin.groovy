@@ -1,5 +1,7 @@
 package net.researchgate.release
 
+import org.apache.tools.ant.BuildException
+
 import java.util.regex.Matcher
 
 import org.gradle.api.GradleException
@@ -237,8 +239,8 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 		try {
 			// test to make sure the version property is in the correct version=[version] format.
 			project.ant.replace(file: propertiesFile, token: "version=${project.version}", value: "version=${project.version}", failOnNoReplacements: true, preserveLastModified: true)
-		} catch (org.apache.tools.ant.BuildException be) {
-			throw new GradleException("Unable to update version property. Please check file permissions, and ensure property is in \"version=${project.version}\" format.")
+		} catch (BuildException be) {
+			throw new GradleException("Unable to update version property. Please check file permissions, and ensure property is in \"version=${project.version}\" format.", be)
 		}
 	}
 
