@@ -1,7 +1,6 @@
 package net.researchgate.release
 
 import org.gradle.api.GradleException
-
 import java.util.regex.Matcher
 
 class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
@@ -46,7 +45,7 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 
 	@Override
 	void checkUpdateNeeded() {
-		exec(['git', 'remote', 'update'], '')
+		exec(['git', 'remote', 'update'], '', 'error: ', 'fatal: ')
 
 		def status = gitRemoteStatus()
 
@@ -59,7 +58,6 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 		}
 	}
 
-
 	@Override
 	void createReleaseTag(String message = "") {
 		def tagName = tagName()
@@ -68,7 +66,6 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
             exec(['git', 'push', 'origin', tagName], '', '! [rejected]', 'error: ', 'fatal: ')
         }
 	}
-
 
 	@Override
 	void commit(String message) {
@@ -118,7 +115,6 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 	}
 
 	private Map<String, List<String>> gitStatus() {
-        exec('pwd')
 		exec('git', 'status', '--porcelain').readLines().groupBy {
 			if (it ==~ /^\s*\?{2}.*/) {
 				UNVERSIONED

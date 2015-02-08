@@ -132,7 +132,7 @@ class PluginHelper {
 
 		def process
 		if (env) {
-			def processEnv = env << System.getenv();
+			def processEnv = env << System.getenv()
 			process = commands.execute(processEnv.collect { "$it.key=$it.value" } as String[], project.rootDir)
 		} else {
             //noinspection GroovyAssignabilityCheck
