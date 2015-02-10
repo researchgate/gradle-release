@@ -113,6 +113,11 @@ Below are some properties of the Release Plugin Convention that can be used to c
 		<td>Prefixes tag name when release tag is created. Useful when you want the tag to include project name or some other prefix.</td>
 	</tr>
 	<tr>
+		<td>includeHyphenInTag</td>
+		<td>true</td>
+		<td>Uses a hyphen to separate the tagPrefix from the version.</td>
+	</tr>
+	<tr>
 		<td>preCommitText</td>
 		<td></td>
 		<td>This will be prepended to all commits done by the plugin. A good place for code review, or ticket numbers</td>
