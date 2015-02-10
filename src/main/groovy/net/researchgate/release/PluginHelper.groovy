@@ -209,7 +209,11 @@ class PluginHelper {
 
 
 	String tagName() {
-		String prefix = releaseConvention().tagPrefix ? "${releaseConvention().tagPrefix}-" : (releaseConvention().includeProjectNameInTag ? "${project.rootProject.name}-" : "")
+        String prefix;
+        if(releaseConvention().tagPrefix)
+            prefix = releaseConvention().includeHyphenInTag ? "${releaseConvention().tagPrefix}-" : releaseConvention().tagPrefix
+        else
+            prefix = releaseConvention().includeProjectNameInTag ? "${project.rootProject.name}-" : ""
 		return "${prefix}${project.version}"
 	}
 

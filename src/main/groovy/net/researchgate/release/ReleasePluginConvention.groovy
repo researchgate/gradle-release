@@ -27,6 +27,8 @@ class ReleasePluginConvention {
 	 */
 	boolean includeProjectNameInTag = false
 
+    boolean includeHyphenInTag = true
+
 	def requiredTasks = []
 	def versionPatterns = [
 			// Increments last number: "2.5-SNAPSHOT" => "2.6-SNAPSHOT"
