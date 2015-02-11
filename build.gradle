@@ -18,10 +18,6 @@ defaultTasks 'clean', 'build'
 
 group='net.researchgate'
 
-repositories {
-	maven { url "https://oss.sonatype.org/content/groups/public"} // for spock SNAPSHOTs
-}
-
 dependencies {
 	testCompile("org.spockframework:spock-core:$spockVersion") { exclude group: 'org.codehaus.groovy' }
 	testCompile "junit:junit:$junitVersion"
