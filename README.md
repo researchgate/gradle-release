@@ -33,7 +33,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'net.researchgate:gradle-release:2.0.0'
+        classpath 'net.researchgate:gradle-release:2.0.1'
     }
 }
 
@@ -44,7 +44,7 @@ apply plugin: 'net.researchgate.release'
 
 ```groovy
 plugins {
-  id 'net.researchgate.release' version '2.0.0'
+  id 'net.researchgate.release' version '2.0.1'
 }
 ```
 
