@@ -53,7 +53,4 @@ bintray {
     publish = true
 }
 
-createReleaseTag.dependsOn publishPluginToBintray
-publishPluginToBintray.dependsOn preTagCommit
-
 wrapper.gradleVersion = '1.12'
