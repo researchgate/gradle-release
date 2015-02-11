@@ -5,14 +5,19 @@ buildscript {
     dependencies {
         classpath 'nu.studer:gradle-plugindev-plugin:1.0.3'
         classpath 'org.codehaus.groovy:groovy-backports-compat23:2.4.0'
+        classpath 'net.researchgate:gradle-release:2.0.0'
     }
 }
 
 apply plugin: 'groovy'
 apply plugin: 'idea'
 apply plugin: 'nu.studer.plugindev'
+apply plugin: 'net.researchgate.release'
 
 defaultTasks 'clean', 'build'
+
+group='net.researchgate'
+version='2.0.1-SNAPSHOT'
 
 repositories {
 	maven { url "https://oss.sonatype.org/content/groups/public"} // for spock SNAPSHOTs
@@ -23,6 +28,9 @@ dependencies {
 	testCompile "junit:junit:$junitVersion"
 	testCompile "org.eclipse.jgit:org.eclipse.jgit:$jgitVersion"
 }
+
+createReleaseTag.dependsOn publishPluginToBintray
+publishPluginToBintray.dependsOn preTagCommit
 
 plugindev {
 	pluginImplementationClass 'net.researchgate.release.ReleasePlugin'
