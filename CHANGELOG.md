@@ -4,7 +4,7 @@
 ##### Released: 11. Feb 2015
 
 ### Bugfixes
-* Fixed running release plugin on windows (#90, thanks SanderDN)
+* GIT: Fixed running release plugin on windows (#90, thanks SanderDN)
 
 
 ## 2.0.0
