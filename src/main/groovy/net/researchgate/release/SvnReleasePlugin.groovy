@@ -88,7 +88,7 @@ class SvnReleasePlugin extends BaseScmPlugin<SvnReleasePluginConvention> {
 	void createReleaseTag(String message = "") {
 		def props = project.properties
 		String svnUrl = props.releaseSvnUrl
-		String svnRev = props.releaseSvnRev
+		String svnRev = props.releaseSvnRev ?: props.initialSvnRev //release set by commit below when needed, no commit => initial
 		String svnRoot = props.releaseSvnRoot
 		String svnTag = tagName()
 
