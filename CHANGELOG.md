@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.0.2
+##### Released: 17. Feb 2015
+
+### Bugfixes
+* SVN: Fixed running release plugin without using snapshot versions (#91 #92, thanks mwhipple)
+
+
 ## 2.0.1
 ##### Released: 11. Feb 2015
 
