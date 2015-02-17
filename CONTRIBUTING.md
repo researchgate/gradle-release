@@ -2,7 +2,7 @@
 
 ## Pull Requests
 1. Fork the repo and create your branch from `master`.
-2. If you've added code that should be tested, add tests (currently we only have tests for git or some share functionality)
+2. If you've added code that should be tested, add tests (currently we only have tests for git or some shared functionality)
 3. Ensure the test suite passes.
 
 ## License
