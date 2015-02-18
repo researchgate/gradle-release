@@ -39,4 +39,17 @@ public class PluginHelperTagNameTests extends Specification {
         where:
         includeProjectName << [true, false]
     }
+
+    def 'when includeHyphenInTag is false and tagPrefix not blank then add it to tag without a hyphen separating it'() {
+        given:
+        project.release {
+            includeProjectNameInTag = includeProjectName
+            tagPrefix = 'PREF'
+            includeHyphenInTag = false
+        }
+        expect:
+        tagName() == 'PREF1.1'
+        where:
+        includeProjectName << [true, false]
+    }
 }
