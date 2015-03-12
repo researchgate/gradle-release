@@ -39,4 +39,27 @@ public class PluginHelperTagNameTests extends Specification {
         where:
         includeProjectName << [true, false]
     }
+
+    def 'when tagTemplate not blank then it is used as tag name and all other options are ignored'() {
+        given:
+        project.release {
+            tagTemplate = '$version'
+            tagPrefix = tagPrefixSetting
+            includeProjectNameInTag = includeProjectName
+        }
+        expect:
+        tagName() == '1.1'
+        where:
+        includeProjectName << [true, false]
+        tagPrefixSetting << ['PREF', null]
+    }
+
+    def 'when tagTemplate not blank then it is used as tag name'() {
+        given:
+        project.release {
+            tagTemplate = 'PREF-$name-$version'
+        }
+        expect:
+        tagName() == 'PREF-ReleasePluginTest-1.1'
+    }
 }

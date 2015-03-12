@@ -1,5 +1,6 @@
 package net.researchgate.release
 
+import groovy.text.SimpleTemplateEngine
 import org.apache.tools.ant.BuildException
 import org.gradle.api.GradleException
 import org.gradle.api.Project
@@ -207,10 +208,23 @@ class PluginHelper {
 		}
 	}
 
-
 	String tagName() {
-		String prefix = releaseConvention().tagPrefix ? "${releaseConvention().tagPrefix}-" : (releaseConvention().includeProjectNameInTag ? "${project.rootProject.name}-" : "")
-		return "${prefix}${project.version}"
+        def options = releaseConvention()
+        def tagName
+        if (options.tagTemplate) {
+            def engine = new SimpleTemplateEngine()
+            def binding = [
+                "version": project.version,
+                "name"   : project.rootProject.name
+            ]
+            tagName = engine.createTemplate(options.tagTemplate).make(binding).toString()
+        } else {
+            // Backward compatible remove in version 3.0
+            String prefix = options.tagPrefix ? "${options.tagPrefix}-" : (options.includeProjectNameInTag ? "${project.rootProject.name}-" : "")
+            tagName = "${prefix}${project.version}"
+        }
+
+        tagName
 	}
 
 	String findProperty(String key, String defaultVal = "") {
