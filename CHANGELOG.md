@@ -1,9 +1,21 @@
 # Changelog
 
+## 2.1.0
+##### Not yet released
+
+### New Features
+
+* COMMON: New flexible configuration ```tagTemplate``` to specify the name of the tag. (#96)
+
+### Deprecated Features
+
+* COMMON: The configuration options ```includeProjectNameInTag``` and ```tagPrefix``` are deprecated and will be remove with 3.0. Please migrate to tagTemplate. (#96)
+
 ## 2.0.2
 ##### Released: 17. Feb 2015
 
 ### Bugfixes
+
 * SVN: Fixed running release plugin without using snapshot versions (#91 #92, thanks mwhipple)
 
 
@@ -11,6 +23,7 @@
 ##### Released: 11. Feb 2015
 
 ### Bugfixes
+
 * GIT: Fixed running release plugin on windows (#90, thanks SanderDN)
 
 
