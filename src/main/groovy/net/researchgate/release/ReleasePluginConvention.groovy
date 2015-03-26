@@ -22,10 +22,25 @@ class ReleasePluginConvention {
 	String newVersionCommitMessage = "[Gradle Release Plugin] - new version commit: "
 
 	/**
-	 * If true, tag names and messages will include the project name (e.g. project-name-version)
-	 * otherwise only version is used.
+	 * @deprecated to be removed in 3.0 see tagTemplate
 	 */
+    @Deprecated
 	boolean includeProjectNameInTag = false
+
+    /**
+     * @deprecated to be removed in 3.0 see tagTemplate
+     */
+    @Deprecated
+    String tagPrefix = null
+
+    /**
+     * Custom template for the tag
+     * Possible template variables are $version and $name
+     * example "$name-$version" -> "myproject-1.1"
+     *
+     * as of 3.0 set this to "$version" by default
+     */
+    String tagTemplate = null
 
 	def requiredTasks = []
 	def versionPatterns = [
@@ -37,7 +52,6 @@ class ReleasePluginConvention {
 
     String versionPropertyFile = 'gradle.properties'
     def versionProperties = []
-    String tagPrefix = null
 
 	void release(Closure closure) {
 		closure.delegate = this

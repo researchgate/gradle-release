@@ -108,9 +108,9 @@ Below are some properties of the Release Plugin Convention that can be used to c
 		<th>Description</th>
 	</tr>
 	<tr>
-		<td>tagPrefix</td>
-		<td></td>
-		<td>Prefixes tag name when release tag is created. Useful when you want the tag to include project name or some other prefix.</td>
+		<td>tagTemplate</td>
+		<td>$version</td>
+		<td>The string template which is used to generate the tag name. Possible variables are $version and $name. Example: "$name-$version" will result in "myproject-1.1.0"</td>
 	</tr>
 	<tr>
 		<td>preCommitText</td>
