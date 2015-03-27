@@ -4,22 +4,19 @@ Configuration
 Common
 ------
 
-failOnCommitNeeded (default: true)
+.. confval:: failOnCommitNeeded
+
+    *Default: true*
+
     Fail the release process when there
     un-committed changes
 
+.. confval:: failOnPublishNeeded
 
-+----------------------------+---------------+-------------------------------------+
-| failOnPublishNeeded        | true          |                                     |
-+----------------------------+---------------+-------------------------------------+
-| failOnSnapshotDependencies | true          | Cells                               |
-+----------------------------+---------------+-------------------------------------+
-| failOnUnversionedFiles     | true          |                                     |
-+----------------------------+---------------+-------------------------------------+
-| failOnUpdateNeeded         | true          |                                     |
-+----------------------------+---------------+-------------------------------------+
-| revertOnFail               | true          |                                     |
-+----------------------------+---------------+-------------------------------------+
+    *Default: true*
+
+    Fail the release process when there
+    un-committed changes
 
 Bazaar
 ------
