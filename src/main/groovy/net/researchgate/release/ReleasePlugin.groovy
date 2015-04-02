@@ -53,7 +53,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 					//  5. (This Plugin) Check for SNAPSHOT dependencies if required.
 					'checkSnapshotDependencies',
 					//  6. (This Plugin) Build && run Unit tests
-					'build',
+					'runBuildTasks',
 					//  7. (This Plugin) Commit Snapshot update (if done)
 					'preTagCommit',
 					//  8. (SCM Plugin) Create tag of release.
@@ -81,7 +81,18 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 				description: 'Commits the version update to your SCM') << this.&commitNewVersion
 		project.task('createReleaseTag', group: RELEASE_GROUP,
 				description: 'Creates a tag in SCM for the current (un-snapshotted) version.') << this.&commitTag
+		project.task('runBuildTasks', group: RELEASE_GROUP, description: 'Runs the build process in a separate gradle run.', type: GradleBuild) {
+            startParameter = project.getGradle().startParameter.newInstance()
 
+            tasks = [
+                'beforeReleaseBuild',
+                'build',
+                'afterReleaseBuild'
+            ]
+        }
+
+        project.task('beforeReleaseBuild', group: RELEASE_GROUP, description: 'Runs immediately before the build when doing a release') {}
+        project.task('afterReleaseBuild', group: RELEASE_GROUP, description: 'Runs immediately after the build when doing a release') {}
 
 		project.gradle.taskGraph.afterTask { Task task, TaskState state ->
 			if (state.failure && task.name == "release") {
