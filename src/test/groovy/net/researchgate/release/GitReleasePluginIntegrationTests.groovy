@@ -25,8 +25,14 @@ class GitReleasePluginIntegrationTests extends GitSpecification {
         gitAddAndCommit(localGit, "gradle.properties") { it << "version=$project.version" }
         localGit.push().setForce(true).call()
         when: 'calling release task indirectly'
-        project.release.tasks.each {
-            project.tasks[it].execute()
+        project.release.tasks.each { task ->
+            if (task == "runBuildTasks") {
+                project.tasks[task].tasks.each { buildTask ->
+                    project.tasks[buildTask].execute()
+                }
+            } else {
+                project.tasks[task].execute()
+            }
         }
         def st = localGit.status().call()
         gitHardReset(remoteGit)
