@@ -6,10 +6,13 @@
 ### New Features
 
 * COMMON: New flexible configuration ```tagTemplate``` to specify the name of the tag. (#96)
+* COMMON: Refactored the build process during release to run in separate process.
+* COMMON: Added **beforeReleaseBuild** and **afterReleaseBuild** hook, which both run in the same process as the build itself.
 
 ### Deprecated Features
 
 * COMMON: The configuration options ```includeProjectNameInTag``` and ```tagPrefix``` are deprecated and will be remove with 3.0. Please migrate to tagTemplate. (#96)
+* COMMON: Depending on any internal release task like **createReleaseTag** is highly discouraged. Use the **beforeReleaseBuild or **afterReleaseBuild** tasks.
 
 ## 2.0.2
 ##### Released: 17. Feb 2015
