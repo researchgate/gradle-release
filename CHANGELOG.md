@@ -12,7 +12,7 @@
 ### Deprecated Features
 
 * COMMON: The configuration options ```includeProjectNameInTag``` and ```tagPrefix``` are deprecated and will be remove with 3.0. Please migrate to tagTemplate. (#96)
-* COMMON: Depending on any internal release task like **createReleaseTag** is highly discouraged. Use the **beforeReleaseBuild or **afterReleaseBuild** tasks.
+* COMMON: Depending on any internal release task like **createReleaseTag** is highly discouraged. Use the **beforeReleaseBuild** or **afterReleaseBuild** tasks.
 
 ## 2.0.2
 ##### Released: 17. Feb 2015
