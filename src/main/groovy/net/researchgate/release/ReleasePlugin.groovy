@@ -287,17 +287,21 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 	 * @param directory the directory to start from
 	 */
 	protected Class findScmType(File directory) {
-
-		Class c = (Class) directory.list().with {
-			delegate.grep('.svn') ? SvnReleasePlugin :
-				delegate.grep('.bzr') ? BzrReleasePlugin :
-					delegate.grep('.git') ? GitReleasePlugin :
+		Class c
+		if (releaseConvention().customScmPlugin) {
+			c = releaseConvention().customScmPlugin
+		} else {
+			c = (Class) directory.list().with {
+				delegate.grep('.git') ? GitReleasePlugin :
+					delegate.grep('.svn') ? SvnReleasePlugin :
 						delegate.grep('.hg') ? HgReleasePlugin :
-							null
-		}
+							delegate.grep('.bzr') ? BzrReleasePlugin :
+								null
+			}
 
-		if (!c && directory.parentFile) {
-			c = findScmType(directory.parentFile)
+			if (!c && directory.parentFile) {
+				c = findScmType(directory.parentFile)
+			}
 		}
 
 		c

@@ -53,6 +53,8 @@ class ReleasePluginConvention {
     String versionPropertyFile = 'gradle.properties'
     def versionProperties = []
 
+	Class<BaseScmPlugin> customScmPlugin = null
+
 	void release(Closure closure) {
 		closure.delegate = this
 		closure.call()
