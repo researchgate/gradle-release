@@ -25,6 +25,7 @@ class GitReleasePluginTests extends Specification {
         project = ProjectBuilder.builder().withName("GitReleasePluginTest").withProjectDir(localRepo).build()
         project.version = "1.1"
         project.apply plugin: ReleasePlugin
+        project.findScmPlugin.execute()
 
         project.file("test.txt").withWriter {it << "test"}
         exec(true, [:], localRepo, 'git', 'add', 'test.txt')

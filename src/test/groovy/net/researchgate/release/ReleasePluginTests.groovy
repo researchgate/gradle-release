@@ -8,8 +8,6 @@ class ReleasePluginTests extends Specification {
 
     def testDir = new File("build/tmp/test/${getClass().simpleName}")
 
-
-
     def setup() {
         project = ProjectBuilder.builder().withName('ReleasePluginTest').withProjectDir(testDir).build()
         def testVersionPropertyFile = project.file('version.properties')
@@ -17,6 +15,7 @@ class ReleasePluginTests extends Specification {
             w.writeLine 'version=1.2'
         }
         project.apply plugin: TestReleasePlugin
+        project.findScmPlugin.execute()
     }
 
     def 'when a custom properties file is used to specify the version'() {

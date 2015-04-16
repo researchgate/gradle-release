@@ -9,6 +9,7 @@ class GitReleasePluginCommitNewVersionTests extends GitSpecification {
         project = ProjectBuilder.builder().withName("GitReleasePluginTest").withProjectDir(localGit.repository.workTree).build()
         project.version = "1.1"
         project.apply plugin: ReleasePlugin
+        project.findScmPlugin.execute()
     }
 
     def cleanup() {

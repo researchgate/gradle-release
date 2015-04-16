@@ -32,7 +32,6 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 		if (preCommitText) {
 			releaseConvention().preCommitText = preCommitText
 		}
-		this.scmPlugin = applyScmPlugin()
 
 		project.task('release', description: 'Verify project, release, and update version to next.', group: RELEASE_GROUP, type: GradleBuild) {
 			startParameter = project.getGradle().startParameter.newInstance()
@@ -65,8 +64,10 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 			]
 		}
 
+		project.task('findScmPlugin', group: RELEASE_GROUP,
+				description: 'Finds the correct SCM plugin') << this.&findScmPlugin
 		project.task('initScmPlugin', group: RELEASE_GROUP,
-				description: 'Initializes the SCM plugin (based on hidden directories in your project\'s directory)') << this.&initScmPlugin
+				description: 'Initializes the SCM plugin') << this.&initScmPlugin
 		project.task('checkSnapshotDependencies', group: RELEASE_GROUP,
 				description: 'Checks to see if your project has any SNAPSHOT dependencies.') << this.&checkSnapshotDependencies
 		project.task('unSnapshotVersion', group: RELEASE_GROUP,
@@ -104,6 +105,10 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 				}
 			}
 		}
+	}
+
+	void findScmPlugin() {
+		this.scmPlugin = applyScmPlugin()
 	}
 
 	void initScmPlugin() {
