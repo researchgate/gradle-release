@@ -1,3 +1,7 @@
+sudo: false
+cache:
+  directories:
+  - $HOME/.gradle/caches/
 language: groovy
 jdk:
   - oraclejdk8
