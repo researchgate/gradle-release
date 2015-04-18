@@ -98,11 +98,11 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
             exec('git', 'remote').eachLine { line ->
                 Matcher matcher = line =~ ~/^\s*(.*)\s*$/
                 if (matcher.matches() && matcher.group(1) == convention().pushToRemote) {
-                    shouldPush = true;
+                    shouldPush = true
                 }
             }
             if (!shouldPush && convention().pushToRemote != 'origin') {
-                throw new GradleException("Could not push to remote ${convention().pushToRemote} as repository has no such remote");
+                throw new GradleException("Could not push to remote ${convention().pushToRemote} as repository has no such remote")
             }
         }
 

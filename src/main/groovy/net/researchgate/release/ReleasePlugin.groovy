@@ -148,18 +148,18 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 	}
 
 	void confirmReleaseVersion() {
-		def version = getReleaseVersion();
+		def version = getReleaseVersion()
 		updateVersionProperty(version)
 	}
 
     String getReleaseVersion(String candidateVersion = "${project.version}") {
-        String releaseVersion = project.properties['releaseVersion'];
+        String releaseVersion = project.properties['releaseVersion']
 
         if (useAutomaticVersion()) {
-            return releaseVersion ?: candidateVersion;
+            return releaseVersion ?: candidateVersion
         }
 
-        return readLine("This release version:", releaseVersion ?: candidateVersion);
+        return readLine("This release version:", releaseVersion ?: candidateVersion)
     }
 
 	void unSnapshotVersion() {
@@ -205,7 +205,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 					nextVersion += '-SNAPSHOT'
 				}
 
-				nextVersion = getNextVersion(nextVersion);
+				nextVersion = getNextVersion(nextVersion)
 
 				project.ext.set("release.oldVersion", project.version)
 				project.ext.set("release.newVersion", nextVersion)
@@ -218,13 +218,13 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 	}
 
     String getNextVersion(String candidateVersion) {
-        String nextVersion = project.properties['newVersion'];
+        String nextVersion = project.properties['newVersion']
 
         if (useAutomaticVersion()) {
-            return nextVersion ?: candidateVersion;
+            return nextVersion ?: candidateVersion
         }
 
-        return readLine("Enter the next version (current one released as [${project.version}]):", nextVersion ?: candidateVersion);
+        return readLine("Enter the next version (current one released as [${project.version}]):", nextVersion ?: candidateVersion)
     }
 
 	def commitNewVersion() {

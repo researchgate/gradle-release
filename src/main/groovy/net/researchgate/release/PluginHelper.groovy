@@ -84,16 +84,10 @@ class PluginHelper {
 		def err = new StringBuffer()
 		def logMessage = "Running \"${commands.join(' ')}\"${ directory ? ' in [' + directory.canonicalPath + ']' : '' }"
 
-        directory = directory ? directory : project.rootDir
+        directory = directory ?: project.rootDir
+		List processEnv = env ? (env << System.getenv()).collect { "$it.key=$it.value" } : null
 
-        def process
-        if (env || directory) {
-            def processEnv = env << System.getenv();
-            process = (commands as List).execute(processEnv.collect { "$it.key=$it.value" } as String[], directory)
-        } else {
-            //noinspection GroovyAssignabilityCheck
-            process = (commands as List).execute(null, project.rootDir);
-        }
+        def process = (commands as List).execute(processEnv, directory)
 
 		log.info(logMessage)
 
