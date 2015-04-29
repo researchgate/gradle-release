@@ -9,6 +9,10 @@
 * COMMON: Refactored the build process during release to run in separate process.
 * COMMON: Added **beforeReleaseBuild** and **afterReleaseBuild** hook, which both run in the same process as the build itself.
 
+### Changes
+
+* COMMON: The SCM plugin is now lazy loaded and does not require an scm to be present during plugin initialization. New task `findScmPlugin` added at the beginning of release.
+
 ### Deprecated Features
 
 * COMMON: The configuration options ```includeProjectNameInTag``` and ```tagPrefix``` are deprecated and will be remove with 3.0. Please migrate to tagTemplate. (#96)
