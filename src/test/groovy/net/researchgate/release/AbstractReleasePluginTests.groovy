@@ -1,3 +1,13 @@
+/*
+ * This file is part of the gradle-release plugin.
+ *
+ * (c) Eric Berry
+ * (c) ResearchGate GmbH
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 package net.researchgate.release
 
 import org.gradle.api.Plugin
@@ -6,11 +16,6 @@ import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Ignore
 import spock.lang.Specification
 
-/**
- * User: elberry
- * User: evgenyg
- * Date: 9/21/11
- */
 @SuppressWarnings( 'JUnitPublicNonTestMethod' )
 abstract class AbstractReleasePluginTests extends Specification {
 

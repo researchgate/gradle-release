@@ -1,9 +1,15 @@
+/*
+ * This file is part of the gradle-release plugin.
+ *
+ * (c) Eric Berry
+ * (c) ResearchGate GmbH
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 package net.researchgate.release
 
-/**
- * @author elberry
- * Created: Tue Aug 09 23:25:18 PDT 2011
- */
 class SvnReleasePluginConvention {
     String tags = 'tags'
 }

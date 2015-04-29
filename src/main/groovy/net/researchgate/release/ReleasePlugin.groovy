@@ -1,3 +1,13 @@
+/*
+ * This file is part of the gradle-release plugin.
+ *
+ * (c) Eric Berry
+ * (c) ResearchGate GmbH
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 package net.researchgate.release
 
 import org.apache.tools.ant.BuildException
@@ -12,11 +22,6 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.tasks.GradleBuild
 import org.gradle.api.tasks.TaskState
 
-/**
- * @author elberry
- * @author evgenyg
- * Created: Tue Aug 09 15:32:00 PDT 2011
- */
 class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 	static final String RELEASE_GROUP = "Release"
 
