@@ -28,6 +28,12 @@ class ReleasePluginTests extends Specification {
         project.findScmPlugin.execute()
     }
 
+    def 'plugin is successfully applied'() {
+        expect:
+        assert project.tasks.release
+
+    }
+
     def 'when a custom properties file is used to specify the version'() {
         given:
         project.release {
@@ -38,5 +44,4 @@ class ReleasePluginTests extends Specification {
         project.version == '1.2'
 
     }
-
 }

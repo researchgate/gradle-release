@@ -82,6 +82,10 @@ class PluginHelper {
 		convention('release', ReleasePluginConvention)
 	}
 
+    boolean useAutomaticVersion() {
+        project.hasProperty('gradle.release.useAutomaticVersion') && project.getProperty('gradle.release.useAutomaticVersion') == "true"
+    }
+
 	/**
 	 * Executes command specified and retrieves its "stdout" output.
 	 *
@@ -89,70 +93,37 @@ class PluginHelper {
 	 * @param commands commands to execute
 	 * @return command "stdout" output
 	 */
-	String exec(boolean failOnStderr = true, Map env = [:], File directory = null, String... commands) {
-		def out = new StringBuffer()
-		def err = new StringBuffer()
-		def logMessage = "Running \"${commands.join(' ')}\"${ directory ? ' in [' + directory.canonicalPath + ']' : '' }"
+	String exec(
+        Map options = [:],
+        List<String> commands
+    ) {
+        StringBuffer out = new StringBuffer()
+        StringBuffer err = new StringBuffer()
 
-        directory = directory ?: project.rootDir
-		List processEnv = env ? (env << System.getenv()).collect { "$it.key=$it.value" } : null
+        File directory = options['directory'] ? options['directory'] as File : project.rootDir
+        List processEnv = options['env'] ? ((options['env'] as Map) << System.getenv()).collect { "$it.key=$it.value" } : null
 
-        def process = (commands as List).execute(processEnv, directory)
+        log.info("Running $commands in [$directory]")
+        Process process = commands.execute(processEnv, directory)
+        log.info("Running $commands produced output: [${out.toString().trim()}]")
 
-		log.info(logMessage)
+        process.waitForProcessOutput(out, err)
 
-		process.waitForProcessOutput(out, err)
+        if (err.toString()) {
+            def message = "Running $commands produced an error: [${err.toString().trim()}]"
 
-		log.info("$logMessage: [$out][$err]")
+            if (options['failOnStderr'] as boolean) {
+                throw new GradleException(message)
+            } else {
+                log.warn(message)
+            }
+        }
 
-		if (err.toString()) {
-			def message = "$logMessage produced an error: [${err.toString().trim()}]"
+        if (options['errorPatterns'] && [out, err]*.toString().any { String s -> (options['errorPatterns'] as List<String>).any { s.contains(it) } }) {
+            throw new GradleException("${ options['errorMessage'] ? options['errorMessage'] as String : 'Failed to run [' + commands.join(' ') + ']' } - [$out][$err]")
+        }
 
-			if (failOnStderr) {
-				throw new GradleException(message)
-			} else {
-				log.warn(message)
-			}
-		}
-
-		out.toString()
-	}
-
-	boolean useAutomaticVersion() {
-		project.hasProperty('gradle.release.useAutomaticVersion') && project.getProperty('gradle.release.useAutomaticVersion') == "true"
-	}
-
-	/**
-	 * Executes command specified and verifies neither "stdout" or "stderr" contain an error pattern specified.
-	 *
-	 * @param commands commands to execute
-	 * @param errorMessage error message to throw, optional
-	 * @param errorPattern error patterns to look for, optional
-	 */
-	String exec(List<String> commands, String errorMessage, Map env = [:], String... errorPattern) {
-		def out = new StringBuffer()
-		def err = new StringBuffer()
-
-		log.info(" >>> Running $commands")
-
-		def process
-		if (env) {
-			def processEnv = env << System.getenv()
-			process = commands.execute(processEnv.collect { "$it.key=$it.value" } as String[], project.rootDir)
-		} else {
-            //noinspection GroovyAssignabilityCheck
-			process = commands.execute(null, project.rootDir)
-		}
-
-		process.waitForProcessOutput(out, err)
-
-		log.info(" >>> Running $commands: [$out][$err]")
-
-		if ([out, err]*.toString().any { String s -> errorPattern.any { s.contains(it) } }) {
-			throw new GradleException("${ errorMessage ?: 'Failed to run [' + commands.join(' ') + ']' } - [$out][$err]")
-		}
-
-		out.toString()
+        out.toString()
 	}
 
 	/**

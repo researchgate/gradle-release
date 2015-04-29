@@ -19,18 +19,20 @@ class GitReleasePluginTests extends Specification {
 
     def testDir = new File("build/tmp/test/release")
 
-    def localRepo = new File(testDir, "GitReleasePluginTestLocal")
-    def remoteRepo = new File(testDir, "GitReleasePluginTestRemote")
+    File localRepo = new File(testDir, 'GitReleasePluginTestLocal')
+    File remoteRepo = new File(testDir, 'GitReleasePluginTestRemote')
 
     def setup() {
         testDir.mkdirs()
 
-        exec(true, [:], testDir, 'git', 'init', "GitReleasePluginTestRemote")//create remote repo
-        exec(true, [:], remoteRepo, 'git', 'config', '--add', 'receive.denyCurrentBranch', 'ignore')//suppress errors when pushing
+        // create remote repository
+        exec(['git', 'init', 'GitReleasePluginTestRemote'], failOnStderr: true, directory: testDir, env: [:])
+        // suppress errors while pushing
+        exec(['git', 'config', '--add', 'receive.denyCurrentBranch', 'ignore'], failOnStderr: true, directory: remoteRepo, env: [:])
 
-        exec(false, [:], testDir, 'git', 'clone', remoteRepo.canonicalPath, 'GitReleasePluginTestLocal')
-        exec(true, [:], localRepo, 'git', 'config', '--add', 'user.name', 'Unit Test')
-        exec(true, [:], localRepo, 'git', 'config', '--add', 'user.email', 'unit@test')
+        exec(['git', 'clone', remoteRepo.canonicalPath, 'GitReleasePluginTestLocal'], failOnStderr: false, directory: testDir, env: [:])
+        exec(['git', 'config', '--add', 'user.name', 'Unit Test'], failOnStderr: true, directory: localRepo, env: [:])
+        exec(['git', 'config', '--add', 'user.email', 'unit@test'], failOnStderr: true, directory: localRepo, env: [:])
 
         project = ProjectBuilder.builder().withName("GitReleasePluginTest").withProjectDir(localRepo).build()
         project.version = "1.1"
@@ -38,12 +40,13 @@ class GitReleasePluginTests extends Specification {
         project.findScmPlugin.execute()
 
         project.file("test.txt").withWriter {it << "test"}
-        exec(true, [:], localRepo, 'git', 'add', 'test.txt')
-        exec(true, [:], localRepo, 'git', 'commit', "-m", "test", 'test.txt')
+        exec(['git', 'add', 'test.txt'], failOnStderr: true, directory: localRepo, env: [:])
+        exec(['git', 'commit', "-m", "test", 'test.txt'], failOnStderr: true, directory: localRepo, env: [:])
 
         def props = project.file("gradle.properties")
         props.withWriter { it << "version=${project.version}" }
-        exec(true, [:], localRepo, 'git', 'add', 'gradle.properties')
+        exec(['git', 'add', 'gradle.properties'], failOnStderr: true, directory: localRepo, env: [:])
+
     }
 
     def cleanup() {
@@ -71,7 +74,7 @@ class GitReleasePluginTests extends Specification {
     def 'should push new version to remote tracking branch by default'() {
         when:
         project.commitNewVersion.execute()
-        exec(true, [:], remoteRepo, 'git', 'reset', '--hard', 'HEAD')
+        exec(['git', 'reset', '--hard', 'HEAD'], failOnStderr: true, directory: remoteRepo, env: [:])
         then:
         remoteRepo.list().any { it == 'gradle.properties' }
     }
@@ -79,13 +82,12 @@ class GitReleasePluginTests extends Specification {
     def 'when pushToCurrentBranch then push new version to remote branch with same name as working'() {
         given:
         project.git.pushToCurrentBranch = true
-        exec(false, [:], localRepo, 'git', 'checkout', '-B', 'myBranch')
+        exec(['git', 'checkout', '-B', 'myBranch'], failOnStderr: false, directory: localRepo, env: [:])
         when:
         project.commitNewVersion.execute()
-        exec(false, [:], remoteRepo, 'git', 'checkout', 'myBranch')
-        exec(false, [:], remoteRepo, 'git', 'reset', '--hard', 'HEAD')
+        exec(['git', 'checkout', 'myBranch'], failOnStderr: false, directory: remoteRepo, env: [:])
+        exec(['git', 'reset', '--hard', 'HEAD'], failOnStderr: false, directory: remoteRepo, env: [:])
         then:
         remoteRepo.list().any { it == 'gradle.properties' }
     }
-
 }

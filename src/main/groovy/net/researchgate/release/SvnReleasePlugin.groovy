@@ -20,7 +20,7 @@ class SvnReleasePlugin extends BaseScmPlugin<SvnReleasePluginConvention> {
 	private static final def revPattern = ~/Revision:\s(.*?)$/
 	private static final def commitPattern = ~/Committed revision\s(.*?)\.$/
 
-	private static final def environment = [LANG: "C", LC_MESSAGES: "C", LC_ALL: ""];
+	private static final def environment = [LANG: 'C', LC_MESSAGES: 'C', LC_ALL: ''];
 
 	void init() {
 		findSvnUrl()
@@ -28,11 +28,13 @@ class SvnReleasePlugin extends BaseScmPlugin<SvnReleasePluginConvention> {
 	}
 
 	@Override
-	SvnReleasePluginConvention buildConventionInstance() { new SvnReleasePluginConvention() }
+	SvnReleasePluginConvention buildConventionInstance() {
+		new SvnReleasePluginConvention()
+	}
 
 	@Override
 	void checkCommitNeeded() {
-		String out = exec('svn', 'status')
+		String out = svnExec(['status'])
 		def changes = []
 		def unknown = []
 		out.eachLine { line ->
@@ -58,9 +60,9 @@ class SvnReleasePlugin extends BaseScmPlugin<SvnReleasePluginConvention> {
 		def props = project.properties
 		String svnUrl = props.releaseSvnUrl
 		String svnRev = props.initialSvnRev
-		String svnRemoteRev = ""
-		// svn status -q -u
-		String out = exec('svn', 'status', '-q', '-u')
+		String svnRemoteRev = ''
+
+		String out = svnExec(['status', '-q', '-u'])
 		def missing = []
 		out.eachLine { line ->
 			switch (line?.trim()?.charAt(0)) {
@@ -73,7 +75,7 @@ class SvnReleasePlugin extends BaseScmPlugin<SvnReleasePluginConvention> {
 			warnOrThrow(releaseConvention().failOnUpdateNeeded, "You are missing ${missing.size()} changes.")
 		}
 
-		out = exec(true, environment, 'svn', 'info', svnUrl)
+		out = svnExec(['info', svnUrl])
 		out.eachLine { line ->
 			Matcher matcher = line =~ revPattern
 			if (matcher.matches()) {
@@ -95,14 +97,14 @@ class SvnReleasePlugin extends BaseScmPlugin<SvnReleasePluginConvention> {
 		String svnRoot = props.releaseSvnRoot
 		String svnTag = tagName()
 
-		exec('svn', 'cp', "${svnUrl}@${svnRev}", "${svnRoot}/tags/${svnTag}", '-m', message)
+		svnExec(['cp', "${svnUrl}@${svnRev}", "${svnRoot}/tags/${svnTag}", '-m', message])
 	}
 
 	@Override
 	void commit(String message) {
-		String out = exec(['svn', 'ci', '-m', message], 'Error committing new version', environment, ERROR)
+		String out = svnExec(['ci', '-m', message], errorMessage: 'Error committing new version', errorPatterns: [ERROR])
 
-		// After the firstcommit we need to find the new revision so the tag is made from the correct revision
+		// After the first commit we need to find the new revision so the tag is made from the correct revision
 		if (project.properties.releaseSvnRev == null) {
 			out.eachLine { line ->
 				Matcher matcher = line =~ commitPattern
@@ -116,11 +118,35 @@ class SvnReleasePlugin extends BaseScmPlugin<SvnReleasePluginConvention> {
 
 	@Override
 	void revert() {
-		exec(['svn', 'revert', findPropertiesFile().name], 'Error reverting changes made by the release plugin.', ERROR)
+		svnExec(['revert', findPropertiesFile().name], errorMessage: 'Error reverting changes made by the release plugin.', errorPatterns: [ERROR])
+	}
+
+    /**
+     * Adds the executable and optional also username/password
+     *
+     * @param options
+     * @param commands
+     * @return
+     */
+	private String svnExec(
+        Map options = [:],
+		List<String> commands
+	) {
+		if (convention().username) {
+			if (convention().password) {
+                commands.addAll(0, ['--password', convention().password]);
+			}
+            commands.addAll(0, ['--username', convention().username]);
+		}
+        commands.add(0, 'svn');
+
+        options['env'] = environment;
+
+		exec(options, commands)
 	}
 
 	private void findSvnUrl() {
-		String out = exec(true, environment, 'svn', 'info')
+		String out = svnExec(['info'])
 
 		out.eachLine { line ->
 			Matcher matcher = line =~ urlPattern
@@ -136,8 +162,8 @@ class SvnReleasePlugin extends BaseScmPlugin<SvnReleasePluginConvention> {
 				project.ext.set('initialSvnRev', revision)
 			}
 		}
-		if (!project.hasProperty('releaseSvnUrl')) {
-			throw new GradleException('Could not determine root SVN url.')
+		if (!project.hasProperty('releaseSvnUrl') || !project.hasProperty('initialSvnRev')) {
+			throw new GradleException('Could not determine root SVN url or revision.')
 		}
 	}
 }

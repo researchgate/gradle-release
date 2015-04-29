@@ -11,5 +11,6 @@
 package net.researchgate.release
 
 class SvnReleasePluginConvention {
-    String tags = 'tags'
+    String username = null
+    String password = null
 }

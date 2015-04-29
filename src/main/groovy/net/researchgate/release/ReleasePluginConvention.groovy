@@ -15,22 +15,22 @@ import org.gradle.api.Project
 
 class ReleasePluginConvention {
 
-	boolean failOnCommitNeeded = true
-	boolean failOnPublishNeeded = true
-	boolean failOnSnapshotDependencies = true
-	boolean failOnUnversionedFiles = true
-	boolean failOnUpdateNeeded = true
-	boolean revertOnFail = true // will use the SCM plugin to revert any uncommitted changes in the project.
-	String preCommitText = "" // good place for code review overrides and ticket numbers
-	String preTagCommitMessage = "[Gradle Release Plugin] - pre tag commit: "
-	String tagCommitMessage = "[Gradle Release Plugin] - creating tag: "
-	String newVersionCommitMessage = "[Gradle Release Plugin] - new version commit: "
+    boolean failOnCommitNeeded = true
+    boolean failOnPublishNeeded = true
+    boolean failOnSnapshotDependencies = true
+    boolean failOnUnversionedFiles = true
+    boolean failOnUpdateNeeded = true
+    boolean revertOnFail = true // will use the SCM plugin to revert any uncommitted changes in the project.
+    String preCommitText = "" // good place for code review overrides and ticket numbers
+    String preTagCommitMessage = "[Gradle Release Plugin] - pre tag commit: "
+    String tagCommitMessage = "[Gradle Release Plugin] - creating tag: "
+    String newVersionCommitMessage = "[Gradle Release Plugin] - new version commit: "
 
-	/**
-	 * @deprecated to be removed in 3.0 see tagTemplate
-	 */
+    /**
+     * @deprecated to be removed in 3.0 see tagTemplate
+     */
     @Deprecated
-	boolean includeProjectNameInTag = false
+    boolean includeProjectNameInTag = false
 
     /**
      * @deprecated to be removed in 3.0 see tagTemplate
@@ -47,19 +47,19 @@ class ReleasePluginConvention {
      */
     String tagTemplate = null
 
-	def requiredTasks = []
-	def versionPatterns = [
-			// Increments last number: "2.5-SNAPSHOT" => "2.6-SNAPSHOT"
-			/(\d+)([^\d]*$)/: { Matcher m, Project p -> m.replaceAll("${ (m[0][1] as int) + 1 }${ m[0][2] }") }
-	]
+    def requiredTasks = []
+    def versionPatterns = [
+            // Increments last number: "2.5-SNAPSHOT" => "2.6-SNAPSHOT"
+            /(\d+)([^\d]*$)/: { Matcher m, Project p -> m.replaceAll("${ (m[0][1] as int) + 1 }${ m[0][2] }") }
+    ]
 
-	def git = new GitReleasePluginConvention()
+    def git = new GitReleasePluginConvention()
 
     String versionPropertyFile = 'gradle.properties'
     def versionProperties = []
 
-	void release(Closure closure) {
-		closure.delegate = this
-		closure.call()
-	}
+    void release(Closure closure) {
+        closure.delegate = this
+        closure.call()
+    }
 }

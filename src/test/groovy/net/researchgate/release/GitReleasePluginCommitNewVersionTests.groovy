@@ -37,7 +37,7 @@ class GitReleasePluginCommitNewVersionTests extends GitSpecification {
         remoteGit.repository.workTree.listFiles().any { it.name == 'gradle.properties' && it.text.contains("version=$project.version") }
     }
 
-	/*
+    /*
     def 'when tracking branch missing then push new version to remote branch with same name as local'() {
         given:
         gitCheckoutBranch(localGit, 'myBranch', true)

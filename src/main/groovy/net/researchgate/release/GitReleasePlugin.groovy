@@ -55,7 +55,7 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 
 	@Override
 	void checkUpdateNeeded() {
-		exec(['git', 'remote', 'update'], '', 'error: ', 'fatal: ')
+		exec(['git', 'remote', 'update'], errorPatterns: ['error: ', 'fatal: '])
 
 		def status = gitRemoteStatus()
 
@@ -71,15 +71,15 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 	@Override
 	void createReleaseTag(String message) {
 		def tagName = tagName()
-		exec(['git', 'tag', '-a', tagName, '-m', message], "Duplicate tag [$tagName]", 'already exists')
+		exec(['git', 'tag', '-a', tagName, '-m', message], errorMessage: "Duplicate tag [$tagName]", errorPatterns: ['already exists'])
         if (shouldPush()) {
-            exec(['git', 'push', 'origin', tagName], '', '! [rejected]', 'error: ', 'fatal: ')
+            exec(['git', 'push', 'origin', tagName], errorMessage: "Failed to push tag [$tagName] to remote", errorPatterns: ['! [rejected]', 'error: ', 'fatal: '])
         }
 	}
 
 	@Override
 	void commit(String message) {
-		exec(['git', 'commit', '-a', '-m', message], '')
+		exec(['git', 'commit', '-a', '-m', message])
         if (shouldPush()) {
             def branch
             if (convention().pushToCurrentBranch) {
@@ -93,19 +93,19 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
                     branch = 'master'
                 }
             }
-            exec(['git', 'push', convention().pushToRemote, branch], 'Failed to push to remote', '! [rejected]', 'error: ', 'fatal: ')
+            exec(['git', 'push', convention().pushToRemote, branch], errorMessage: 'Failed to push to remote', errorPatterns: ['! [rejected]', 'error: ', 'fatal: '])
         }
 	}
 
 	@Override
 	void revert() {
-		exec(['git', 'checkout', findPropertiesFile().name], "Error reverting changes made by the release plugin.")
+		exec(['git', 'checkout', findPropertiesFile().name], errorMessage: 'Error reverting changes made by the release plugin.')
 	}
 
     private boolean shouldPush() {
         def shouldPush = false
         if (convention().pushToRemote) {
-            exec('git', 'remote').eachLine { line ->
+            exec(['git', 'remote']).eachLine { line ->
                 Matcher matcher = line =~ ~/^\s*(.*)\s*$/
                 if (matcher.matches() && matcher.group(1) == convention().pushToRemote) {
                     shouldPush = true
@@ -120,12 +120,12 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
     }
 
 	private String gitCurrentBranch() {
-		def matches = exec('git', 'branch').readLines().grep(~/\s*\*.*/)
+		def matches = exec(['git', 'branch']).readLines().grep(~/\s*\*.*/)
 		matches[0].trim() - (~/^\*\s+/)
 	}
 
 	private Map<String, List<String>> gitStatus() {
-		exec('git', 'status', '--porcelain').readLines().groupBy {
+		exec(['git', 'status', '--porcelain']).readLines().groupBy {
 			if (it ==~ /^\s*\?{2}.*/) {
 				UNVERSIONED
 			} else {
@@ -135,7 +135,7 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 	}
 
 	private Map<String, Integer> gitRemoteStatus() {
-		def branchStatus = exec('git', 'status', '-sb').readLines()[0]
+		def branchStatus = exec(['git', 'status', '-sb']).readLines()[0]
 		def aheadMatcher = branchStatus =~ /.*ahead (\d+).*/
 		def behindMatcher = branchStatus =~ /.*behind (\d+).*/
 

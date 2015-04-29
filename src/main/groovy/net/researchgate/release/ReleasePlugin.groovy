@@ -34,9 +34,9 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 		setConvention('release', new ReleasePluginConvention())
 
 		def preCommitText = findProperty("release.preCommitText") ?: findProperty("preCommitText")
-		if (preCommitText) {
-			releaseConvention().preCommitText = preCommitText
-		}
+        if (preCommitText) {
+            releaseConvention().preCommitText = preCommitText
+        }
 
 		project.task('release', description: 'Verify project, release, and update version to next.', group: RELEASE_GROUP, type: GradleBuild) {
 			startParameter = project.getGradle().startParameter.newInstance()
