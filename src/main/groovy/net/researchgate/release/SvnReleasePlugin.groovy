@@ -88,14 +88,14 @@ class SvnReleasePlugin extends BaseScmPlugin<SvnReleasePluginConvention> {
 	}
 
 	@Override
-	void createReleaseTag(String message = "") {
+	void createReleaseTag(String message) {
 		def props = project.properties
 		String svnUrl = props.releaseSvnUrl
 		String svnRev = props.releaseSvnRev ?: props.initialSvnRev //release set by commit below when needed, no commit => initial
 		String svnRoot = props.releaseSvnRoot
 		String svnTag = tagName()
 
-		exec('svn', 'cp', "${svnUrl}@${svnRev}", "${svnRoot}/tags/${svnTag}", '-m', message ?: "Created by Release Plugin: ${svnTag}")
+		exec('svn', 'cp', "${svnUrl}@${svnRev}", "${svnRoot}/tags/${svnTag}", '-m', message)
 	}
 
 	@Override

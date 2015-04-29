@@ -55,7 +55,7 @@ abstract class BaseScmPlugin<T> extends PluginHelper implements Plugin<Project> 
 
 	abstract void checkUpdateNeeded()
 
-	abstract void createReleaseTag(String message = "")
+	abstract void createReleaseTag(String message)
 
 	abstract void commit(String message)
 

@@ -69,9 +69,9 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 	}
 
 	@Override
-	void createReleaseTag(String message = "") {
+	void createReleaseTag(String message) {
 		def tagName = tagName()
-		exec(['git', 'tag', '-a', tagName, '-m', message ?: "Created by Release Plugin: ${tagName}"], "Duplicate tag [$tagName]", 'already exists')
+		exec(['git', 'tag', '-a', tagName, '-m', message], "Duplicate tag [$tagName]", 'already exists')
         if (shouldPush()) {
             exec(['git', 'push', 'origin', tagName], '', '! [rejected]', 'error: ', 'fatal: ')
         }

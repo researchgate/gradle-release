@@ -98,7 +98,7 @@ class BzrReleasePlugin extends BaseScmPlugin<BzrReleasePluginConvention> {
 	 * @param message ignored.
 	 */
 	@Override
-	void createReleaseTag(String message = "") {
+	void createReleaseTag(String message) {
 		// message is ignored
 		exec(['bzr', 'tag', tagName()], 'Error creating tag', ERROR)
 	}

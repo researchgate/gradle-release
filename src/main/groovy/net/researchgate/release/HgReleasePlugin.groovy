@@ -59,9 +59,9 @@ class HgReleasePlugin extends BaseScmPlugin<HgReleasePluginConvention> {
 	}
 
 	@Override
-	void createReleaseTag(String message = "") {
+	void createReleaseTag(String message) {
 		def tagName = tagName()
-		exec(['hg', 'tag', "-m", message ?: "Created by Release Plugin: ${tagName}", tagName], 'Error creating tag', ERROR)
+		exec(['hg', 'tag', "-m", message, tagName], 'Error creating tag', ERROR)
 	}
 
 	@Override
@@ -74,7 +74,7 @@ class HgReleasePlugin extends BaseScmPlugin<HgReleasePluginConvention> {
 		exec(['hg', 'revert', findPropertiesFile().name], 'Error reverting changes made by the release plugin.', ERROR)
 	}
 
-  private String hgCurrentBranch() {
-    exec('hg', 'branch').readLines()[0]
-  }
+    private String hgCurrentBranch() {
+        exec('hg', 'branch').readLines()[0]
+    }
 }
