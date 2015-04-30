@@ -32,12 +32,12 @@ class SvnReleasePlugin extends BaseScmPlugin {
     }
 
     void init() {
-		String username = findProperty("release.svn.username")
+		String username = findProperty('release.svn.username')
 		if (username) {
             extension.svn.username = username
 		}
 
-		String password = findProperty("release.svn.password")
+		String password = findProperty('release.svn.password')
 		if (password) {
             extension.svn.password = password
 		}
