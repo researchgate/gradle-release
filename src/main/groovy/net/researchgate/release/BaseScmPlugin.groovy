@@ -19,16 +19,8 @@ abstract class BaseScmPlugin<T> extends PluginHelper implements Plugin<Project> 
     private T convention
 
     void apply(Project project) {
-
         this.project = project
-
-        project.task('checkCommitNeeded', group: ReleasePlugin.RELEASE_GROUP,
-                description: 'Checks to see if there are any added, modified, removed, or un-versioned files.') << this.&checkCommitNeeded
-        project.task('checkUpdateNeeded', group: ReleasePlugin.RELEASE_GROUP,
-                description: 'Checks to see if there are any incoming or outgoing changes that haven\'t been applied locally.') << this.&checkUpdateNeeded
-
         setConvention()
-
     }
 
     /**

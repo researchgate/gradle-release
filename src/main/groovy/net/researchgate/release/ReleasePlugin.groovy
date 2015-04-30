@@ -42,6 +42,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 			startParameter = project.getGradle().startParameter.newInstance()
 
 			tasks = [
+					'findScmPlugin',
 					//  0. (This Plugin) Initializes the corresponding SCM plugin (Git/Bazaar/Svn/Mercurial).
 					'initScmPlugin',
 					//  1. (SCM Plugin) Check to see if source needs to be checked in.
@@ -73,6 +74,10 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 				description: 'Finds the correct SCM plugin') << this.&findScmPlugin
 		project.task('initScmPlugin', group: RELEASE_GROUP,
 				description: 'Initializes the SCM plugin') << this.&initScmPlugin
+		project.task('checkCommitNeeded', group: RELEASE_GROUP,
+			description: 'Checks to see if there are any added, modified, removed, or un-versioned files.') << this.&checkCommitNeeded
+		project.task('checkUpdateNeeded', group: RELEASE_GROUP,
+			description: 'Checks to see if there are any incoming or outgoing changes that haven\'t been applied locally.') << this.&checkUpdateNeeded
 		project.task('checkSnapshotDependencies', group: RELEASE_GROUP,
 				description: 'Checks to see if your project has any SNAPSHOT dependencies.') << this.&checkSnapshotDependencies
 		project.task('unSnapshotVersion', group: RELEASE_GROUP,
@@ -113,12 +118,20 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 	}
 
 	void findScmPlugin() {
-		this.scmPlugin = applyScmPlugin()
+		scmPlugin = applyScmPlugin()
 	}
 
 	void initScmPlugin() {
         checkPropertiesFile()
 		scmPlugin.init()
+	}
+
+	void checkCommitNeeded() {
+		scmPlugin.checkCommitNeeded()
+	}
+
+	void checkUpdateNeeded() {
+		scmPlugin.checkUpdateNeeded()
 	}
 
 	void checkSnapshotDependencies() {
