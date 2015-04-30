@@ -23,6 +23,16 @@ class SvnReleasePlugin extends BaseScmPlugin<SvnReleasePluginConvention> {
 	private static final def environment = [LANG: 'C', LC_MESSAGES: 'C', LC_ALL: ''];
 
 	void init() {
+		String username = findProperty("release.svn.username")
+		if (username) {
+			convention().username = username
+		}
+
+		String password = findProperty("release.svn.password")
+		if (password) {
+			convention().password = password
+		}
+
 		findSvnUrl()
 		project.ext.set('releaseSvnRev', null)
 	}
@@ -136,7 +146,7 @@ class SvnReleasePlugin extends BaseScmPlugin<SvnReleasePluginConvention> {
 			if (convention().password) {
                 commands.addAll(0, ['--password', convention().password]);
 			}
-            commands.addAll(0, ['--username', convention().username]);
+            commands.addAll(0, ['--non-interactive', '--no-auth-cache', '--username', convention().username]);
 		}
         commands.add(0, 'svn');
 
