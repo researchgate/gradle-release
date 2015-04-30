@@ -71,27 +71,27 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 		}
 
 		project.task('findScmPlugin', group: RELEASE_GROUP,
-				description: 'Finds the correct SCM plugin') << this.&findScmPlugin
+			description: 'Finds the correct SCM plugin') << this.&findScmPlugin
 		project.task('initScmPlugin', group: RELEASE_GROUP,
-				description: 'Initializes the SCM plugin') << this.&initScmPlugin
+			description: 'Initializes the SCM plugin') << this.&initScmPlugin
 		project.task('checkCommitNeeded', group: RELEASE_GROUP,
 			description: 'Checks to see if there are any added, modified, removed, or un-versioned files.') << this.&checkCommitNeeded
 		project.task('checkUpdateNeeded', group: RELEASE_GROUP,
 			description: 'Checks to see if there are any incoming or outgoing changes that haven\'t been applied locally.') << this.&checkUpdateNeeded
 		project.task('checkSnapshotDependencies', group: RELEASE_GROUP,
-				description: 'Checks to see if your project has any SNAPSHOT dependencies.') << this.&checkSnapshotDependencies
+			description: 'Checks to see if your project has any SNAPSHOT dependencies.') << this.&checkSnapshotDependencies
 		project.task('unSnapshotVersion', group: RELEASE_GROUP,
-				description: 'Removes "-SNAPSHOT" from your project\'s current version.') << this.&unSnapshotVersion
+			description: 'Removes "-SNAPSHOT" from your project\'s current version.') << this.&unSnapshotVersion
 		project.task('confirmReleaseVersion', group: RELEASE_GROUP,
-				description: 'Prompts user for this release version. Allows for alpha or pre releases.') << this.&confirmReleaseVersion
+			description: 'Prompts user for this release version. Allows for alpha or pre releases.') << this.&confirmReleaseVersion
 		project.task('preTagCommit', group: RELEASE_GROUP,
-				description: 'Commits any changes made by the Release plugin - eg. If the unSnapshotVersion tas was executed') << this.&preTagCommit
+			description: 'Commits any changes made by the Release plugin - eg. If the unSnapshotVersion tas was executed') << this.&preTagCommit
 		project.task('updateVersion', group: RELEASE_GROUP,
-				description: 'Prompts user for the next version. Does it\'s best to supply a smart default.') << this.&updateVersion
+			description: 'Prompts user for the next version. Does it\'s best to supply a smart default.') << this.&updateVersion
 		project.task('commitNewVersion', group: RELEASE_GROUP,
-				description: 'Commits the version update to your SCM') << this.&commitNewVersion
+			description: 'Commits the version update to your SCM') << this.&commitNewVersion
 		project.task('createReleaseTag', group: RELEASE_GROUP,
-				description: 'Creates a tag in SCM for the current (un-snapshotted) version.') << this.&commitTag
+			description: 'Creates a tag in SCM for the current (un-snapshotted) version.') << this.&commitTag
 		project.task('runBuildTasks', group: RELEASE_GROUP, description: 'Runs the build process in a separate gradle run.', type: GradleBuild) {
             startParameter = project.getGradle().startParameter.newInstance()
 
@@ -107,9 +107,12 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
 		project.gradle.taskGraph.afterTask { Task task, TaskState state ->
 			if (state.failure && task.name == "release") {
-				if (releaseConvention().revertOnFail && project.file(releaseConvention().versionPropertyFile)?.exists()) {
+                try {
+                    findScmPlugin();
+                } catch (Exception e) {}
+				if (scmPlugin && releaseConvention().revertOnFail && project.file(releaseConvention().versionPropertyFile)?.exists()) {
 					log.error("Release process failed, reverting back any changes made by Release Plugin.")
-					this.scmPlugin.revert()
+					scmPlugin.revert()
 				} else {
 					log.error("Release process failed, please remember to revert any uncommitted changes made by the Release Plugin.")
 				}
@@ -305,7 +308,6 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 	 * @param directory the directory to start from
 	 */
 	protected Class findScmType(File directory) {
-
 		Class c = (Class) directory.list().with {
 			delegate.grep('.svn') ? SvnReleasePlugin :
 				delegate.grep('.bzr') ? BzrReleasePlugin :
@@ -320,5 +322,4 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
 		c
 	}
-
 }
