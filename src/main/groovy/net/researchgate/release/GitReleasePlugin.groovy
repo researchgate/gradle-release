@@ -11,9 +11,11 @@
 package net.researchgate.release
 
 import org.gradle.api.GradleException
+import org.gradle.api.Project
+
 import java.util.regex.Matcher
 
-class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
+class GitReleasePlugin extends BaseScmPlugin {
 
 	private static final String LINE = '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
 
@@ -22,20 +24,19 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 	private static final String AHEAD = 'ahead'
 	private static final String BEHIND = 'behind'
 
-	@Override
-	void init() {
-		if (convention().requireBranch) {
-
-			def branch = gitCurrentBranch()
-
-			if (!(branch == convention().requireBranch)) {
-				throw new GradleException("Current Git branch is \"$branch\" and not \"${ convention().requireBranch }\".")
-			}
-		}
+	GitReleasePlugin(Project project) {
+		super(project)
 	}
 
 	@Override
-	GitReleasePluginConvention buildConventionInstance() { releaseConvention().git }
+	void init() {
+		if (extension.git.requireBranch) {
+			def branch = gitCurrentBranch()
+			if (branch != extension.git.requireBranch) {
+				throw new GradleException("Current Git branch is \"$branch\" and not \"${ extension.git.requireBranch }\".")
+			}
+		}
+	}
 
 	@Override
 	void checkCommitNeeded() {
@@ -43,12 +44,12 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 		def status = gitStatus()
 
 		if (status[UNVERSIONED]) {
-			warnOrThrow(releaseConvention().failOnUnversionedFiles,
+			warnOrThrow(extension.failOnUnversionedFiles,
 					(['You have unversioned files:', LINE, * status[UNVERSIONED], LINE] as String[]).join('\n'))
 		}
 
 		if (status[UNCOMMITTED]) {
-			warnOrThrow(releaseConvention().failOnCommitNeeded,
+			warnOrThrow(extension.failOnCommitNeeded,
 					(['You have uncommitted files:', LINE, * status[UNCOMMITTED], LINE] as String[]).join('\n'))
 		}
 	}
@@ -60,11 +61,11 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 		def status = gitRemoteStatus()
 
 		if (status[AHEAD]) {
-			warnOrThrow(releaseConvention().failOnPublishNeeded, "You have ${status[AHEAD]} local change(s) to push.")
+			warnOrThrow(extension.failOnPublishNeeded, "You have ${status[AHEAD]} local change(s) to push.")
 		}
 
 		if (status[BEHIND]) {
-			warnOrThrow(releaseConvention().failOnUpdateNeeded, "You have ${status[BEHIND]} remote change(s) to pull.")
+			warnOrThrow(extension.failOnUpdateNeeded, "You have ${status[BEHIND]} remote change(s) to pull.")
 		}
 	}
 
@@ -82,10 +83,10 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 		exec(['git', 'commit', '-a', '-m', message])
         if (shouldPush()) {
             def branch
-            if (convention().pushToCurrentBranch) {
+            if (extension.git.pushToCurrentBranch) {
                 branch = gitCurrentBranch()
             } else {
-                def requireBranch = convention().requireBranch
+                def requireBranch = extension.git.requireBranch
                 log.debug("commit - {requireBranch: ${requireBranch}}")
                 if(requireBranch) {
                     branch = requireBranch
@@ -93,7 +94,7 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
                     branch = 'master'
                 }
             }
-            exec(['git', 'push', convention().pushToRemote, branch], errorMessage: 'Failed to push to remote', errorPatterns: ['! [rejected]', 'error: ', 'fatal: '])
+            exec(['git', 'push', extension.git.pushToRemote, branch], errorMessage: 'Failed to push to remote', errorPatterns: ['! [rejected]', 'error: ', 'fatal: '])
         }
 	}
 
@@ -104,15 +105,15 @@ class GitReleasePlugin extends BaseScmPlugin<GitReleasePluginConvention> {
 
     private boolean shouldPush() {
         def shouldPush = false
-        if (convention().pushToRemote) {
+        if (extension.git.pushToRemote) {
             exec(['git', 'remote']).eachLine { line ->
                 Matcher matcher = line =~ ~/^\s*(.*)\s*$/
-                if (matcher.matches() && matcher.group(1) == convention().pushToRemote) {
+                if (matcher.matches() && matcher.group(1) == extension.git.pushToRemote) {
                     shouldPush = true
                 }
             }
-            if (!shouldPush && convention().pushToRemote != 'origin') {
-                throw new GradleException("Could not push to remote ${convention().pushToRemote} as repository has no such remote")
+            if (!shouldPush && extension.git.pushToRemote != 'origin') {
+                throw new GradleException("Could not push to remote ${extension.git.pushToRemote} as repository has no such remote")
             }
         }
 

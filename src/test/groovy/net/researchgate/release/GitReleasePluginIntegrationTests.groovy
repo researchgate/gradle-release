@@ -10,12 +10,14 @@
 
 package net.researchgate.release
 
+import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
 
 import static org.eclipse.jgit.lib.Repository.shortenRefName
 
-@Mixin(PluginHelper)
 class GitReleasePluginIntegrationTests extends GitSpecification {
+
+    Project project
 
     def setup() {
         project = ProjectBuilder.builder().withName("GitReleasePluginTest").withProjectDir(localGit.repository.workTree).build()
@@ -36,7 +38,7 @@ class GitReleasePluginIntegrationTests extends GitSpecification {
         gitAddAndCommit(localGit, "gradle.properties") { it << "version=$project.version" }
         localGit.push().setForce(true).call()
         when: 'calling release task indirectly'
-        project.release.tasks.each { task ->
+        project.tasks['release'].tasks.each { task ->
             if (task == "runBuildTasks") {
                 project.tasks[task].tasks.each { buildTask ->
                     project.tasks[buildTask].execute()

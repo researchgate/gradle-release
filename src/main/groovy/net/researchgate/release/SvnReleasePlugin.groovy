@@ -10,36 +10,40 @@
 
 package net.researchgate.release
 
+import org.gradle.api.Project
+
 import java.util.regex.Matcher
 import org.gradle.api.GradleException
 
-class SvnReleasePlugin extends BaseScmPlugin<SvnReleasePluginConvention> {
+class SvnReleasePlugin extends BaseScmPlugin {
 
 	private static final String ERROR = 'Commit failed'
+
 	private static final def urlPattern = ~/URL:\s(.*?)(\/(trunk|branches|tags).*?)$/
+
 	private static final def revPattern = ~/Revision:\s(.*?)$/
+
 	private static final def commitPattern = ~/Committed revision\s(.*?)\.$/
 
 	private static final def environment = [LANG: 'C', LC_MESSAGES: 'C', LC_ALL: ''];
 
-	void init() {
+    SvnReleasePlugin(Project project) {
+        super(project)
+    }
+
+    void init() {
 		String username = findProperty("release.svn.username")
 		if (username) {
-			convention().username = username
+            extension.svn.username = username
 		}
 
 		String password = findProperty("release.svn.password")
 		if (password) {
-			convention().password = password
+            extension.svn.password = password
 		}
 
 		findSvnUrl()
 		project.ext.set('releaseSvnRev', null)
-	}
-
-	@Override
-	SvnReleasePluginConvention buildConventionInstance() {
-		new SvnReleasePluginConvention()
 	}
 
 	@Override
@@ -58,10 +62,10 @@ class SvnReleasePlugin extends BaseScmPlugin<SvnReleasePluginConvention> {
 			}
 		}
 		if (changes) {
-			warnOrThrow(releaseConvention().failOnCommitNeeded, "You have ${changes.size()} un-commited changes.")
+			warnOrThrow(extension.failOnCommitNeeded, "You have ${changes.size()} un-commited changes.")
 		}
 		if (unknown) {
-			warnOrThrow(releaseConvention().failOnUnversionedFiles, "You have ${unknown.size()} un-versioned files.")
+			warnOrThrow(extension.failOnUnversionedFiles, "You have ${unknown.size()} un-versioned files.")
 		}
 	}
 
@@ -82,7 +86,7 @@ class SvnReleasePlugin extends BaseScmPlugin<SvnReleasePluginConvention> {
 			}
 		}
 		if (missing) {
-			warnOrThrow(releaseConvention().failOnUpdateNeeded, "You are missing ${missing.size()} changes.")
+			warnOrThrow(extension.failOnUpdateNeeded, "You are missing ${missing.size()} changes.")
 		}
 
 		out = svnExec(['info', svnUrl])
@@ -95,7 +99,7 @@ class SvnReleasePlugin extends BaseScmPlugin<SvnReleasePluginConvention> {
 		}
 		if (svnRev != svnRemoteRev) {
 			// warn that there's a difference in local revision versus remote
-			warnOrThrow(releaseConvention().failOnUpdateNeeded, "Local revision (${svnRev}) does not match remote (${svnRemoteRev}), local revision is used in tag creation.")
+			warnOrThrow(extension.failOnUpdateNeeded, "Local revision (${svnRev}) does not match remote (${svnRemoteRev}), local revision is used in tag creation.")
 		}
 	}
 
@@ -142,11 +146,11 @@ class SvnReleasePlugin extends BaseScmPlugin<SvnReleasePluginConvention> {
         Map options = [:],
 		List<String> commands
 	) {
-		if (convention().username) {
-			if (convention().password) {
-                commands.addAll(0, ['--password', convention().password]);
+		if (extension.svn.username) {
+			if (extension.svn.password) {
+                commands.addAll(0, ['--password', extension.svn.password]);
 			}
-            commands.addAll(0, ['--non-interactive', '--no-auth-cache', '--username', convention().username]);
+            commands.addAll(0, ['--non-interactive', '--no-auth-cache', '--username', extension.svn.username]);
 		}
         commands.add(0, 'svn');
 

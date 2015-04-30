@@ -10,36 +10,14 @@
 
 package net.researchgate.release
 
-import org.gradle.api.Plugin
 import org.gradle.api.Project
 
-abstract class BaseScmPlugin<T> extends PluginHelper implements Plugin<Project> {
+abstract class BaseScmPlugin extends PluginHelper {
 
-    private final String pluginName = this.class.simpleName
-    private T convention
-
-    void apply(Project project) {
+    BaseScmPlugin(Project project) {
         this.project = project
-        setConvention()
+        extension = project.extensions['release'] as ReleaseExtension
     }
-
-    /**
-     * Called by {@link ReleasePlugin} when plugin's convention needs to be set.
-     */
-    final void setConvention() { convention = (T) setConvention(pluginName, buildConventionInstance()) }
-
-    /**
-     * Convenience method for sub-classes to access their own convention instance.
-     * @return this plugin convention instance.
-     */
-    @SuppressWarnings('ConfusingMethodName')
-    final T convention() { convention(pluginName, convention.class)}
-
-    /**
-     * Retrieves convention instance to be set for this plugin.
-     * @return convention instance to be set for this plugin.
-     */
-    abstract T buildConventionInstance()
 
     abstract void init()
 

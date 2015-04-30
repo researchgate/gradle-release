@@ -11,23 +11,23 @@
 package net.researchgate.release
 
 import groovy.text.SimpleTemplateEngine
+import net.researchgate.release.cli.Executor
 import org.apache.tools.ant.BuildException
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-/**
- * Helper object extended by plugins.
- * @author evgenyg
- */
 class PluginHelper {
 
 	private static final String LINE_SEP = System.getProperty('line.separator')
 	private static final String PROMPT = "${LINE_SEP}??>"
 
-	@SuppressWarnings('StatelessClass')
-	Project project
+    protected Project project
+
+    protected ReleaseExtension extension
+
+    protected Executor executor
 
 	/**
 	 * Retrieves SLF4J {@link Logger} instance.
@@ -38,49 +38,6 @@ class PluginHelper {
 	 * @return SLF4J {@link Logger} instance
 	 */
 	Logger getLog() { project?.logger ?: LoggerFactory.getLogger(this.class) }
-
-	/**
-	 * Sets convention specified under the plugin name provided.
-	 *
-	 * @param pluginName name of the plugin
-	 * @param convention convention object to set
-	 * @return convention instance set
-	 */
-	Object setConvention(String pluginName, Object convention) {
-		assert pluginName && convention
-		project.convention.plugins[pluginName] = convention
-	}
-
-	/**
-	 * Retrieves plugin convention of the type specified.
-	 *
-	 * @param project current Gradle project
-	 * @param pluginName plugin name
-	 * @param conventionType convention type
-	 * @return plugin convention of the type specified
-	 */
-	@SuppressWarnings('UnnecessaryPublicModifier')
-	public <T> T convention(String pluginName, Class<T> conventionType) {
-
-		Object convention = project.convention.plugins[pluginName]
-
-		assert convention, "Project contains no \"$pluginName\" plugin convention"
-		assert conventionType.isInstance(convention),       \
-                  "Project contains \"$pluginName\" plugin convention, " +
-				"but it's of type [${ convention.class.name }] rather than [${ conventionType.name }]"
-
-		(T) convention
-	}
-
-	/**
-	 * Gets current {@link ReleasePluginConvention}.
-	 *
-	 * @param project current Gradle project
-	 * @return current {@link ReleasePluginConvention}.
-	 */
-	ReleasePluginConvention releaseConvention() {
-		convention('release', ReleasePluginConvention)
-	}
 
     boolean useAutomaticVersion() {
         project.hasProperty('gradle.release.useAutomaticVersion') && project.getProperty('gradle.release.useAutomaticVersion') == "true"
@@ -97,65 +54,19 @@ class PluginHelper {
         Map options = [:],
         List<String> commands
     ) {
-        StringBuffer out = new StringBuffer()
-        StringBuffer err = new StringBuffer()
-
-        File directory = options['directory'] ? options['directory'] as File : project.rootDir
-        List processEnv = options['env'] ? ((options['env'] as Map) << System.getenv()).collect { "$it.key=$it.value" } : null
-
-        log.info("Running $commands in [$directory]")
-        Process process = commands.execute(processEnv, directory)
-        log.info("Running $commands produced output: [${out.toString().trim()}]")
-
-        process.waitForProcessOutput(out, err)
-
-        if (err.toString()) {
-            def message = "Running $commands produced an error: [${err.toString().trim()}]"
-
-            if (options['failOnStderr'] as boolean) {
-                throw new GradleException(message)
-            } else {
-                log.warn(message)
-            }
-        }
-
-        if (options['errorPatterns'] && [out, err]*.toString().any { String s -> (options['errorPatterns'] as List<String>).any { s.contains(it) } }) {
-            throw new GradleException("${ options['errorMessage'] ? options['errorMessage'] as String : 'Failed to run [' + commands.join(' ') + ']' } - [$out][$err]")
-        }
-
-        out.toString()
+        initExecutor()
+        options['directory'] = options['directory'] ?: project.rootDir
+        executor.exec(options, commands)
 	}
 
-	/**
-	 * Updates properties file (<code>gradle.properties</code> by default) with new version specified.
-	 * If configured in plugin convention then updates other properties in file additionally to <code>version</code> property
-	 *
-	 * @param newVersion new version to store in the file
-	 */
-	void updateVersionProperty(String newVersion) {
-		def oldVersion = "${project.version}"
-		if (oldVersion != newVersion) {
-			project.version = newVersion
-			project.ext.set('versionModified', true)
-			project.subprojects?.each { Project subProject ->
-				subProject.version = newVersion
-			}
-			def versionProperties = releaseConvention().versionProperties + 'version'
-			def propFile = findPropertiesFile()
-			versionProperties.each { prop ->
-				try {
-                    project.ant.propertyfile(file: propFile) {
-                        entry(key: prop, value: project.version)
-                    }
-				} catch (BuildException be) {
-					throw new GradleException("Unable to update version property.", be)
-				}
-			}
-		}
-	}
+    private void initExecutor() {
+        if (!executor) {
+            executor = new Executor(log)
+        }
+    }
 
-	File findPropertiesFile() {
-		File propertiesFile = project.file(releaseConvention().versionPropertyFile)
+    File findPropertiesFile() {
+		File propertiesFile = project.file(extension.versionPropertyFile)
 		if (!propertiesFile.file) {
 			if (!isVersionDefined()) {
 				project.version = useAutomaticVersion() ? "1.0" : readLine("Version property not set, please set it now:", "1.0")
@@ -184,18 +95,17 @@ class PluginHelper {
 	}
 
 	String tagName() {
-        def options = releaseConvention()
         def tagName
-        if (options.tagTemplate) {
+        if (extension.tagTemplate) {
             def engine = new SimpleTemplateEngine()
             def binding = [
                 "version": project.version,
                 "name"   : project.rootProject.name
             ]
-            tagName = engine.createTemplate(options.tagTemplate).make(binding).toString()
+            tagName = engine.createTemplate(extension.tagTemplate).make(binding).toString()
         } else {
             // Backward compatible remove in version 3.0
-            String prefix = options.tagPrefix ? "${options.tagPrefix}-" : (options.includeProjectNameInTag ? "${project.rootProject.name}-" : "")
+            String prefix = extension.tagPrefix ? "${extension.tagPrefix}-" : (extension.includeProjectNameInTag ? "${project.rootProject.name}-" : "")
             tagName = "${prefix}${project.version}"
         }
 
@@ -205,6 +115,35 @@ class PluginHelper {
 	String findProperty(String key, String defaultVal = "") {
 		System.properties[key] ?: project.properties[key] ?: defaultVal
 	}
+
+
+    /**
+     * Updates properties file (<code>gradle.properties</code> by default) with new version specified.
+     * If configured in plugin convention then updates other properties in file additionally to <code>version</code> property
+     *
+     * @param newVersion new version to store in the file
+     */
+    void updateVersionProperty(String newVersion) {
+        def oldVersion = "${project.version}"
+        if (oldVersion != newVersion) {
+            project.version = newVersion
+            project.ext.set('versionModified', true)
+            project.subprojects?.each { Project subProject ->
+                subProject.version = newVersion
+            }
+            def versionProperties = extension.versionProperties + 'version'
+            def propFile = findPropertiesFile()
+            versionProperties.each { prop ->
+                try {
+                    project.ant.propertyfile(file: propFile) {
+                        entry(key: prop, value: project.version)
+                    }
+                } catch (BuildException be) {
+                    throw new GradleException('Unable to update version property.', be)
+                }
+            }
+        }
+    }
 
     /**
      * Capitalizes first letter of the String specified.

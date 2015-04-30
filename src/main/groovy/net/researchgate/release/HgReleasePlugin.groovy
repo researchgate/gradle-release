@@ -10,16 +10,19 @@
 
 package net.researchgate.release
 
-class HgReleasePlugin extends BaseScmPlugin<HgReleasePluginConvention> {
+import org.gradle.api.Project
+
+class HgReleasePlugin extends BaseScmPlugin {
 
     private static final String ERROR = 'abort:'
+
+    HgReleasePlugin(Project project) {
+        super(project)
+    }
 
     @Override
     void init() {
     }
-
-    @Override
-    HgReleasePluginConvention buildConventionInstance() { new HgReleasePluginConvention() }
 
     @Override
     void checkCommitNeeded() {
@@ -31,7 +34,7 @@ class HgReleasePlugin extends BaseScmPlugin<HgReleasePluginConvention> {
             }
         }
         if (modifications['?']) {
-            warnOrThrow(releaseConvention().failOnUnversionedFiles, "You have ${modifications['?'].size()} un-versioned files.")
+            warnOrThrow(extension.failOnUnversionedFiles, "You have ${modifications['?'].size()} un-versioned files.")
         }
         if (modifications.count { k, v -> v }) {
             def c = { count, label ->
@@ -39,7 +42,7 @@ class HgReleasePlugin extends BaseScmPlugin<HgReleasePluginConvention> {
             }
             def message = 'You have ' + c(modifications['A'].size(), 'added') + c(modifications['M'].size(), 'modified') +
                     c(modifications['R'].size(), 'removed')
-            warnOrThrow(releaseConvention().failOnCommitNeeded, message)
+            warnOrThrow(extension.failOnCommitNeeded, message)
         }
     }
 
@@ -54,10 +57,10 @@ class HgReleasePlugin extends BaseScmPlugin<HgReleasePluginConvention> {
             modifications['out'] << line
         }
         if (modifications['in']) {
-            warnOrThrow(releaseConvention().failOnUpdateNeeded, "You have ${modifications['in'].size()} incoming changes")
+            warnOrThrow(extension.failOnUpdateNeeded, "You have ${modifications['in'].size()} incoming changes")
         }
         if (modifications['out']) {
-            warnOrThrow(releaseConvention().failOnPublishNeeded, "You have ${modifications['out'].size()} outgoing changes")
+            warnOrThrow(extension.failOnPublishNeeded, "You have ${modifications['out'].size()} outgoing changes")
         }
     }
 

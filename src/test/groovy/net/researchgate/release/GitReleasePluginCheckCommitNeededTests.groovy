@@ -11,10 +11,13 @@
 package net.researchgate.release
 
 import org.gradle.api.GradleException
+import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
 
-@Mixin(PluginHelper)
 class GitReleasePluginCheckCommitNeededTests extends GitSpecification {
+
+    Project project
+
     def setup() {
         project = ProjectBuilder.builder().withName("GitReleasePluginTest").withProjectDir(localGit.repository.getWorkTree()).build()
         project.apply plugin: ReleasePlugin

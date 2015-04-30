@@ -23,19 +23,18 @@ import org.gradle.api.tasks.GradleBuild
 import org.gradle.api.tasks.TaskState
 
 class ReleasePlugin extends PluginHelper implements Plugin<Project> {
+
 	static final String RELEASE_GROUP = "Release"
 
-	@SuppressWarnings('StatelessClass')
 	private BaseScmPlugin scmPlugin
 
-	void apply(Project project) {
+    void apply(Project project) {
 		this.project = project
-
-		setConvention('release', new ReleasePluginConvention())
+        extension = project.extensions.create('release', ReleaseExtension)
 
 		def preCommitText = findProperty("release.preCommitText") ?: findProperty("preCommitText")
         if (preCommitText) {
-            releaseConvention().preCommitText = preCommitText
+            extension.preCommitText = preCommitText
         }
 
 		project.task('release', description: 'Verify project, release, and update version to next.', group: RELEASE_GROUP, type: GradleBuild) {
@@ -110,7 +109,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
                 try {
                     findScmPlugin();
                 } catch (Exception e) {}
-				if (scmPlugin && releaseConvention().revertOnFail && project.file(releaseConvention().versionPropertyFile)?.exists()) {
+				if (scmPlugin && extension.revertOnFail && project.file(extension.versionPropertyFile)?.exists()) {
 					log.error("Release process failed, reverting back any changes made by Release Plugin.")
 					scmPlugin.revert()
 				} else {
@@ -155,15 +154,14 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
 		if (message) {
 			message = "Snapshot dependencies detected: ${message}"
-			warnOrThrow(releaseConvention().failOnSnapshotDependencies, message)
+			warnOrThrow(extension.failOnSnapshotDependencies, message)
 		}
 	}
 
 	void commitTag() {
-		def message = releaseConvention().tagCommitMessage +
-				" '${tagName()}'."
-		if (releaseConvention().preCommitText) {
-			message = "${releaseConvention().preCommitText} ${message}"
+		def message = extension.tagCommitMessage + " '${tagName()}'."
+		if (extension.preCommitText) {
+			message = "${extension.preCommitText} ${message}"
 		}
 		scmPlugin.createReleaseTag(message)
 	}
@@ -199,11 +197,10 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 	void preTagCommit() {
 		if (project.properties['usesSnapshot'] || project.properties['versionModified']) {
 			// should only be committed if the project was using a snapshot version.
-			def message = releaseConvention().preTagCommitMessage +
-					" '${tagName()}'."
+			def message = extension.preTagCommitMessage + " '${tagName()}'."
 
-			if (releaseConvention().preCommitText) {
-				message = "${releaseConvention().preCommitText} ${message}"
+			if (extension.preCommitText) {
+				message = "${extension.preCommitText} ${message}"
 			}
 			scmPlugin.commit(message)
 		}
@@ -211,7 +208,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
 	void updateVersion() {
 		def version = project.version.toString()
-		Map<String, Closure> patterns = releaseConvention().versionPatterns
+		Map<String, Closure> patterns = extension.versionPatterns
 
 		for (entry in patterns) {
 
@@ -228,8 +225,8 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
 				nextVersion = getNextVersion(nextVersion)
 
-				project.ext.set("release.oldVersion", project.version)
-				project.ext.set("release.newVersion", nextVersion)
+				project.ext.set('release.oldVersion', project.version)
+				project.ext.set('release.newVersion', nextVersion)
 				updateVersionProperty(nextVersion)
 				return
 			}
@@ -249,10 +246,9 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
     }
 
 	def commitNewVersion() {
-		def message = releaseConvention().newVersionCommitMessage +
-				" '${tagName()}'."
-		if (releaseConvention().preCommitText) {
-			message = "${releaseConvention().preCommitText} ${message}"
+		def message = extension.newVersionCommitMessage + " '${tagName()}'."
+		if (extension.preCommitText) {
+			message = "${extension.preCommitText} ${message}"
 		}
 		scmPlugin.commit(message)
 	}
@@ -265,11 +261,11 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 		propertiesFile.withReader { properties.load(it) }
 
 		assert properties.version, "[$propertiesFile.canonicalPath] contains no 'version' property"
-		assert releaseConvention().versionPatterns.keySet().any { (properties.version =~ it).find() },               \
-                             "[$propertiesFile.canonicalPath] version [$properties.version] doesn't match any of known version patterns: " +
-				releaseConvention().versionPatterns.keySet()
+		assert extension.versionPatterns.keySet().any { (properties.version =~ it).find() },
+            "[$propertiesFile.canonicalPath] version [$properties.version] doesn't match any of known version patterns: " +
+                extension.versionPatterns.keySet()
         // set the project version from the properties file if it was not otherwise specified
-        if ( !isVersionDefined() ) {
+        if (!isVersionDefined()) {
             project.version = properties.version
         }
 
@@ -281,6 +277,26 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 		}
 	}
 
+    /**
+     * Recursively look for the type of the SCM we are dealing with, if no match is found look in parent directory
+     * @param directory the directory to start from
+     */
+    protected Class findScmType(File directory) {
+        Class clazz = (Class) directory.list().with {
+            delegate.grep('.svn') ? SvnReleasePlugin :
+                delegate.grep('.bzr') ? BzrReleasePlugin :
+                    delegate.grep('.git') ? GitReleasePlugin :
+                        delegate.grep('.hg') ? HgReleasePlugin :
+                            null
+        }
+
+        if (!clazz && directory.parentFile) {
+            clazz = findScmType(directory.parentFile)
+        }
+
+        clazz
+    }
+
 	/**
 	 * Looks for special directories in the project folder, then applies the correct SCM Release Plugin for the SCM type.
 	 * @param project
@@ -289,37 +305,16 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
 		def projectPath = project.rootProject.projectDir.canonicalFile
 
-		Class c = findScmType(projectPath)
+		Class clazz = findScmType(projectPath)
 
-		if (!c) {
+		if (!clazz) {
 			throw new GradleException(
 					'Unsupported SCM system, no .svn, .bzr, .git, or .hg found in ' +
 							"[${ projectPath }] or its parent directories.")
 		}
 
-		assert BaseScmPlugin.isAssignableFrom(c)
+		assert BaseScmPlugin.isAssignableFrom(clazz)
 
-		project.apply plugin: c
-		project.plugins.findPlugin(c)
-	}
-
-	/**
-	 * Recursively look for the type of the SCM we are dealing with, if no match is found look in parent directory
-	 * @param directory the directory to start from
-	 */
-	protected Class findScmType(File directory) {
-		Class c = (Class) directory.list().with {
-			delegate.grep('.svn') ? SvnReleasePlugin :
-				delegate.grep('.bzr') ? BzrReleasePlugin :
-					delegate.grep('.git') ? GitReleasePlugin :
-						delegate.grep('.hg') ? HgReleasePlugin :
-							null
-		}
-
-		if (!c && directory.parentFile) {
-			c = findScmType(directory.parentFile)
-		}
-
-		c
+        clazz.getConstructor(Project.class).newInstance(project);
 	}
 }

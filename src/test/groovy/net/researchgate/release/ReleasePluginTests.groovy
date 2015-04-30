@@ -10,11 +10,13 @@
 
 package net.researchgate.release
 
+import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 
-@Mixin(PluginHelper)
 class ReleasePluginTests extends Specification {
+
+    Project project
 
     def testDir = new File("build/tmp/test/${getClass().simpleName}")
 

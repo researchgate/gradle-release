@@ -10,10 +10,12 @@
 
 package net.researchgate.release
 
+import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
 
-@Mixin(PluginHelper)
 class GitReleasePluginCommitNewVersionTests extends GitSpecification {
+
+    Project project
 
     def setup() {
         project = ProjectBuilder.builder().withName("GitReleasePluginTest").withProjectDir(localGit.repository.workTree).build()
@@ -36,18 +38,4 @@ class GitReleasePluginCommitNewVersionTests extends GitSpecification {
         then: 'remote repo contains updated properties file'
         remoteGit.repository.workTree.listFiles().any { it.name == 'gradle.properties' && it.text.contains("version=$project.version") }
     }
-
-    /*
-    def 'when tracking branch missing then push new version to remote branch with same name as local'() {
-        given:
-        gitCheckoutBranch(localGit, 'myBranch', true)
-        project.file('gradle.properties').withWriter { it << "version=2.2" }
-        when:
-        project.commitNewVersion.execute()
-        gitCheckoutBranch(remoteGit, 'myBranch')
-        gitHardReset(remoteGit)
-        then:
-        remoteGit.repository.workTree.listFiles().any { it.name == 'gradle.properties' && it.text.contains("version=2.2") }
-    }
-    */
 }
