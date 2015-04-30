@@ -6,7 +6,7 @@
 
 In you build.gradle either replace:
 
-```git.requireBranch = 'branchname'``` with ```release.git.requireBranch = 'branchname'```
+```git.option = 'value'``` with ```release.git.option = 'value'```
 
 or
 
