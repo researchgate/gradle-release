@@ -3,11 +3,30 @@
 ## 2.1.0
 ##### Not yet released
 
+This release contains new features but was also the target of some internal refactorings.
+Due to the refactoring one breaking change had to be done. See the list below for details and the Upgrade instructions.
+
+### **Breaking Changes**
+
+* GIT: The configuration options are now all contained in the release closure. If you were using one of this options you might need to adjust your config. See Upgrade instructions.
+
 ### New Features
 
 * COMMON: New flexible configuration ```tagTemplate``` to specify the name of the tag. (#96)
 * COMMON: Refactored the build process during release to run in separate process.
 * COMMON: Added **beforeReleaseBuild** and **afterReleaseBuild** hook, which both run in the same process as the build itself.
+* SVN: Allow credentials to be specified
+    * Either with commandline parameters ```gradle release -Prelease.svn.username=eric -Prelease.svn.password=secret```
+    * Or directly inside your build.gradle: (This is a silly example, don't put your credentials in your scm! For security reasons you might want to put variables inside your users properties file and reference them in the gradle script)
+    
+```
+release { 
+    svn { 
+        username = eric
+        password = secret
+    }
+}
+```
 
 ### Changes
 
