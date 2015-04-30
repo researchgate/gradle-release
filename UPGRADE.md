@@ -34,7 +34,7 @@ Formally it was usually done by adding
 createReleaseTag.dependsOn uploadArchives
 ```
 
-This *should not* be done anymore. (Although this will still work, but may have undesired side effects)
+This **should not** be done anymore. (Although this will still work, but may have undesired side effects)
 
 Instead use
 
