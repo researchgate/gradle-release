@@ -4,11 +4,11 @@
 ##### Not yet released
 
 This release contains new features but was also the target of some internal refactorings.
-Due to the refactoring one breaking change had to be done. See the list below for details and the Upgrade instructions.
+Due to the refactoring one breaking change had to be done. See the list below for details and the [upgrade instructions](UPGRADE.md#20-to-21).
 
 ### **Breaking Changes**
 
-* GIT: The configuration options are now all contained in the release closure. If you were using one of this options you might need to adjust your config. See Upgrade instructions.
+* GIT: The configuration options are now all contained in the release closure. If you were using one of this options you might need to adjust your config. See [upgrade instructions](UPGRADE.md#20-to-21).
 
 ### New Features
 
@@ -35,7 +35,7 @@ release {
 ### Deprecated Features
 
 * COMMON: The configuration options ```includeProjectNameInTag``` and ```tagPrefix``` are deprecated and will be remove with 3.0. Please migrate to tagTemplate. (#96)
-* COMMON: Depending on any internal release task like **createReleaseTag** is highly discouraged. Use the **beforeReleaseBuild** or **afterReleaseBuild** tasks.
+* COMMON: Depending on any internal release task like **createReleaseTag** is highly discouraged. Use the **beforeReleaseBuild** or **afterReleaseBuild** tasks. See [upgrade instructions](UPGRADE.md#20-to-21).
 
 ## 2.0.2
 ##### Released: 17. Feb 2015
