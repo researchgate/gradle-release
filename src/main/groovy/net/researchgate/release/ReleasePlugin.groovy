@@ -26,7 +26,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 	static final String RELEASE_GROUP = "Release"
 
 	@SuppressWarnings('StatelessClass')
-	private BaseScmPlugin scmPlugin
+	BaseScmPlugin scmPlugin
 
 	void apply(Project project) {
 		this.project = project
