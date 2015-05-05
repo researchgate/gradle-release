@@ -26,11 +26,11 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
 	static final String RELEASE_GROUP = "Release"
 
-	private BaseScmPlugin scmPlugin
+	private BaseScmAdapter scmAdapter
 
     void apply(Project project) {
 		this.project = project
-        extension = project.extensions.create('release', ReleaseExtension)
+        extension = project.extensions.create('release', ReleaseExtension, project)
 
 		def preCommitText = findProperty("release.preCommitText") ?: findProperty("preCommitText")
         if (preCommitText) {
@@ -41,9 +41,9 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 			startParameter = project.getGradle().startParameter.newInstance()
 
 			tasks = [
-					'findScmPlugin',
+					'createScmAdapter',
 					//  0. (This Plugin) Initializes the corresponding SCM plugin (Git/Bazaar/Svn/Mercurial).
-					'initScmPlugin',
+					'initScmAdapter',
 					//  1. (SCM Plugin) Check to see if source needs to be checked in.
 					'checkCommitNeeded',
 					//  2. (SCM Plugin) Check to see if source is out of date
@@ -69,10 +69,10 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 			]
 		}
 
-		project.task('findScmPlugin', group: RELEASE_GROUP,
-			description: 'Finds the correct SCM plugin') << this.&findScmPlugin
-		project.task('initScmPlugin', group: RELEASE_GROUP,
-			description: 'Initializes the SCM plugin') << this.&initScmPlugin
+		project.task('createScmAdapter', group: RELEASE_GROUP,
+			description: 'Finds the correct SCM plugin') << this.&createScmAdapter
+		project.task('initScmAdapter', group: RELEASE_GROUP,
+			description: 'Initializes the SCM plugin') << this.&initScmAdapter
 		project.task('checkCommitNeeded', group: RELEASE_GROUP,
 			description: 'Checks to see if there are any added, modified, removed, or un-versioned files.') << this.&checkCommitNeeded
 		project.task('checkUpdateNeeded', group: RELEASE_GROUP,
@@ -107,11 +107,11 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 		project.gradle.taskGraph.afterTask { Task task, TaskState state ->
 			if (state.failure && task.name == "release") {
                 try {
-                    findScmPlugin();
+                    createScmAdapter();
                 } catch (Exception e) {}
-				if (scmPlugin && extension.revertOnFail && project.file(extension.versionPropertyFile)?.exists()) {
+				if (scmAdapter && extension.revertOnFail && project.file(extension.versionPropertyFile)?.exists()) {
 					log.error("Release process failed, reverting back any changes made by Release Plugin.")
-					scmPlugin.revert()
+					scmAdapter.revert()
 				} else {
 					log.error("Release process failed, please remember to revert any uncommitted changes made by the Release Plugin.")
 				}
@@ -119,21 +119,21 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 		}
 	}
 
-	void findScmPlugin() {
-		scmPlugin = applyScmPlugin()
+	void createScmAdapter() {
+		scmAdapter = findScmAdapter()
 	}
 
-	void initScmPlugin() {
+	void initScmAdapter() {
         checkPropertiesFile()
-		scmPlugin.init()
+		scmAdapter.init()
 	}
 
 	void checkCommitNeeded() {
-		scmPlugin.checkCommitNeeded()
+		scmAdapter.checkCommitNeeded()
 	}
 
 	void checkUpdateNeeded() {
-		scmPlugin.checkUpdateNeeded()
+		scmAdapter.checkUpdateNeeded()
 	}
 
 	void checkSnapshotDependencies() {
@@ -163,7 +163,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 		if (extension.preCommitText) {
 			message = "${extension.preCommitText} ${message}"
 		}
-		scmPlugin.createReleaseTag(message)
+		scmAdapter.createReleaseTag(message)
 	}
 
 	void confirmReleaseVersion() {
@@ -202,7 +202,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 			if (extension.preCommitText) {
 				message = "${extension.preCommitText} ${message}"
 			}
-			scmPlugin.commit(message)
+			scmAdapter.commit(message)
 		}
 	}
 
@@ -250,7 +250,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 		if (extension.preCommitText) {
 			message = "${extension.preCommitText} ${message}"
 		}
-		scmPlugin.commit(message)
+		scmAdapter.commit(message)
 	}
 
 
@@ -281,40 +281,27 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
      * Recursively look for the type of the SCM we are dealing with, if no match is found look in parent directory
      * @param directory the directory to start from
      */
-    protected Class findScmType(File directory) {
-        Class clazz = (Class) directory.list().with {
-            delegate.grep('.svn') ? SvnReleasePlugin :
-                delegate.grep('.bzr') ? BzrReleasePlugin :
-                    delegate.grep('.git') ? GitReleasePlugin :
-                        delegate.grep('.hg') ? HgReleasePlugin :
-                            null
-        }
+    protected BaseScmAdapter findScmAdapter() {
+		BaseScmAdapter adapter;
+		File projectPath = project.rootProject.projectDir.canonicalFile
 
-        if (!clazz && directory.parentFile) {
-            clazz = findScmType(directory.parentFile)
-        }
+		extension.scmAdapters.find {
+			assert BaseScmAdapter.isAssignableFrom(it)
 
-        clazz
-    }
+			BaseScmAdapter instance = it.getConstructor(Project.class).newInstance(project)
+			if (instance.isSupported(projectPath)) {
+				adapter = instance
+				return true
+			}
 
-	/**
-	 * Looks for special directories in the project folder, then applies the correct SCM Release Plugin for the SCM type.
-	 * @param project
-	 */
-	private BaseScmPlugin applyScmPlugin() {
-
-		def projectPath = project.rootProject.projectDir.canonicalFile
-
-		Class clazz = findScmType(projectPath)
-
-		if (!clazz) {
-			throw new GradleException(
-					'Unsupported SCM system, no .svn, .bzr, .git, or .hg found in ' +
-							"[${ projectPath }] or its parent directories.")
+			return false
 		}
 
-		assert BaseScmPlugin.isAssignableFrom(clazz)
+        if (adapter == null) {
+			throw new GradleException(
+				"No supported Adapter could be found. Are [${ projectPath }] or its parents are valid scm directories?")
+        }
 
-        clazz.getConstructor(Project.class).newInstance(project);
-	}
+        adapter
+    }
 }

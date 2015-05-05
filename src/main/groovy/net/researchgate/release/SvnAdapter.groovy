@@ -15,7 +15,7 @@ import org.gradle.api.Project
 import java.util.regex.Matcher
 import org.gradle.api.GradleException
 
-class SvnReleasePlugin extends BaseScmPlugin {
+class SvnAdapter extends BaseScmAdapter {
 
 	private static final String ERROR = 'Commit failed'
 
@@ -27,9 +27,28 @@ class SvnReleasePlugin extends BaseScmPlugin {
 
 	private static final def environment = [LANG: 'C', LC_MESSAGES: 'C', LC_ALL: ''];
 
-    SvnReleasePlugin(Project project) {
+	SvnAdapter(Project project) {
         super(project)
     }
+
+	class SvnConfig {
+		String username
+		String password
+	}
+
+	@Override
+	Object createNewConfig() {
+		return new SvnConfig();
+	}
+
+	@Override
+	boolean isSupported(File directory) {
+		if (!directory.list().grep('.svn')) {
+			return directory.parentFile? isSupported(directory.parentFile) : false
+		}
+
+		true
+	}
 
     void init() {
 		String username = findProperty('release.svn.username')

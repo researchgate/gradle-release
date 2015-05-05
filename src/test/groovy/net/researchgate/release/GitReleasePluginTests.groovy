@@ -45,7 +45,7 @@ class GitReleasePluginTests extends Specification {
         project = ProjectBuilder.builder().withName("GitReleasePluginTest").withProjectDir(localRepo).build()
         project.version = "1.1"
         project.apply plugin: ReleasePlugin
-        project.findScmPlugin.execute()
+        project.createScmAdapter.execute()
 
         project.file("somename.txt").withWriter {it << "test"}
         this.executor.exec(['git', 'add', 'somename.txt'], failOnStderr: true, directory: localRepo, env: [:])
@@ -65,7 +65,7 @@ class GitReleasePluginTests extends Specification {
         given:
         project.release.git.requireBranch = 'myBranch'
         when:
-        (new GitReleasePlugin(project)).init()
+        (new GitAdapter(project)).init()
         then:
         GradleException ex = thrown()
         ex.message == 'Current Git branch is "master" and not "myBranch".'

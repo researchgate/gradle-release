@@ -15,7 +15,7 @@ import org.gradle.api.Project
 
 import java.util.regex.Matcher
 
-class GitReleasePlugin extends BaseScmPlugin {
+class GitAdapter extends BaseScmAdapter {
 
 	private static final String LINE = '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
 
@@ -24,8 +24,28 @@ class GitReleasePlugin extends BaseScmPlugin {
 	private static final String AHEAD = 'ahead'
 	private static final String BEHIND = 'behind'
 
-	GitReleasePlugin(Project project) {
+	class GitConfig {
+		String requireBranch = 'master'
+		String pushToRemote = 'origin'
+		boolean pushToCurrentBranch = false
+	}
+
+	GitAdapter(Project project) {
 		super(project)
+	}
+
+	@Override
+	Object createNewConfig() {
+		return new GitConfig()
+	}
+
+	@Override
+	boolean isSupported(File directory) {
+		if (!directory.list().grep('.git')) {
+			return directory.parentFile? isSupported(directory.parentFile) : false
+		}
+
+		true
 	}
 
 	@Override

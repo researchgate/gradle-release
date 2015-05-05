@@ -22,7 +22,7 @@ class GitReleasePluginMultiProjectTests extends GitSpecification {
         final subproject = new File(localGit.repository.getWorkTree(), "subproject")
         project = ProjectBuilder.builder().withName("GitReleasePluginTest").withProjectDir(subproject).build()
         project.apply plugin: ReleasePlugin
-        project.findScmPlugin.execute()
+        project.createScmAdapter.execute()
     }
 
     def "subproject should work with git beeing in parentProject"() {

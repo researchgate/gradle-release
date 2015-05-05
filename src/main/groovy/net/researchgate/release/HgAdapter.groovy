@@ -12,12 +12,26 @@ package net.researchgate.release
 
 import org.gradle.api.Project
 
-class HgReleasePlugin extends BaseScmPlugin {
+class HgAdapter extends BaseScmAdapter {
 
     private static final String ERROR = 'abort:'
 
-    HgReleasePlugin(Project project) {
+    HgAdapter(Project project) {
         super(project)
+    }
+
+    @Override
+    Object createNewConfig() {
+        return null
+    }
+
+    @Override
+    boolean isSupported(File directory) {
+        if (!directory.list().grep('.hg')) {
+            return directory.parentFile? isSupported(directory.parentFile) : false
+        }
+
+        true
     }
 
     @Override

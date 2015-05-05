@@ -26,8 +26,10 @@ class ReleasePluginTests extends Specification {
         testVersionPropertyFile.withWriter { w ->
             w.writeLine 'version=1.2'
         }
-        project.apply plugin: TestReleasePlugin
-        project.findScmPlugin.execute()
+        project.apply plugin: ReleasePlugin
+        project.release.scmAdapters = [NoSCMReleaseAdapter]
+
+        project.createScmAdapter.execute()
     }
 
     def 'plugin is successfully applied'() {
@@ -41,7 +43,7 @@ class ReleasePluginTests extends Specification {
         project.release {
             versionPropertyFile = 'version.properties'
         }
-        project.initScmPlugin.execute()
+        project.initScmAdapter.execute()
         expect:
         project.version == '1.2'
 

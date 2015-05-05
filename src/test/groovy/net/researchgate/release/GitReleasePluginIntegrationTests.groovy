@@ -23,7 +23,7 @@ class GitReleasePluginIntegrationTests extends GitSpecification {
         project = ProjectBuilder.builder().withName("GitReleasePluginTest").withProjectDir(localGit.repository.workTree).build()
         project.apply plugin: 'java'
         project.apply plugin: ReleasePlugin
-        project.findScmPlugin.execute()
+        project.createScmAdapter.execute()
     }
 
     def cleanup() {

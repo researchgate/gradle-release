@@ -12,10 +12,20 @@ package net.researchgate.release
 
 import org.gradle.api.Project
 
-class NoSCMReleasePlugin extends BaseScmPlugin {
+class NoSCMReleaseAdapter extends BaseScmAdapter {
 
-    NoSCMReleasePlugin(Project project) {
+    NoSCMReleaseAdapter(Project project) {
         super(project)
+    }
+
+    @Override
+    Object createNewConfig() {
+        return null
+    }
+
+    @Override
+    boolean isSupported(File directory) {
+        return true
     }
 
     @Override

@@ -21,7 +21,7 @@ class GitReleasePluginCheckUpdateNeededTests extends GitSpecification {
     def setup() {
         project = ProjectBuilder.builder().withName("GitReleasePluginTest").withProjectDir(localGit.repository.workTree).build()
         project.apply plugin: ReleasePlugin
-        project.findScmPlugin.execute()
+        project.createScmAdapter.execute()
     }
 
     def cleanup() {

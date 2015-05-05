@@ -18,10 +18,10 @@ Due to the refactoring one breaking change had to be done. See the list below fo
 * SVN: Allow credentials to be specified
     * Either with commandline parameters ```gradle release -Prelease.svn.username=eric -Prelease.svn.password=secret```
     * Or directly inside your build.gradle: (This is a silly example, don't put your credentials in your scm! For security reasons you might want to put variables inside your users properties file and reference them in the gradle script)
-    
+
 ```
-release { 
-    svn { 
+release {
+    svn {
         username = eric
         password = secret
     }
@@ -30,7 +30,7 @@ release {
 
 ### Changes
 
-* COMMON: The SCM plugin is now lazy loaded and does not require an scm to be present during plugin initialization. New task `findScmPlugin` added at the beginning of release.
+* COMMON: The SCM adapter is now lazy loaded and does not require an scm to be present during plugin initialization. New task `createScmAdapter` added at the beginning of release.
 
 ### Deprecated Features
 

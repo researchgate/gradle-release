@@ -21,7 +21,8 @@ public class ReleasePluginCheckSnapshotDependenciesTests extends Specification {
     def setup() {
         project = ProjectBuilder.builder().withName("ReleasePluginTest").build()
         project.apply plugin: 'groovy'
-        project.apply plugin: TestReleasePlugin
+        project.apply plugin: ReleasePlugin
+        project.release.scmAdapters = [NoSCMReleaseAdapter]
     }
 
     def 'when no deps then no exception'() {

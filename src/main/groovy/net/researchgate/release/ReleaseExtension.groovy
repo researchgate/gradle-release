@@ -14,6 +14,7 @@ import org.gradle.api.Project
 import org.gradle.util.ConfigureUtil
 
 import java.util.regex.Matcher
+import java.util.regex.Pattern
 
 class ReleaseExtension {
 
@@ -42,10 +43,6 @@ class ReleaseExtension {
      */
     String tagTemplate
 
-    GitConfig git = new GitConfig()
-
-    SvnConfig svn = new SvnConfig()
-
     String versionPropertyFile = 'gradle.properties'
 
     List versionProperties = []
@@ -55,13 +52,12 @@ class ReleaseExtension {
         /(\d+)([^\d]*$)/: { Matcher m, Project p -> m.replaceAll("${(m[0][1] as int) + 1}${m[0][2]}") }
     ]
 
-    def git(Closure closure) {
-        ConfigureUtil.configure(closure, git)
-    }
-
-    def svn(Closure closure) {
-        ConfigureUtil.configure(closure, svn)
-    }
+    def scmAdapters = [
+        GitAdapter,
+        SvnAdapter,
+        HgAdapter,
+        BzrAdapter
+    ];
 
     /**
      * @deprecated to be removed in 3.0 see tagTemplate
@@ -75,14 +71,57 @@ class ReleaseExtension {
     @Deprecated
     String tagPrefix
 
-    class SvnConfig {
-        String username
-        String password
+    private Project project
+
+    ReleaseExtension(Project project) {
+        this.project = project
+        ExpandoMetaClass mc = new ExpandoMetaClass(ReleaseExtension, false, true)
+        mc.initialize()
+        this.metaClass = mc
     }
 
-    class GitConfig {
-        String requireBranch = 'master'
-        String pushToRemote = 'origin'
-        boolean pushToCurrentBranch = false
+    def propertyMissing(String name) {
+        println "create new propery $name"
+        BaseScmAdapter adapter = getAdapterForName(name)
+
+        if (!adapter || !adapter.createNewConfig()) {
+            throw new MissingPropertyException(name, this.class)
+        }
+
+        Object result = adapter.createNewConfig()
+        this.metaClass."$name" = result
+        println "created new propery $name"
+
+        result
+    }
+
+    def methodMissing(String name, Object[] args) {
+        println "create new method $name"
+        Closure closure = args[0] as Closure;
+
+        if (!this.properties[name]) {
+            throw new MissingMethodException(name, this.class, args)
+        }
+
+        println "created new method $name"
+
+        ConfigureUtil.configure(closure, this.properties[name])
+    }
+
+    private getAdapterForName(String name) {
+        BaseScmAdapter adapter = null
+        this.scmAdapters.find {
+            Pattern pattern = Pattern.compile("^${name}", Pattern.CASE_INSENSITIVE);
+            if (!pattern.matcher(it.simpleName).find()) {
+                return false
+            }
+            assert BaseScmAdapter.isAssignableFrom(it)
+
+            adapter = it.getConstructor(Project.class).newInstance(project)
+
+            return true
+        }
+
+        adapter
     }
 }

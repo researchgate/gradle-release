@@ -25,7 +25,9 @@ public class PluginHelperVersionPropertyFileTests extends Specification {
     def setup() {
         project = ProjectBuilder.builder().withName("ReleasePluginTest").withProjectDir(testDir).build()
         project.version = '1.1'
-        project.apply plugin: TestReleasePlugin
+        project.apply plugin: ReleasePlugin
+        project.release.scmAdapters = [NoSCMReleaseAdapter]
+
         helper = new PluginHelper(project: project, extension: project.extensions['release'] as ReleaseExtension)
 
         def props = project.file("gradle.properties")

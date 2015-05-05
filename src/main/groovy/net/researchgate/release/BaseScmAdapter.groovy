@@ -12,12 +12,16 @@ package net.researchgate.release
 
 import org.gradle.api.Project
 
-abstract class BaseScmPlugin extends PluginHelper {
+abstract class BaseScmAdapter extends PluginHelper {
 
-    BaseScmPlugin(Project project) {
+    BaseScmAdapter(Project project) {
         this.project = project
         extension = project.extensions['release'] as ReleaseExtension
     }
+
+    abstract Object createNewConfig()
+
+    abstract boolean isSupported(File directory)
 
     abstract void init()
 

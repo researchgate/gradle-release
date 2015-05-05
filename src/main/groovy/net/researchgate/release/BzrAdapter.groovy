@@ -13,13 +13,27 @@ package net.researchgate.release
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 
-class BzrReleasePlugin extends BaseScmPlugin {
+class BzrAdapter extends BaseScmAdapter {
 
     private static final String ERROR = 'ERROR'
     private static final String DELIM = '\n  * '
 
-    BzrReleasePlugin(Project project) {
+    BzrAdapter(Project project) {
         super(project)
+    }
+
+    @Override
+    Object createNewConfig() {
+        return null
+    }
+
+    @Override
+    boolean isSupported(File directory) {
+        if (!directory.list().grep('.bzr')) {
+            return directory.parentFile? isSupported(directory.parentFile) : false
+        }
+
+        true
     }
 
     @Override
