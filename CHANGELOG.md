@@ -18,6 +18,7 @@ Due to the refactoring one breaking change had to be done. See the list below fo
 * SVN: Allow credentials to be specified
     * Either with commandline parameters ```gradle release -Prelease.svn.username=eric -Prelease.svn.password=secret```
     * Or directly inside your build.gradle: (This is a silly example, don't put your credentials in your scm! For security reasons you might want to put variables inside your users properties file and reference them in the gradle script)
+* COMMON: Added a convenient way for external adapters to be used instead of the supplied ones. Documentation and example to follow.
 
 ```
 release {
