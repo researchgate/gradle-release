@@ -13,12 +13,12 @@ Due to the refactoring one breaking change had to be done. See the list below fo
 ### New Features
 
 * COMMON: New flexible configuration ```tagTemplate``` to specify the name of the tag. (#96)
-* COMMON: Refactored the build process during release to run in separate process.
+* COMMON: Refactored the build process during release to run in separate process. This will hopefully resolve all the issues with certain other plugins like the new maven-publish or the bintray plugin.
 * COMMON: Added **beforeReleaseBuild** and **afterReleaseBuild** hook, which both run in the same process as the build itself.
+* COMMON: Added a convenient way for external adapters to be used instead of the supplied ones. Documentation and example to follow.
 * SVN: Allow credentials to be specified
     * Either with commandline parameters ```gradle release -Prelease.svn.username=eric -Prelease.svn.password=secret```
-    * Or directly inside your build.gradle: (This is a silly example, don't put your credentials in your scm! For security reasons you might want to put variables inside your users properties file and reference them in the gradle script)
-* COMMON: Added a convenient way for external adapters to be used instead of the supplied ones. Documentation and example to follow.
+    * Or directly inside your build.gradle: (This is a silly example, don't put your credentials under version control! For security reasons you might want to put variables inside your [users properties](https://gradle.org/docs/current/userguide/build_environment.html) file and reference them in the projects gradle script)
 
 ```
 release {
@@ -31,11 +31,11 @@ release {
 
 ### Changes
 
-* COMMON: The SCM adapter is now lazy loaded and does not require an scm to be present during plugin initialization. New task `createScmAdapter` added at the beginning of release.
+* COMMON: The SCM adapter is now lazy loaded and does not require an scm to be present during plugin initialization. New task `createScmAdapter` added at the beginning of release, which handles the creation of the correct scm adapter.
 
 ### Deprecated Features
 
-* COMMON: The configuration options ```includeProjectNameInTag``` and ```tagPrefix``` are deprecated and will be remove with 3.0. Please migrate to tagTemplate. (#96)
+* COMMON: The configuration options ```includeProjectNameInTag``` and ```tagPrefix``` are deprecated and will be remove with 3.0. Please migrate to tagTemplate.  See [upgrade instructions](UPGRADE.md#20-to-21). (#96)
 * COMMON: Depending on any internal release task like **createReleaseTag** is highly discouraged. Use the **beforeReleaseBuild** or **afterReleaseBuild** tasks. See [upgrade instructions](UPGRADE.md#20-to-21).
 
 ## 2.0.2
