@@ -54,7 +54,6 @@ class GitReleasePluginTests extends Specification {
         def props = project.file("gradle.properties")
         props.withWriter { it << "version=${project.version}" }
         this.executor.exec(['git', 'add', 'gradle.properties'], failOnStderr: true, directory: localRepo, env: [:])
-
     }
 
     def cleanup() {
@@ -69,7 +68,17 @@ class GitReleasePluginTests extends Specification {
         then:
         GradleException ex = thrown()
         ex.message == 'Current Git branch is "master" and not "myBranch".'
+    }
 
+    def 'should accept config as closure'() {
+        when:
+        project.release {
+            git {
+                requireBranch = 'myBranch'
+            }
+        }
+        then:
+        noExceptionThrown()
     }
 
     def 'should push new version to remote tracking branch by default'() {

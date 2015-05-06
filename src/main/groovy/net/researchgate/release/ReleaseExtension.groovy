@@ -81,7 +81,6 @@ class ReleaseExtension {
     }
 
     def propertyMissing(String name) {
-        println "create new propery $name"
         BaseScmAdapter adapter = getAdapterForName(name)
 
         if (!adapter || !adapter.createNewConfig()) {
@@ -90,22 +89,25 @@ class ReleaseExtension {
 
         Object result = adapter.createNewConfig()
         this.metaClass."$name" = result
-        println "created new propery $name"
 
         result
     }
 
-    def methodMissing(String name, Object[] args) {
-        println "create new method $name"
-        Closure closure = args[0] as Closure;
+    def propertyMissing(String name, value) {
+        BaseScmAdapter adapter = getAdapterForName(name)
 
-        if (!this.properties[name]) {
-            throw new MissingMethodException(name, this.class, args)
+        if (!adapter) {
+            throw new MissingPropertyException(name, this.class)
+        }
+        this.metaClass."$name" = value
+    }
+
+    def methodMissing(String name, args) {
+        this.metaClass."$name" = { Closure varClosure ->
+            return ConfigureUtil.configure(varClosure, this."$name")
         }
 
-        println "created new method $name"
-
-        ConfigureUtil.configure(closure, this.properties[name])
+        return ConfigureUtil.configure(args[0] as Closure, this."$name")
     }
 
     private getAdapterForName(String name) {
