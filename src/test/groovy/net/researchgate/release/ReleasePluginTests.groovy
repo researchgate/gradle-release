@@ -10,11 +10,13 @@
 
 package net.researchgate.release
 
+import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 
-@Mixin(PluginHelper)
 class ReleasePluginTests extends Specification {
+
+    Project project
 
     def testDir = new File("build/tmp/test/${getClass().simpleName}")
 
@@ -24,8 +26,16 @@ class ReleasePluginTests extends Specification {
         testVersionPropertyFile.withWriter { w ->
             w.writeLine 'version=1.2'
         }
-        project.apply plugin: TestReleasePlugin
-        project.findScmPlugin.execute()
+        project.apply plugin: ReleasePlugin
+        project.release.scmAdapters = [NoSCMReleaseAdapter]
+
+        project.createScmAdapter.execute()
+    }
+
+    def 'plugin is successfully applied'() {
+        expect:
+        assert project.tasks.release
+
     }
 
     def 'when a custom properties file is used to specify the version'() {
@@ -33,10 +43,9 @@ class ReleasePluginTests extends Specification {
         project.release {
             versionPropertyFile = 'version.properties'
         }
-        project.initScmPlugin.execute()
+        project.initScmAdapter.execute()
         expect:
         project.version == '1.2'
 
     }
-
 }

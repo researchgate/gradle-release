@@ -165,9 +165,9 @@ Eg. To ignore upstream changes, change 'failOnUpdateNeeded' to false:
 ### Custom release steps
 
 To add a step to the release process is very easy. Gradle provides a very nice mechanism for [manipulating existing tasks](http://gradle.org/docs/current/userguide/tutorial_using_tasks.html#N102B2)
-For example, if we wanted to make sure `uploadArchives` is called and succeeds before the tag has been created, we would just add the `uploadArchives` task as a dependency of the `createReleaseTag` task:
+For example, if we wanted to make sure `uploadArchives` is called and succeeds after the build with the release version has finished, we would just add the `uploadArchives` task as a dependency of the `afterReleaseBuild` task:
 
-    createReleaseTag.dependsOn uploadArchives
+    afterReleaseBuild.dependsOn uploadArchives
 
 ### Multi-Project Builds
 

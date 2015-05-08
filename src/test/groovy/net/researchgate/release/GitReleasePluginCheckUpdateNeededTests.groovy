@@ -11,14 +11,17 @@
 package net.researchgate.release
 
 import org.gradle.api.GradleException
+import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
 
-@Mixin(PluginHelper)
 class GitReleasePluginCheckUpdateNeededTests extends GitSpecification {
+
+    Project project
+
     def setup() {
         project = ProjectBuilder.builder().withName("GitReleasePluginTest").withProjectDir(localGit.repository.workTree).build()
         project.apply plugin: ReleasePlugin
-        project.findScmPlugin.execute()
+        project.createScmAdapter.execute()
     }
 
     def cleanup() {

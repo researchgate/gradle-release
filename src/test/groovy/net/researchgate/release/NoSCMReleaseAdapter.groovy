@@ -10,10 +10,22 @@
 
 package net.researchgate.release
 
-class NoSCMReleasePlugin extends BaseScmPlugin<NoSCMReleasePluginConvention> {
+import org.gradle.api.Project
+
+class NoSCMReleaseAdapter extends BaseScmAdapter {
+
+    NoSCMReleaseAdapter(Project project) {
+        super(project)
+    }
+
     @Override
-    NoSCMReleasePluginConvention buildConventionInstance() {
-        return new NoSCMReleasePluginConvention()
+    Object createNewConfig() {
+        return null
+    }
+
+    @Override
+    boolean isSupported(File directory) {
+        return true
     }
 
     @Override
@@ -45,6 +57,4 @@ class NoSCMReleasePlugin extends BaseScmPlugin<NoSCMReleasePluginConvention> {
     void revert() {
         //To change body of implemented methods use File | Settings | File Templates.
     }
-
-
 }

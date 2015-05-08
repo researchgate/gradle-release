@@ -10,23 +10,31 @@
 
 package net.researchgate.release
 
+import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 
-@Mixin(PluginHelper)
 public class PluginHelperTagNameTests extends Specification {
+
+    Project project
+
+    PluginHelper helper
 
     def testDir = new File("build/tmp/test/${getClass().simpleName}")
 
     def setup() {
         project = ProjectBuilder.builder().withName("ReleasePluginTest").withProjectDir(testDir).build()
         project.version = '1.1'
-        project.apply plugin: TestReleasePlugin
+        project.apply plugin: ReleasePlugin
+        project.release.scmAdapters = [NoSCMReleaseAdapter]
+
+        helper = new PluginHelper(project: project, extension: project.extensions['release'] as ReleaseExtension)
+
     }
 
     def 'when no includeProjectNameInTag then tag name is version'() {
         expect:
-        tagName() == '1.1'
+        helper.tagName() == '1.1'
     }
 
     def 'when includeProjectNameInTag then tag name starts from project name'() {
@@ -35,7 +43,7 @@ public class PluginHelperTagNameTests extends Specification {
             includeProjectNameInTag = true
         }
         expect:
-        tagName() == "$project.name-$project.version"
+        helper.tagName() == "$project.name-$project.version"
     }
 
     def 'when tagPrefix not blank then it added to tag ignoring project name'() {
@@ -45,7 +53,7 @@ public class PluginHelperTagNameTests extends Specification {
             tagPrefix = 'PREF'
         }
         expect:
-        tagName() == 'PREF-1.1'
+        helper.tagName() == 'PREF-1.1'
         where:
         includeProjectName << [true, false]
     }
@@ -58,7 +66,7 @@ public class PluginHelperTagNameTests extends Specification {
             includeProjectNameInTag = includeProjectName
         }
         expect:
-        tagName() == '1.1'
+        helper.tagName() == '1.1'
         where:
         includeProjectName << [true, false]
         tagPrefixSetting << ['PREF', null]
@@ -70,6 +78,6 @@ public class PluginHelperTagNameTests extends Specification {
             tagTemplate = 'PREF-$name-$version'
         }
         expect:
-        tagName() == 'PREF-ReleasePluginTest-1.1'
+        helper.tagName() == 'PREF-ReleasePluginTest-1.1'
     }
 }

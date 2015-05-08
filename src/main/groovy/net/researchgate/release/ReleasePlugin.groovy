@@ -23,27 +23,27 @@ import org.gradle.api.tasks.GradleBuild
 import org.gradle.api.tasks.TaskState
 
 class ReleasePlugin extends PluginHelper implements Plugin<Project> {
+
 	static final String RELEASE_GROUP = "Release"
 
-	@SuppressWarnings('StatelessClass')
-	private BaseScmPlugin scmPlugin
+	private BaseScmAdapter scmAdapter
 
-	void apply(Project project) {
+    void apply(Project project) {
 		this.project = project
-
-		setConvention('release', new ReleasePluginConvention())
+        extension = project.extensions.create('release', ReleaseExtension, project)
 
 		def preCommitText = findProperty("release.preCommitText") ?: findProperty("preCommitText")
-		if (preCommitText) {
-			releaseConvention().preCommitText = preCommitText
-		}
+        if (preCommitText) {
+            extension.preCommitText = preCommitText
+        }
 
 		project.task('release', description: 'Verify project, release, and update version to next.', group: RELEASE_GROUP, type: GradleBuild) {
 			startParameter = project.getGradle().startParameter.newInstance()
 
 			tasks = [
+					'createScmAdapter',
 					//  0. (This Plugin) Initializes the corresponding SCM plugin (Git/Bazaar/Svn/Mercurial).
-					'initScmPlugin',
+					'initScmAdapter',
 					//  1. (SCM Plugin) Check to see if source needs to be checked in.
 					'checkCommitNeeded',
 					//  2. (SCM Plugin) Check to see if source is out of date
@@ -69,24 +69,28 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 			]
 		}
 
-		project.task('findScmPlugin', group: RELEASE_GROUP,
-				description: 'Finds the correct SCM plugin') << this.&findScmPlugin
-		project.task('initScmPlugin', group: RELEASE_GROUP,
-				description: 'Initializes the SCM plugin') << this.&initScmPlugin
+		project.task('createScmAdapter', group: RELEASE_GROUP,
+			description: 'Finds the correct SCM plugin') << this.&createScmAdapter
+		project.task('initScmAdapter', group: RELEASE_GROUP,
+			description: 'Initializes the SCM plugin') << this.&initScmAdapter
+		project.task('checkCommitNeeded', group: RELEASE_GROUP,
+			description: 'Checks to see if there are any added, modified, removed, or un-versioned files.') << this.&checkCommitNeeded
+		project.task('checkUpdateNeeded', group: RELEASE_GROUP,
+			description: 'Checks to see if there are any incoming or outgoing changes that haven\'t been applied locally.') << this.&checkUpdateNeeded
 		project.task('checkSnapshotDependencies', group: RELEASE_GROUP,
-				description: 'Checks to see if your project has any SNAPSHOT dependencies.') << this.&checkSnapshotDependencies
+			description: 'Checks to see if your project has any SNAPSHOT dependencies.') << this.&checkSnapshotDependencies
 		project.task('unSnapshotVersion', group: RELEASE_GROUP,
-				description: 'Removes "-SNAPSHOT" from your project\'s current version.') << this.&unSnapshotVersion
+			description: 'Removes "-SNAPSHOT" from your project\'s current version.') << this.&unSnapshotVersion
 		project.task('confirmReleaseVersion', group: RELEASE_GROUP,
-				description: 'Prompts user for this release version. Allows for alpha or pre releases.') << this.&confirmReleaseVersion
+			description: 'Prompts user for this release version. Allows for alpha or pre releases.') << this.&confirmReleaseVersion
 		project.task('preTagCommit', group: RELEASE_GROUP,
-				description: 'Commits any changes made by the Release plugin - eg. If the unSnapshotVersion tas was executed') << this.&preTagCommit
+			description: 'Commits any changes made by the Release plugin - eg. If the unSnapshotVersion tas was executed') << this.&preTagCommit
 		project.task('updateVersion', group: RELEASE_GROUP,
-				description: 'Prompts user for the next version. Does it\'s best to supply a smart default.') << this.&updateVersion
+			description: 'Prompts user for the next version. Does it\'s best to supply a smart default.') << this.&updateVersion
 		project.task('commitNewVersion', group: RELEASE_GROUP,
-				description: 'Commits the version update to your SCM') << this.&commitNewVersion
+			description: 'Commits the version update to your SCM') << this.&commitNewVersion
 		project.task('createReleaseTag', group: RELEASE_GROUP,
-				description: 'Creates a tag in SCM for the current (un-snapshotted) version.') << this.&commitTag
+			description: 'Creates a tag in SCM for the current (un-snapshotted) version.') << this.&commitTag
 		project.task('runBuildTasks', group: RELEASE_GROUP, description: 'Runs the build process in a separate gradle run.', type: GradleBuild) {
             startParameter = project.getGradle().startParameter.newInstance()
 
@@ -102,9 +106,12 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
 		project.gradle.taskGraph.afterTask { Task task, TaskState state ->
 			if (state.failure && task.name == "release") {
-				if (releaseConvention().revertOnFail && project.file(releaseConvention().versionPropertyFile)?.exists()) {
+                try {
+                    createScmAdapter();
+                } catch (Exception e) {}
+				if (scmAdapter && extension.revertOnFail && project.file(extension.versionPropertyFile)?.exists()) {
 					log.error("Release process failed, reverting back any changes made by Release Plugin.")
-					this.scmPlugin.revert()
+					scmAdapter.revert()
 				} else {
 					log.error("Release process failed, please remember to revert any uncommitted changes made by the Release Plugin.")
 				}
@@ -112,13 +119,21 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 		}
 	}
 
-	void findScmPlugin() {
-		this.scmPlugin = applyScmPlugin()
+	void createScmAdapter() {
+		scmAdapter = findScmAdapter()
 	}
 
-	void initScmPlugin() {
+	void initScmAdapter() {
         checkPropertiesFile()
-		scmPlugin.init()
+		scmAdapter.init()
+	}
+
+	void checkCommitNeeded() {
+		scmAdapter.checkCommitNeeded()
+	}
+
+	void checkUpdateNeeded() {
+		scmAdapter.checkUpdateNeeded()
 	}
 
 	void checkSnapshotDependencies() {
@@ -139,17 +154,16 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
 		if (message) {
 			message = "Snapshot dependencies detected: ${message}"
-			warnOrThrow(releaseConvention().failOnSnapshotDependencies, message)
+			warnOrThrow(extension.failOnSnapshotDependencies, message)
 		}
 	}
 
 	void commitTag() {
-		def message = releaseConvention().tagCommitMessage +
-				" '${tagName()}'."
-		if (releaseConvention().preCommitText) {
-			message = "${releaseConvention().preCommitText} ${message}"
+		def message = extension.tagCommitMessage + " '${tagName()}'."
+		if (extension.preCommitText) {
+			message = "${extension.preCommitText} ${message}"
 		}
-		scmPlugin.createReleaseTag(message)
+		scmAdapter.createReleaseTag(message)
 	}
 
 	void confirmReleaseVersion() {
@@ -183,19 +197,18 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 	void preTagCommit() {
 		if (project.properties['usesSnapshot'] || project.properties['versionModified']) {
 			// should only be committed if the project was using a snapshot version.
-			def message = releaseConvention().preTagCommitMessage +
-					" '${tagName()}'."
+			def message = extension.preTagCommitMessage + " '${tagName()}'."
 
-			if (releaseConvention().preCommitText) {
-				message = "${releaseConvention().preCommitText} ${message}"
+			if (extension.preCommitText) {
+				message = "${extension.preCommitText} ${message}"
 			}
-			scmPlugin.commit(message)
+			scmAdapter.commit(message)
 		}
 	}
 
 	void updateVersion() {
 		def version = project.version.toString()
-		Map<String, Closure> patterns = releaseConvention().versionPatterns
+		Map<String, Closure> patterns = extension.versionPatterns
 
 		for (entry in patterns) {
 
@@ -212,8 +225,8 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
 				nextVersion = getNextVersion(nextVersion)
 
-				project.ext.set("release.oldVersion", project.version)
-				project.ext.set("release.newVersion", nextVersion)
+				project.ext.set('release.oldVersion', project.version)
+				project.ext.set('release.newVersion', nextVersion)
 				updateVersionProperty(nextVersion)
 				return
 			}
@@ -233,12 +246,11 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
     }
 
 	def commitNewVersion() {
-		def message = releaseConvention().newVersionCommitMessage +
-				" '${tagName()}'."
-		if (releaseConvention().preCommitText) {
-			message = "${releaseConvention().preCommitText} ${message}"
+		def message = extension.newVersionCommitMessage + " '${tagName()}'."
+		if (extension.preCommitText) {
+			message = "${extension.preCommitText} ${message}"
 		}
-		scmPlugin.commit(message)
+		scmAdapter.commit(message)
 	}
 
 
@@ -249,11 +261,11 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 		propertiesFile.withReader { properties.load(it) }
 
 		assert properties.version, "[$propertiesFile.canonicalPath] contains no 'version' property"
-		assert releaseConvention().versionPatterns.keySet().any { (properties.version =~ it).find() },               \
-                             "[$propertiesFile.canonicalPath] version [$properties.version] doesn't match any of known version patterns: " +
-				releaseConvention().versionPatterns.keySet()
+		assert extension.versionPatterns.keySet().any { (properties.version =~ it).find() },
+            "[$propertiesFile.canonicalPath] version [$properties.version] doesn't match any of known version patterns: " +
+                extension.versionPatterns.keySet()
         // set the project version from the properties file if it was not otherwise specified
-        if ( !isVersionDefined() ) {
+        if (!isVersionDefined()) {
             project.version = properties.version
         }
 
@@ -265,47 +277,31 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 		}
 	}
 
-	/**
-	 * Looks for special directories in the project folder, then applies the correct SCM Release Plugin for the SCM type.
-	 * @param project
-	 */
-	private BaseScmPlugin applyScmPlugin() {
+    /**
+     * Recursively look for the type of the SCM we are dealing with, if no match is found look in parent directory
+     * @param directory the directory to start from
+     */
+    protected BaseScmAdapter findScmAdapter() {
+		BaseScmAdapter adapter;
+		File projectPath = project.rootProject.projectDir.canonicalFile
 
-		def projectPath = project.rootProject.projectDir.canonicalFile
+		extension.scmAdapters.find {
+			assert BaseScmAdapter.isAssignableFrom(it)
 
-		Class c = findScmType(projectPath)
+			BaseScmAdapter instance = it.getConstructor(Project.class).newInstance(project)
+			if (instance.isSupported(projectPath)) {
+				adapter = instance
+				return true
+			}
 
-		if (!c) {
+			return false
+		}
+
+        if (adapter == null) {
 			throw new GradleException(
-					'Unsupported SCM system, no .svn, .bzr, .git, or .hg found in ' +
-							"[${ projectPath }] or its parent directories.")
-		}
+				"No supported Adapter could be found. Are [${ projectPath }] or its parents are valid scm directories?")
+        }
 
-		assert BaseScmPlugin.isAssignableFrom(c)
-
-		project.apply plugin: c
-		project.plugins.findPlugin(c)
-	}
-
-	/**
-	 * Recursively look for the type of the SCM we are dealing with, if no match is found look in parent directory
-	 * @param directory the directory to start from
-	 */
-	protected Class findScmType(File directory) {
-
-		Class c = (Class) directory.list().with {
-			delegate.grep('.svn') ? SvnReleasePlugin :
-				delegate.grep('.bzr') ? BzrReleasePlugin :
-					delegate.grep('.git') ? GitReleasePlugin :
-						delegate.grep('.hg') ? HgReleasePlugin :
-							null
-		}
-
-		if (!c && directory.parentFile) {
-			c = findScmType(directory.parentFile)
-		}
-
-		c
-	}
-
+        adapter
+    }
 }

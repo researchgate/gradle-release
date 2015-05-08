@@ -11,15 +11,18 @@
 package net.researchgate.release
 
 import org.gradle.api.GradleException
+import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
 
-@Mixin(PluginHelper)
 class GitReleasePluginMultiProjectTests extends GitSpecification {
+
+    Project project
+
     def setup() {
         final subproject = new File(localGit.repository.getWorkTree(), "subproject")
         project = ProjectBuilder.builder().withName("GitReleasePluginTest").withProjectDir(subproject).build()
         project.apply plugin: ReleasePlugin
-        project.findScmPlugin.execute()
+        project.createScmAdapter.execute()
     }
 
     def "subproject should work with git beeing in parentProject"() {

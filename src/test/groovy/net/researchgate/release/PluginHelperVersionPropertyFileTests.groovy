@@ -10,21 +10,25 @@
 
 package net.researchgate.release
 
+import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 
 public class PluginHelperVersionPropertyFileTests extends Specification {
-    def project
+
+    Project project
 
     PluginHelper helper
 
-    def testDir = new File("build/tmp/test/${getClass().simpleName}")
+    File testDir = new File("build/tmp/test/${getClass().simpleName}")
 
     def setup() {
         project = ProjectBuilder.builder().withName("ReleasePluginTest").withProjectDir(testDir).build()
         project.version = '1.1'
-        project.apply plugin: TestReleasePlugin
-        helper = new PluginHelper(project: project)
+        project.apply plugin: ReleasePlugin
+        project.release.scmAdapters = [NoSCMReleaseAdapter]
+
+        helper = new PluginHelper(project: project, extension: project.extensions['release'] as ReleaseExtension)
 
         def props = project.file("gradle.properties")
         props.withWriter {it << "version=${project.version}"}
@@ -90,14 +94,14 @@ public class PluginHelperVersionPropertyFileTests extends Specification {
         assert proj2.version == project.version
     }
 
-	 def 'should not fail when version contains spaces'() {
-		 given:
-		 helper.updateVersionProperty(" 2.2 ")
-		 project.version = "2.2"
-		 when:
-		 helper.updateVersionProperty("2.3")
-		 then:
+     def 'should not fail when version contains spaces'() {
+         given:
+         helper.updateVersionProperty(" 2.2 ")
+         project.version = "2.2"
+         when:
+         helper.updateVersionProperty("2.3")
+         then:
          assert project.version == '2.3'
-	 }
+     }
 
 }
