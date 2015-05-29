@@ -8,7 +8,7 @@ Due to the refactoring one minor breaking change had to be done. See the list be
 
 ### **Breaking Changes**
 
-* GIT: The configuration options are now all contained in the release closure. If you were using one of the options *requireBranch*, *pushToRemote* or *pushToCurrentBranch* you need to adjust your config. See [upgrade instructions](UPGRADE.md#20-to-21).
+* GIT: The configuration options are now all contained in the release closure. If you were using one of the options ```requireBranch```, ```pushToRemote``` or ```pushToCurrentBranch``` you need to adjust your config. See [upgrade instructions](UPGRADE.md#20-to-21).
 
 ### New Features
 
@@ -35,7 +35,7 @@ release {
 
 ### Deprecated Features
 
-* COMMON: The configuration options ```includeProjectNameInTag``` and ```tagPrefix``` are deprecated and will be remove with 3.0. Please migrate to tagTemplate.  See [upgrade instructions](UPGRADE.md#20-to-21). (#96)
+* COMMON: The configuration options ```includeProjectNameInTag``` and ```tagPrefix``` are deprecated and will be remove with 3.0. Please migrate to ```tagTemplate```.  See [upgrade instructions](UPGRADE.md#20-to-21). (#96)
 * COMMON: Depending on any internal release task like **createReleaseTag** is highly discouraged. Use the **beforeReleaseBuild** or **afterReleaseBuild** tasks. See [upgrade instructions](UPGRADE.md#20-to-21).
 
 ## 2.0.2
