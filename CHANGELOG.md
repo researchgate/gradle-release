@@ -1,7 +1,7 @@
 # Changelog
 
 ## 2.1.0
-##### Not yet released
+##### Released: 29. May 2015
 
 This release contains new features but was also the target of some internal refactorings.
 Due to the refactoring one minor breaking change had to be done. See the list below for details and the [upgrade instructions](UPGRADE.md#20-to-21).
