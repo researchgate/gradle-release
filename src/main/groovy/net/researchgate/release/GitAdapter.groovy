@@ -26,7 +26,7 @@ class GitAdapter extends BaseScmAdapter {
 
 	class GitConfig {
 		String requireBranch = 'master'
-		String pushToRemote = 'origin'
+		def pushToRemote = 'origin' // needs to be def as can be boolean or string
 		boolean pushToCurrentBranch = false
 	}
 
