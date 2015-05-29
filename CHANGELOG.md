@@ -4,11 +4,11 @@
 ##### Not yet released
 
 This release contains new features but was also the target of some internal refactorings.
-Due to the refactoring one breaking change had to be done. See the list below for details and the [upgrade instructions](UPGRADE.md#20-to-21).
+Due to the refactoring one minor breaking change had to be done. See the list below for details and the [upgrade instructions](UPGRADE.md#20-to-21).
 
 ### **Breaking Changes**
 
-* GIT: The configuration options are now all contained in the release closure. If you were using one of this options you might need to adjust your config. See [upgrade instructions](UPGRADE.md#20-to-21).
+* GIT: The configuration options are now all contained in the release closure. If you were using one of the options *requireBranch*, *pushToRemote* or *pushToCurrentBranch* you need to adjust your config. See [upgrade instructions](UPGRADE.md#20-to-21).
 
 ### New Features
 
