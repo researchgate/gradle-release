@@ -24,7 +24,7 @@ import org.gradle.api.tasks.TaskState
 
 class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
-	static final String RELEASE_GROUP = "Release"
+	static final String RELEASE_GROUP = 'Release'
 
 	private BaseScmAdapter scmAdapter
 
@@ -32,7 +32,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 		this.project = project
         extension = project.extensions.create('release', ReleaseExtension, project)
 
-		def preCommitText = findProperty("release.preCommitText") ?: findProperty("preCommitText")
+		def preCommitText = findProperty('release.preCommitText') ?: findProperty('preCommitText')
         if (preCommitText) {
             extension.preCommitText = preCommitText
         }
@@ -110,10 +110,10 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
                     createScmAdapter();
                 } catch (Exception e) {}
 				if (scmAdapter && extension.revertOnFail && project.file(extension.versionPropertyFile)?.exists()) {
-					log.error("Release process failed, reverting back any changes made by Release Plugin.")
+					log.error('Release process failed, reverting back any changes made by Release Plugin.')
 					scmAdapter.revert()
 				} else {
-					log.error("Release process failed, please remember to revert any uncommitted changes made by the Release Plugin.")
+					log.error('Release process failed, please remember to revert any uncommitted changes made by the Release Plugin.')
 				}
 			}
 		}

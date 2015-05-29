@@ -69,7 +69,7 @@ class PluginHelper {
 		File propertiesFile = project.file(extension.versionPropertyFile)
 		if (!propertiesFile.file) {
 			if (!isVersionDefined()) {
-				project.version = useAutomaticVersion() ? "1.0" : readLine("Version property not set, please set it now:", "1.0")
+				project.version = useAutomaticVersion() ? '1.0' : readLine('Version property not set, please set it now:', '1.0')
 			}
 			boolean createIt = project.hasProperty('version') && promptYesOrNo("[$propertiesFile.canonicalPath] not found, create it with version = ${project.version}")
 			if (createIt) {
@@ -83,7 +83,7 @@ class PluginHelper {
 	}
 
     boolean isVersionDefined() {
-        project.version && "unspecified" != project.version
+        project.version && 'unspecified' != project.version
     }
 
     void warnOrThrow(boolean doThrow, String message) {
