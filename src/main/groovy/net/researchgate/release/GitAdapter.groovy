@@ -94,7 +94,7 @@ class GitAdapter extends BaseScmAdapter {
 		def tagName = tagName()
 		exec(['git', 'tag', '-a', tagName, '-m', message], errorMessage: "Duplicate tag [$tagName]", errorPatterns: ['already exists'])
         if (shouldPush()) {
-            exec(['git', 'push', 'origin', tagName], errorMessage: "Failed to push tag [$tagName] to remote", errorPatterns: ['! [rejected]', 'error: ', 'fatal: '])
+            exec(['git', 'push', '--porcelain', 'origin', tagName], errorMessage: "Failed to push tag [$tagName] to remote", errorPatterns: ['[rejected]', 'error: ', 'fatal: '])
         }
 	}
 
@@ -114,7 +114,7 @@ class GitAdapter extends BaseScmAdapter {
                     branch = 'master'
                 }
             }
-            exec(['git', 'push', extension.git.pushToRemote, branch], errorMessage: 'Failed to push to remote', errorPatterns: ['! [rejected]', 'error: ', 'fatal: '])
+            exec(['git', 'push', '--porcelain', extension.git.pushToRemote, branch], errorMessage: 'Failed to push to remote', errorPatterns: ['[rejected]', 'error: ', 'fatal: '])
         }
 	}
 
