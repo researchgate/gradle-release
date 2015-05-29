@@ -6,7 +6,7 @@
 
 **MANDATORY**
 
-If you are using one or more of the git options (*requireBranch*, *pushToRemote* or *pushToCurrentBranch*) you need to adapt your configuration.
+If you are using one or more of the git options (```requireBranch```, ```pushToRemote``` or ```pushToCurrentBranch```) you need to adapt your configuration.
 
 In you build.gradle either replace:
 
