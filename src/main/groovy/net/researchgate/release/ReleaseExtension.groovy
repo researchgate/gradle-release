@@ -30,13 +30,13 @@ class ReleaseExtension {
 
     boolean revertOnFail = true
 
-    String preCommitText = ""
+    String preCommitText = ''
 
-    String preTagCommitMessage = "[Gradle Release Plugin] - pre tag commit: "
+    String preTagCommitMessage = '[Gradle Release Plugin] - pre tag commit: '
 
-    String tagCommitMessage = "[Gradle Release Plugin] - creating tag: "
+    String tagCommitMessage = '[Gradle Release Plugin] - creating tag: '
 
-    String newVersionCommitMessage = "[Gradle Release Plugin] - new version commit: "
+    String newVersionCommitMessage = '[Gradle Release Plugin] - new version commit: '
 
     /**
      * as of 3.0 set this to "$version" by default
