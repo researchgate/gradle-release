@@ -5,7 +5,7 @@
 
 ### Bugfixes
 
-* SVN: Fix exception when externals were used
+* SVN: Fix exception when externals were used (#106, thanks pstanoev)
 * SVN: Fix externals not to be detected as uncommited changes
 
 ## 2.1.0
