@@ -20,8 +20,8 @@ import org.slf4j.LoggerFactory
 
 class PluginHelper {
 
-	private static final String LINE_SEP = System.getProperty('line.separator')
-	private static final String PROMPT = "${LINE_SEP}??>"
+    private static final String LINE_SEP = System.getProperty('line.separator')
+    private static final String PROMPT = "${LINE_SEP}??>"
 
     protected Project project
 
@@ -29,35 +29,35 @@ class PluginHelper {
 
     protected Executor executor
 
-	/**
-	 * Retrieves SLF4J {@link Logger} instance.
-	 *
-	 * The logger is taken from the {@link Project} instance if it's initialized already
-	 * or from SLF4J {@link LoggerFactory} if it's not.
-	 *
-	 * @return SLF4J {@link Logger} instance
-	 */
-	Logger getLog() { project?.logger ?: LoggerFactory.getLogger(this.class) }
+    /**
+     * Retrieves SLF4J {@link Logger} instance.
+     *
+     * The logger is taken from the {@link Project} instance if it's initialized already
+     * or from SLF4J {@link LoggerFactory} if it's not.
+     *
+     * @return SLF4J {@link Logger} instance
+     */
+    Logger getLog() { project?.logger ?: LoggerFactory.getLogger(this.class) }
 
     boolean useAutomaticVersion() {
         project.hasProperty('gradle.release.useAutomaticVersion') && project.getProperty('gradle.release.useAutomaticVersion') == "true"
     }
 
-	/**
-	 * Executes command specified and retrieves its "stdout" output.
-	 *
-	 * @param failOnStderr whether execution should fail if there's any "stderr" output produced, "true" by default.
-	 * @param commands commands to execute
-	 * @return command "stdout" output
-	 */
-	String exec(
+    /**
+     * Executes command specified and retrieves its "stdout" output.
+     *
+     * @param failOnStderr whether execution should fail if there's any "stderr" output produced, "true" by default.
+     * @param commands commands to execute
+     * @return command "stdout" output
+     */
+    String exec(
         Map options = [:],
         List<String> commands
     ) {
         initExecutor()
         options['directory'] = options['directory'] ?: project.rootDir
         executor.exec(options, commands)
-	}
+    }
 
     private void initExecutor() {
         if (!executor) {
@@ -66,35 +66,35 @@ class PluginHelper {
     }
 
     File findPropertiesFile() {
-		File propertiesFile = project.file(extension.versionPropertyFile)
-		if (!propertiesFile.file) {
-			if (!isVersionDefined()) {
-				project.version = useAutomaticVersion() ? '1.0' : readLine('Version property not set, please set it now:', '1.0')
-			}
-			boolean createIt = project.hasProperty('version') && promptYesOrNo("[$propertiesFile.canonicalPath] not found, create it with version = ${project.version}")
-			if (createIt) {
-				propertiesFile.append("version=${project.version}")
-			} else {
-				log.debug "[$propertiesFile.canonicalPath] was not found, and user opted out of it being created. Throwing exception."
-				throw new GradleException("[$propertiesFile.canonicalPath] not found and you opted out of it being created,\n please create it manually and and specify the version property.")
-			}
-		}
-		propertiesFile
-	}
+        File propertiesFile = project.file(extension.versionPropertyFile)
+        if (!propertiesFile.file) {
+            if (!isVersionDefined()) {
+                project.version = useAutomaticVersion() ? '1.0' : readLine('Version property not set, please set it now:', '1.0')
+            }
+            boolean createIt = project.hasProperty('version') && promptYesOrNo("[$propertiesFile.canonicalPath] not found, create it with version = ${project.version}")
+            if (createIt) {
+                propertiesFile.append("version=${project.version}")
+            } else {
+                log.debug "[$propertiesFile.canonicalPath] was not found, and user opted out of it being created. Throwing exception."
+                throw new GradleException("[$propertiesFile.canonicalPath] not found and you opted out of it being created,\n please create it manually and and specify the version property.")
+            }
+        }
+        propertiesFile
+    }
 
     boolean isVersionDefined() {
         project.version && 'unspecified' != project.version
     }
 
     void warnOrThrow(boolean doThrow, String message) {
-		if (doThrow) {
-			throw new GradleException(message)
-		} else {
-			log.warn("!!WARNING!! $message")
-		}
-	}
+        if (doThrow) {
+            throw new GradleException(message)
+        } else {
+            log.warn("!!WARNING!! $message")
+        }
+    }
 
-	String tagName() {
+    String tagName() {
         def tagName
         if (extension.tagTemplate) {
             def engine = new SimpleTemplateEngine()
@@ -110,11 +110,11 @@ class PluginHelper {
         }
 
         tagName
-	}
+    }
 
-	String findProperty(String key, String defaultVal = "") {
-		System.properties[key] ?: project.properties[key] ?: defaultVal
-	}
+    String findProperty(String key, String defaultVal = "") {
+        System.properties[key] ?: project.properties[key] ?: defaultVal
+    }
 
 
     /**
