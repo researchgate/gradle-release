@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.1.1
+##### Released: 2. June 2015
+
+### Bugfixes
+
+* SVN: Fix exception when externals were used
+* SVN: Fix externals not to be detected as uncommited changes
+
 ## 2.1.0
 ##### Released: 29. May 2015
 
