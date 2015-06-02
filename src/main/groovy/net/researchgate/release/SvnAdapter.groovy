@@ -71,13 +71,20 @@ class SvnAdapter extends BaseScmAdapter {
 		def changes = []
 		def unknown = []
 		out.eachLine { line ->
-			switch (line?.trim()?.charAt(0)) {
-				case '?':
-					unknown << line
-					break
-				default:
-					changes << line
-					break
+			line = line.trim()
+			if (line.length() >= 2 && line.charAt(1) == ' ' as char) {
+				switch (line.charAt(0)) {
+					case '?':
+                        log.info('Unknown file: ' + line)
+						unknown << line
+						break
+					case 'X': // ignore externals declaration
+						break
+					default:
+                        log.info('Changed file: ' + line)
+						changes << line
+						break
+				}
 			}
 		}
 		if (changes) {
