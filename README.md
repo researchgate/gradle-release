@@ -161,6 +161,41 @@ Eg. To ignore upstream changes, change 'failOnUpdateNeeded' to false:
     release {
       failOnUpdateNeeded = false
     }
+    
+This are all possible configuration options and its default values:
+
+```
+release {
+    failOnCommitNeeded = true
+    failOnPublishNeeded = true
+    failOnSnapshotDependencies = true
+    failOnUnversionedFiles = true
+    failOnUpdateNeeded = true
+    revertOnFail = true
+    preCommitText = ''
+    preTagCommitMessage = '[Gradle Release Plugin] - pre tag commit: '
+    tagCommitMessage = '[Gradle Release Plugin] - creating tag: '
+    newVersionCommitMessage = '[Gradle Release Plugin] - new version commit: '
+    tagTemplate = '${version}'
+    versionPropertyFile = 'gradle.properties'
+    versionProperties = []
+    versionPatterns = [
+        /(\d+)([^\d]*$)/: { Matcher m, Project p -> m.replaceAll("${(m[0][1] as int) + 1}${m[0][2]}") }
+    ]
+    scmAdapters = [GitAdapter, SvnAdapter, HgAdapter, BzrAdapter]
+    
+    git {
+        requireBranch = 'master'
+        pushToRemote = 'origin'
+        pushToCurrentBranch = false
+    }
+    
+    svn {
+        username = null
+        password = null
+    }
+}
+```
 
 ### Custom release steps
 
