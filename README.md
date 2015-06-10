@@ -182,7 +182,12 @@ release {
     versionPatterns = [
         /(\d+)([^\d]*$)/: { Matcher m, Project p -> m.replaceAll("${(m[0][1] as int) + 1}${m[0][2]}") }
     ]
-    scmAdapters = [GitAdapter, SvnAdapter, HgAdapter, BzrAdapter]
+    scmAdapters = [
+        net.researchgate.release.GitAdapter, 
+        net.researchgate.release.SvnAdapter, 
+        net.researchgate.release.HgAdapter, 
+        net.researchgate.release.BzrAdapter
+    ]
     
     git {
         requireBranch = 'master'
