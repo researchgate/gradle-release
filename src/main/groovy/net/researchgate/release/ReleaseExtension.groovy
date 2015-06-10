@@ -113,11 +113,12 @@ class ReleaseExtension {
     private getAdapterForName(String name) {
         BaseScmAdapter adapter = null
         this.scmAdapters.find {
+            assert BaseScmAdapter.isAssignableFrom(it)
+
             Pattern pattern = Pattern.compile("^${name}", Pattern.CASE_INSENSITIVE);
             if (!pattern.matcher(it.simpleName).find()) {
                 return false
             }
-            assert BaseScmAdapter.isAssignableFrom(it)
 
             adapter = it.getConstructor(Project.class).newInstance(project)
 
