@@ -40,7 +40,8 @@ class PluginHelper {
     Logger getLog() { project?.logger ?: LoggerFactory.getLogger(this.class) }
 
     boolean useAutomaticVersion() {
-        project.hasProperty('gradle.release.useAutomaticVersion') && project.getProperty('gradle.release.useAutomaticVersion') == "true"
+        project.hasProperty('release.useAutomaticVersion') && project.getProperty('release.useAutomaticVersion') == "true" ||
+            project.hasProperty('gradle.release.useAutomaticVersion') && project.getProperty('gradle.release.useAutomaticVersion') == "true"
     }
 
     /**
