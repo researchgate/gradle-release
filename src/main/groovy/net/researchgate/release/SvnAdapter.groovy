@@ -68,30 +68,30 @@ class SvnAdapter extends BaseScmAdapter {
     @Override
     void checkCommitNeeded() {
         String out = svnExec(['status'])
-        def changes = []
-        def unknown = []
+		int changes = 0
+		int unknown = 0
         out.eachLine { line ->
             line = line.trim()
             if (line.length() >= 2 && line.charAt(1) == ' ' as char) {
                 switch (line.charAt(0)) {
                     case '?':
                         log.info('Unknown file: ' + line)
-                        unknown << line
+                        unknown++
                         break
                     case 'X': // ignore externals declaration
                         break
                     default:
                         log.info('Changed file: ' + line)
-                        changes << line
+                        changes++
                         break
                 }
             }
         }
-        if (changes) {
-            warnOrThrow(extension.failOnCommitNeeded, "You have ${changes.size()} un-commited changes.")
+        if (changes > 0) {
+            warnOrThrow(extension.failOnCommitNeeded, "You have ${changes} un-commited changes.")
         }
-        if (unknown) {
-            warnOrThrow(extension.failOnUnversionedFiles, "You have ${unknown.size()} un-versioned files.")
+        if (unknown > 0) {
+            warnOrThrow(extension.failOnUnversionedFiles, "You have ${unknown} un-versioned files.")
         }
     }
 
@@ -103,16 +103,19 @@ class SvnAdapter extends BaseScmAdapter {
         String svnRemoteRev = ''
 
         String out = svnExec(['status', '-q', '-u'])
-        def missing = []
+        int missing = 0
         out.eachLine { line ->
-            switch (line?.trim()?.charAt(0)) {
-                case '*':
-                    missing << line
-                    break
-            }
+			line = line.trim()
+			if (line.length() >= 2 && line.charAt(1) == ' ' as char) {
+				switch (line.charAt(0)) {
+					case '*':
+						missing++
+						break
+				}
+			}
         }
-        if (missing) {
-            warnOrThrow(extension.failOnUpdateNeeded, "You are missing ${missing.size()} changes.")
+        if (missing > 0) {
+            warnOrThrow(extension.failOnUpdateNeeded, "You are missing ${missing} changes.")
         }
 
         out = svnExec(['info', svnUrl])
