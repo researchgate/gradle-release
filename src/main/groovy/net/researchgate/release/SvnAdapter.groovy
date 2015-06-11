@@ -137,7 +137,7 @@ class SvnAdapter extends BaseScmAdapter {
         String svnRoot = props.releaseSvnRoot
         String svnTag = tagName()
 
-        svnExec(['cp', "${svnUrl}@${svnRev}", "${svnRoot}/tags/${svnTag}", '-m', message])
+        svnExec(['cp', "${svnUrl}@${svnRev}", "${svnRoot}/tags/${svnTag}", '--parents', '-m', message])
     }
 
     @Override
