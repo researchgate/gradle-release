@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.1.2
+##### Released: 12. June 2015
+
+### Bugfixes
+
+* SVN: Fix checkUpdateNeeded when externals were used (#106, thanks pstanoev)
+* SVN: Fix creating tags when subdirectories are used in tagname (#110, thanks kmoens)
+
+### Changes
+
+* COMMON: Added cli option ```release.useAutomaticVersion``` to normalize with the other options. ```gradle.release.useAutomaticVersion``` will be deprecated in the future.
+
 ## 2.1.1
 ##### Released: 2. June 2015
 
