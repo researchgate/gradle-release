@@ -68,8 +68,8 @@ class SvnAdapter extends BaseScmAdapter {
     @Override
     void checkCommitNeeded() {
         String out = svnExec(['status'])
-		int changes = 0
-		int unknown = 0
+        int changes = 0
+        int unknown = 0
         out.eachLine { line ->
             line = line.trim()
             if (line.length() >= 2 && line.charAt(1) == ' ' as char) {
@@ -105,14 +105,14 @@ class SvnAdapter extends BaseScmAdapter {
         String out = svnExec(['status', '-q', '-u'])
         int missing = 0
         out.eachLine { line ->
-			line = line.trim()
-			if (line.length() >= 2 && line.charAt(1) == ' ' as char) {
-				switch (line.charAt(0)) {
-					case '*':
-						missing++
-						break
-				}
-			}
+            line = line.trim()
+            if (line.length() >= 2 && line.charAt(1) == ' ' as char) {
+                switch (line.charAt(0)) {
+                    case '*':
+                        missing++
+                        break
+                }
+            }
         }
         if (missing > 0) {
             warnOrThrow(extension.failOnUpdateNeeded, "You are missing ${missing} changes.")
