@@ -38,19 +38,23 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
         project.task('release', description: 'Verify project, release, and update version to next.', group: RELEASE_GROUP, type: GradleBuild) {
             startParameter = project.getGradle().startParameter.newInstance()
 
+            // name tasks with an absolute path so subprojects can be released independently
+            String p = project.getPath()
+            p = !p.endsWith(Project.PATH_SEPARATOR) ? p + Project.PATH_SEPARATOR : p;
+
             tasks = [
-                'createScmAdapter',
-                'initScmAdapter',
-                'checkCommitNeeded',
-                'checkUpdateNeeded',
-                'unSnapshotVersion',
-                'confirmReleaseVersion',
-                'checkSnapshotDependencies',
-                'runBuildTasks',
-                'preTagCommit',
-                'createReleaseTag',
-                'updateVersion',
-                'commitNewVersion'
+                "${p}createScmAdapter" as String,
+                "${p}initScmAdapter" as String,
+                "${p}checkCommitNeeded" as String,
+                "${p}checkUpdateNeeded" as String,
+                "${p}unSnapshotVersion" as String,
+                "${p}confirmReleaseVersion" as String,
+                "${p}checkSnapshotDependencies" as String,
+                "${p}runBuildTasks" as String,
+                "${p}preTagCommit" as String,
+                "${p}createReleaseTag" as String,
+                "${p}updateVersion" as String,
+                "${p}commitNewVersion" as String
             ]
         }
 
@@ -71,11 +75,20 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
         project.task('runBuildTasks', group: RELEASE_GROUP, description: 'Runs the build process in a separate gradle run.', type: GradleBuild) {
             startParameter = project.getGradle().startParameter.newInstance()
 
+            // name tasks with an absolute path so subprojects can be released independently
+            String p = project.getPath()
+            p = !p.endsWith(Project.PATH_SEPARATOR) ? p + Project.PATH_SEPARATOR : p;
+
+            ArrayList<String> buildTasks = new ArrayList<>();
+            extension.buildTasks.each { String task ->
+                buildTasks.add(p + task);
+            }
+
             project.afterEvaluate {
                 tasks = [
-                    'beforeReleaseBuild',
-                    extension.buildTasks,
-                    'afterReleaseBuild'
+                    "${p}beforeReleaseBuild" as String,
+                    buildTasks,
+                    "${p}afterReleaseBuild" as String
                 ].flatten()
             }
         }
