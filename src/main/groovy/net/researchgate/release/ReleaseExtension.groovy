@@ -30,6 +30,10 @@ class ReleaseExtension {
 
     boolean revertOnFail = true
 
+    boolean isAndroidBuild = false
+
+    List androidFlavors = []
+
     String preCommitText = ''
 
     String preTagCommitMessage = '[Gradle Release Plugin] - pre tag commit: '
