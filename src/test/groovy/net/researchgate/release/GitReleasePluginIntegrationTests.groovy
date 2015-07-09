@@ -39,12 +39,12 @@ class GitReleasePluginIntegrationTests extends GitSpecification {
         localGit.push().setForce(true).call()
         when: 'calling release task indirectly'
         project.tasks['release'].tasks.each { task ->
-            if (task == "runBuildTasks") {
-                project.tasks[task].tasks.each { buildTask ->
-                    project.tasks[buildTask].execute()
+            if (task == ":runBuildTasks") {
+                project.tasks.getByPath(task).tasks.each { buildTask ->
+                    project.tasks.getByPath(buildTask).execute()
                 }
             } else {
-                project.tasks[task].execute()
+                project.tasks.getByPath(task).execute()
             }
         }
         def st = localGit.status().call()
