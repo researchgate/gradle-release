@@ -70,6 +70,15 @@ class GitReleasePluginTests extends Specification {
         ex.message == 'Current Git branch is "master" and not "myBranch".'
     }
 
+    def 'when requireBranch is configured using a regex that matches current branch then don\'t throw exception'() {
+        given:
+        project.release.git.requireBranch = /myBranch|master/
+        when:
+        (new GitAdapter(project)).init()
+        then:
+        noExceptionThrown()
+    }
+
     def 'should accept config as closure'() {
         when:
         project.release {
