@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.2.0
+##### Released: XX
+
+### New Features
+
+* COMMON: Possibility to use a regex for the option requireBranch (#118,#119, thanks grigorigoldman)
+
 ## 2.1.2
 ##### Released: 12. June 2015
 
