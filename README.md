@@ -211,13 +211,13 @@ For example, if we wanted to make sure `uploadArchives` is called and succeeds a
 
 ### Multi-Project Builds
 
-Support for [multi-project builds](http://gradle.org/docs/current/userguide/multi_project_builds.html) isn't complete, but will work given some assumptions. The gradle-release plugin assumes and expects the following:
+Support for [multi-project builds](http://gradle.org/docs/current/userguide/multi_project_builds.html) isn't complete, but will work given some assumptions. The gradle-release plugin assumes and expects that only one version control system is used by both root and sub projects.
 
-1. Only the root|parent project is applying the plugin
-2. Only one version is used for root and sub projects
-3. Only one version control system is used by both root and sub projects
+Apply the plugin separately to each subproject that you wish to release. Release using a qualified task name, e.g.:
 
-This means the gradle-release plugin does not support sub projects that have different versions from their parent|root project, and it does not support sub projects that have different version control systems from the parent project.
+    ./gradlew :sub:release # release a subproject named "sub"
+    ./gradlew :release # release the root project
+
 
 ### Working in Continuous Integration
 

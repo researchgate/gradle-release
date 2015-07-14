@@ -40,32 +40,36 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
         project.task('release', description: 'Verify project, release, and update version to next.', group: RELEASE_GROUP, type: GradleBuild) {
             startParameter = project.getGradle().startParameter.newInstance()
 
+            // name tasks with an absolute path so subprojects can be released independently
+            def p = project.getPath()
+            if (!p.endsWith(Project.PATH_SEPARATOR)) p += Project.PATH_SEPARATOR
+
             tasks = [
-                    'createScmAdapter',
+                    "${p}createScmAdapter" as String,
                     //  0. (This Plugin) Initializes the corresponding SCM plugin (Git/Bazaar/Svn/Mercurial).
-                    'initScmAdapter',
+                    "${p}initScmAdapter" as String,
                     //  1. (SCM Plugin) Check to see if source needs to be checked in.
-                    'checkCommitNeeded',
+                    "${p}checkCommitNeeded" as String,
                     //  2. (SCM Plugin) Check to see if source is out of date
-                    'checkUpdateNeeded',
+                    "${p}checkUpdateNeeded" as String,
                     //  3. (This Plugin) Update Snapshot version if used
                     //     Needs to be done before checking for snapshot versions since the project might depend on other
                     //     Modules within the same project.
-                    'unSnapshotVersion',
+                    "${p}unSnapshotVersion" as String,
                     //  4. (This Plugin) Confirm this release version
-                    'confirmReleaseVersion',
+                    "${p}confirmReleaseVersion" as String,
                     //  5. (This Plugin) Check for SNAPSHOT dependencies if required.
-                    'checkSnapshotDependencies',
+                    "${p}checkSnapshotDependencies" as String,
                     //  6. (This Plugin) Build && run Unit tests
-                    'runBuildTasks',
+                    "${p}runBuildTasks" as String,
                     //  7. (This Plugin) Commit Snapshot update (if done)
-                    'preTagCommit',
+                    "${p}preTagCommit" as String,
                     //  8. (SCM Plugin) Create tag of release.
-                    'createReleaseTag',
+                    "${p}createReleaseTag" as String,
                     //  9. (This Plugin) Update version to next version.
-                    'updateVersion',
+                    "${p}updateVersion" as String,
                     // 10. (This Plugin) Commit version update.
-                    'commitNewVersion'
+                    "${p}commitNewVersion" as String
             ]
         }
 
@@ -94,10 +98,14 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
         project.task('runBuildTasks', group: RELEASE_GROUP, description: 'Runs the build process in a separate gradle run.', type: GradleBuild) {
             startParameter = project.getGradle().startParameter.newInstance()
 
+            // name tasks with an absolute path so subprojects can be released independently
+            def p = project.getPath()
+            if (!p.endsWith(Project.PATH_SEPARATOR)) p += Project.PATH_SEPARATOR
+
             tasks = [
-                'beforeReleaseBuild',
-                'build',
-                'afterReleaseBuild'
+                "${p}beforeReleaseBuild" as String,
+                "${p}build" as String,
+                "${p}afterReleaseBuild" as String
             ]
         }
 

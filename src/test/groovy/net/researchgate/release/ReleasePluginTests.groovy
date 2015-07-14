@@ -48,4 +48,13 @@ class ReleasePluginTests extends Specification {
         project.version == '1.2'
 
     }
+
+    def 'subproject tasks are named with qualified paths'() {
+        given:
+        Project sub = ProjectBuilder.builder().withName('sub').withParent(project).withProjectDir(testDir).build()
+        sub.apply plugin: ReleasePlugin
+
+        expect:
+        sub.tasks.release.tasks.every { it.startsWith(':sub:') }
+    }
 }
