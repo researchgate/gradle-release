@@ -74,13 +74,23 @@ class PluginHelper {
             }
             boolean createIt = project.hasProperty('version') && promptYesOrNo("[$propertiesFile.canonicalPath] not found, create it with version = ${project.version}")
             if (createIt) {
-                propertiesFile.append("version=${project.version}")
+                writeVersion(propertiesFile, 'version', project.version);
             } else {
                 log.debug "[$propertiesFile.canonicalPath] was not found, and user opted out of it being created. Throwing exception."
                 throw new GradleException("[$propertiesFile.canonicalPath] not found and you opted out of it being created,\n please create it manually and and specify the version property.")
             }
         }
         propertiesFile
+    }
+
+    protected void writeVersion(File file, String key,  version) {
+        try {
+            project.ant.propertyfile(file: file) {
+                entry(key: key, value: version)
+            }
+        } catch (BuildException be) {
+            throw new GradleException('Unable to write version property.', be)
+        }
     }
 
     boolean isVersionDefined() {
@@ -134,14 +144,8 @@ class PluginHelper {
             }
             def versionProperties = extension.versionProperties + 'version'
             def propFile = findPropertiesFile()
-            versionProperties.each { prop ->
-                try {
-                    project.ant.propertyfile(file: propFile) {
-                        entry(key: prop, value: project.version)
-                    }
-                } catch (BuildException be) {
-                    throw new GradleException('Unable to update version property.', be)
-                }
+            versionProperties.each { String prop ->
+                writeVersion(propFile, prop, project.version);
             }
         }
     }
