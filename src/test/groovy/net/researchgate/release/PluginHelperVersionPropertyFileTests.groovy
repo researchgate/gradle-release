@@ -94,14 +94,13 @@ public class PluginHelperVersionPropertyFileTests extends Specification {
         assert proj2.version == project.version
     }
 
-     def 'should not fail when version contains spaces'() {
-         given:
-         helper.updateVersionProperty(" 2.2 ")
-         project.version = "2.2"
-         when:
-         helper.updateVersionProperty("2.3")
-         then:
-         assert project.version == '2.3'
-     }
-
+    def 'should not fail when version contains spaces'() {
+        given:
+        helper.updateVersionProperty(" 2.5 ")
+        project.createScmAdapter.execute()
+        when:
+        project.initScmAdapter.execute()
+        then:
+        noExceptionThrown()
+    }
 }
