@@ -94,10 +94,11 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
             startParameter = project.getGradle().startParameter.newInstance()
 
             project.afterEvaluate {
-
-                tasks = ['beforeReleaseBuild',
-                         extension.buildTasks.size() > 0 ? extension.buildTasks : ['build'],
-                         'afterReleaseBuild'].flatten()
+                tasks = [
+                    'beforeReleaseBuild',
+                     extension.buildTasks,
+                     'afterReleaseBuild'
+                ].flatten()
             }
         }
 

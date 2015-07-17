@@ -30,7 +30,7 @@ class ReleaseExtension {
 
     boolean revertOnFail = true
 
-    List buildTasks = []
+    List buildTasks = ['build']
 
     String preCommitText = ''
 
