@@ -74,7 +74,7 @@ class PluginHelper {
             }
             boolean createIt = project.hasProperty('version') && promptYesOrNo("[$propertiesFile.canonicalPath] not found, create it with version = ${project.version}")
             if (createIt) {
-                writeVersion(propertiesFile, 'version', project.version);
+                writeVersion(propertiesFile, 'version', project.version)
             } else {
                 log.debug "[$propertiesFile.canonicalPath] was not found, and user opted out of it being created. Throwing exception."
                 throw new GradleException("[$propertiesFile.canonicalPath] not found and you opted out of it being created,\n please create it manually and and specify the version property.")
@@ -145,7 +145,7 @@ class PluginHelper {
             def versionProperties = extension.versionProperties + 'version'
             def propFile = findPropertiesFile()
             versionProperties.each { String prop ->
-                writeVersion(propFile, prop, project.version);
+                writeVersion(propFile, prop, project.version)
             }
         }
     }

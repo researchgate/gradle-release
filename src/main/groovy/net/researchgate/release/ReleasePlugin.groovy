@@ -106,7 +106,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
         project.gradle.taskGraph.afterTask { Task task, TaskState state ->
             if (state.failure && task.name == "release") {
                 try {
-                    createScmAdapter();
+                    createScmAdapter()
                 } catch (Exception e) {}
                 if (scmAdapter && extension.revertOnFail && project.file(extension.versionPropertyFile)?.exists()) {
                     log.error('Release process failed, reverting back any changes made by Release Plugin.')
@@ -279,7 +279,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
      * @param directory the directory to start from
      */
     protected BaseScmAdapter findScmAdapter() {
-        BaseScmAdapter adapter;
+        BaseScmAdapter adapter
         File projectPath = project.rootProject.projectDir.canonicalFile
 
         extension.scmAdapters.find {
