@@ -11,9 +11,6 @@
 package net.researchgate.release
 
 import org.apache.tools.ant.BuildException
-
-import java.util.regex.Matcher
-
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -21,6 +18,8 @@ import org.gradle.api.Task
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.tasks.GradleBuild
 import org.gradle.api.tasks.TaskState
+
+import java.util.regex.Matcher
 
 class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
@@ -94,11 +93,12 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
         project.task('runBuildTasks', group: RELEASE_GROUP, description: 'Runs the build process in a separate gradle run.', type: GradleBuild) {
             startParameter = project.getGradle().startParameter.newInstance()
 
-            tasks = [
-                'beforeReleaseBuild',
-                'build',
-                'afterReleaseBuild'
-            ]
+            project.afterEvaluate {
+
+                tasks = ['beforeReleaseBuild',
+                         extension.buildTasks.size() > 0 ? extension.buildTasks : ['build'],
+                         'afterReleaseBuild'].flatten()
+            }
         }
 
         project.task('beforeReleaseBuild', group: RELEASE_GROUP, description: 'Runs immediately before the build when doing a release') {}
