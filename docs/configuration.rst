@@ -106,6 +106,24 @@ Common
     The commit message for the commit that needs to happen in some VCS when creating a tag. Currently this setting is
     only used for subversion.
 
+.. confval:: newVersionCommitMessage
+
+    *Default: '[Gradle Release Plugin] - new version commit: '*
+
+    The commit message for the commit that happens after the tag has been created and the next version is set in the properties file.
+
+.. confval:: versionPropertyFile
+
+    *Default: 'gradle.properties'*
+
+    The name of the file that holds the version.
+
+.. confval:: versionProperties
+
+    *Default: []*
+
+    The name of the properties that will be written to the versionPropertyFile (TBD link). 'version' is always added to this list.
+
 
 Bazaar
 ------
