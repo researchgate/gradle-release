@@ -10,11 +10,7 @@
 
 package net.researchgate.release
 
-import net.researchgate.release.android.AndroidFlavor
 import org.apache.tools.ant.BuildException
-
-import java.util.regex.Matcher
-
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -22,6 +18,8 @@ import org.gradle.api.Task
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.tasks.GradleBuild
 import org.gradle.api.tasks.TaskState
+
+import java.util.regex.Matcher
 
 class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
@@ -96,19 +94,9 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
             startParameter = project.getGradle().startParameter.newInstance()
 
             project.afterEvaluate {
-                def customBuildTask = ['build']
-
-                if (extension.isAndroidBuild && extension.androidFlavors) {
-                    customBuildTask = []
-                    extension.androidFlavors.each {
-                        def flavor = new AndroidFlavor(it)
-                        customBuildTask.add(flavor.getBuildCommand())
-                        customBuildTask.add(flavor.getTestCommand())
-                    }
-                }
 
                 tasks = ['beforeReleaseBuild',
-                         customBuildTask,
+                         extension.buildTasks.size() > 0 ? extension.buildTasks : ['build'],
                          'afterReleaseBuild'].flatten()
             }
         }

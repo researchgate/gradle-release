@@ -30,9 +30,7 @@ class ReleaseExtension {
 
     boolean revertOnFail = true
 
-    boolean isAndroidBuild = false
-
-    List androidFlavors = []
+    List buildTasks = []
 
     String preCommitText = ''
 
