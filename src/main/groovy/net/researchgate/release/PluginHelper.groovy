@@ -83,10 +83,12 @@ class PluginHelper {
         propertiesFile
     }
 
-    protected void writeVersion(File file, String key,  version) {
+    protected void writeVersion(File file, String key, version) {
         try {
-            project.ant.propertyfile(file: file) {
-                entry(key: key, value: version)
+            // we use replace here as other ant tasks escape and modify the whole file
+            project.ant.replaceregexp(file: file, byline: true) {
+                regexp(pattern: "$key(\\s*)=(\\s*).+")
+                substitution(expression: "$key\\1=\\2$version")
             }
         } catch (BuildException be) {
             throw new GradleException('Unable to write version property.', be)
