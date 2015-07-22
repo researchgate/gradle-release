@@ -10,7 +10,6 @@
 
 package net.researchgate.release
 
-import org.apache.tools.ant.BuildException
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
