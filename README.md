@@ -161,7 +161,7 @@ Eg. To ignore upstream changes, change 'failOnUpdateNeeded' to false:
     release {
       failOnUpdateNeeded = false
     }
-    
+
 This are all possible configuration options and its default values:
 
 ```
@@ -179,22 +179,23 @@ release {
     tagTemplate = '${version}'
     versionPropertyFile = 'gradle.properties'
     versionProperties = []
+    buildTasks = ['build']
     versionPatterns = [
         /(\d+)([^\d]*$)/: { Matcher m, Project p -> m.replaceAll("${(m[0][1] as int) + 1}${m[0][2]}") }
     ]
     scmAdapters = [
-        net.researchgate.release.GitAdapter, 
-        net.researchgate.release.SvnAdapter, 
-        net.researchgate.release.HgAdapter, 
+        net.researchgate.release.GitAdapter,
+        net.researchgate.release.SvnAdapter,
+        net.researchgate.release.HgAdapter,
         net.researchgate.release.BzrAdapter
     ]
-    
+
     git {
         requireBranch = 'master'
         pushToRemote = 'origin'
         pushToCurrentBranch = false
     }
-    
+
     svn {
         username = null
         password = null

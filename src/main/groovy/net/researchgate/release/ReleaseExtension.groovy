@@ -30,8 +30,6 @@ class ReleaseExtension {
 
     boolean revertOnFail = true
 
-    List buildTasks = ['build']
-
     String preCommitText = ''
 
     String preTagCommitMessage = '[Gradle Release Plugin] - pre tag commit: '
@@ -48,6 +46,8 @@ class ReleaseExtension {
     String versionPropertyFile = 'gradle.properties'
 
     List versionProperties = []
+
+    List buildTasks = ['build']
 
     def versionPatterns = [
         // Increments last number: "2.5-SNAPSHOT" => "2.6-SNAPSHOT"

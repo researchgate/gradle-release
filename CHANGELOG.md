@@ -3,9 +3,17 @@
 ## 2.2.0
 ##### Released: XX
 
+### Bugfixes
+
+* COMMON: Refactored writing of version property to property-file. (#120, thanks simonsilvalauinger)
+    * Spaces are now preserved in properties file
+    * No other properties will be touched
+    * DateTime will not be written anymore
+
 ### New Features
 
 * COMMON: Possibility to use a regex for the option requireBranch (#118,#119, thanks grigorigoldman)
+* COMMON: Possibility to use custom build tasks by setting the option ```buildTasks``` (#117, thanks ntarocco)
 
 ## 2.1.2
 ##### Released: 12. June 2015
