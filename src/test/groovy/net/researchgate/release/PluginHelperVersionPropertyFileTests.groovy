@@ -110,4 +110,23 @@ public class PluginHelperVersionPropertyFileTests extends Specification {
         noExceptionThrown()
         lines[0] == 'version = 2.6'
     }
+
+    def 'should not escape other stuff'() {
+        given:
+        project.version = '3.0'
+        def props = project.file("gradle.properties")
+        props.withWriter {
+            it << "version=${project.version}\n"
+            it << "something=http://www.gradle.org/test\n"
+        }
+        project.createScmAdapter.execute()
+        when:
+        project.initScmAdapter.execute()
+        helper.updateVersionProperty('3.1')
+        def lines = project.file("gradle.properties").readLines()
+        then:
+        noExceptionThrown()
+        lines[0] == 'version=3.1'
+        lines[1] == 'something=http://www.gradle.org/test'
+    }
 }
