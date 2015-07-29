@@ -92,11 +92,13 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
         project.task('runBuildTasks', group: RELEASE_GROUP, description: 'Runs the build process in a separate gradle run.', type: GradleBuild) {
             startParameter = project.getGradle().startParameter.newInstance()
 
-            tasks = [
-                'beforeReleaseBuild',
-                 extension.buildTasks,
-                 'afterReleaseBuild'
-            ].flatten()
+            project.afterEvaluate {
+                tasks = [
+                    'beforeReleaseBuild',
+                     extension.buildTasks,
+                     'afterReleaseBuild'
+                ].flatten()
+            }
         }
 
         project.task('beforeReleaseBuild', group: RELEASE_GROUP, description: 'Runs immediately before the build when doing a release') {}
