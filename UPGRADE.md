@@ -64,7 +64,7 @@ These two scenarios should make it easy to get the same result as before:
 Remove ``includeProjectNameInTag`` or ``tagPrefix`` and add 
 ```
 release {
-    tagTemplate = "something-${version}"
+    tagTemplate = 'something-$version'
 }
 ```
 
@@ -76,7 +76,7 @@ Remove ``includeProjectNameInTag`` or ``tagPrefix`` and add
 
 ```
 release {
-    tagTemplate = "${name}-${version}"
+    tagTemplate = '$name-$version'
 }
 ```
 
