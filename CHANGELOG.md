@@ -1,7 +1,7 @@
 # Changelog
 
 ## 2.2.0
-##### Released: XX
+##### Released:  9. August 2015
 
 ### Bugfixes
 
