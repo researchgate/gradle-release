@@ -126,7 +126,7 @@ class PluginHelper {
     }
 
     String findProperty(String key, String defaultVal = "") {
-        System.properties[key] ?: project.properties[key] ?: defaultVal
+        System.getProperty(key) ?: project.hasProperty(key) ? project.property(key) : defaultVal
     }
 
 
