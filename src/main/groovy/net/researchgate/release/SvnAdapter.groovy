@@ -140,12 +140,12 @@ class SvnAdapter extends BaseScmAdapter {
         String svnRoot = props.releaseSvnRoot
         String svnTag = tagName()
 
-        svnExec(['cp', "${svnUrl}@${svnRev}", "${svnRoot}/tags/${svnTag}", '--parents', '-m', message])
+        svnExec(['copy', "${svnUrl}@${svnRev}", "${svnRoot}/tags/${svnTag}", '--parents', '-m', message])
     }
 
     @Override
     void commit(String message) {
-        String out = svnExec(['ci', '-m', message], errorMessage: 'Error committing new version', errorPatterns: [ERROR])
+        String out = svnExec(['commit', '-m', message], errorMessage: 'Error committing new version', errorPatterns: [ERROR])
 
         // After the first commit we need to find the new revision so the tag is made from the correct revision
         if (project.properties.releaseSvnRev == null) {
