@@ -3,7 +3,7 @@
 ## 2.2.1
 ##### Released:  18. August 2015
 
-* COMMON: Fix compatibility to maven-publish plugin (#125 thanks raphsoft and alibkord)
+* COMMON: Fix incompatibility with maven-publish plugin (#125 thanks raphsoft and alibkord)
 
 ## 2.2.0
 ##### Released:  9. August 2015
