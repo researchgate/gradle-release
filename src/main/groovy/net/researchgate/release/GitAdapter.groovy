@@ -60,7 +60,6 @@ class GitAdapter extends BaseScmAdapter {
 
     @Override
     void checkCommitNeeded() {
-
         def status = gitStatus()
 
         if (status[UNVERSIONED]) {
