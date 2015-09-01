@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.2.2
+##### Released:  not yet
+
+* GIT: Catch errors correctly when doing commit (#128 thanks grigorigoldman)
+
 ## 2.2.1
 ##### Released:  18. August 2015
 
