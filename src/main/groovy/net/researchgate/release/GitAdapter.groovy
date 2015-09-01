@@ -150,7 +150,7 @@ class GitAdapter extends BaseScmAdapter {
     }
 
     private Map<String, Integer> gitRemoteStatus() {
-        def branchStatus = exec(['git', 'status', '-sb']).readLines()[0]
+        def branchStatus = exec(['git', 'status', '--porcelain', '-b']).readLines()[0]
         def aheadMatcher = branchStatus =~ /.*ahead (\d+).*/
         def behindMatcher = branchStatus =~ /.*behind (\d+).*/
 
