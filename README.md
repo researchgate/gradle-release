@@ -19,7 +19,7 @@ The `gradle release` task defines the following as the default release process:
 * Prompts you for the next version.
 * Commits the project with the new version.
 
-Current SCM support: [Bazaar](http://bazaar.canonical.com/en/), [Git](http://git-scm.com/), [Mercurial](http://mercurial.selenic.com/), and [Subversion](http://subversion.apache.org/)
+Current SCM support: [Bazaar](http://bazaar.canonical.com/en/), [Git](http://git-scm.com/) (1.7.2 or newer), [Mercurial](http://mercurial.selenic.com/), and [Subversion](http://subversion.apache.org/)
 
 ## Installation
 
