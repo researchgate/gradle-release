@@ -35,6 +35,10 @@ abstract class GitSpecification extends Specification {
         gitAdd(git, name, content)
         git.commit().setAll(true).setMessage("commit $name").call()
     }
+	
+	static void gitCommit(Git git, String commitMessage) {
+		git.commit().setAll(true).setMessage(commitMessage).call()
+	}
 
     static void gitHardReset(Git git) {
         git.reset().setMode(HARD).setRef(HEAD).call()

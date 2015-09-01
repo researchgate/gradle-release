@@ -34,4 +34,6 @@ abstract class BaseScmAdapter extends PluginHelper {
     abstract void commit(String message)
 
     abstract void revert()
+	
+	abstract String assignReleaseVersionAutomatically(String currentVersion)
 }

@@ -175,6 +175,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
         String releaseVersion = project.properties['releaseVersion']
 
         if (useAutomaticVersion()) {
+			releaseVersion = scmAdapter.assignReleaseVersionAutomatically(candidateVersion)
             return releaseVersion ?: candidateVersion
         }
 

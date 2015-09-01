@@ -10,6 +10,7 @@
 
 package net.researchgate.release
 
+import org.gradle.api.GradleException
 import org.gradle.api.Project
 
 class HgAdapter extends BaseScmAdapter {
@@ -97,4 +98,9 @@ class HgAdapter extends BaseScmAdapter {
     private String hgCurrentBranch() {
         exec(['hg', 'branch']).readLines()[0]
     }
+	
+	@Override
+	String assignReleaseVersionAutomatically(String currentVersion) {
+		throw new GradleException("Method not implemented yet.")
+	}
 }

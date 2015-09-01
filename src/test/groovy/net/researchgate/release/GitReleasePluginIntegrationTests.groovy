@@ -32,10 +32,11 @@ class GitReleasePluginIntegrationTests extends GitSpecification {
     }
 
     def 'integration test'() {
-        given: 'setting project version to 1.1'
-        project.version = '1.1'
+        given: 'setting project version to 1.1.0'
+        project.version = '1.1.0'
         project.ext.set('gradle.release.useAutomaticVersion', "true")
-        gitAddAndCommit(localGit, "gradle.properties") { it << "version=$project.version" }
+        gitAdd(localGit, "gradle.properties") { it << "version=$project.version" }
+		gitCommit(localGit, 'Merge branch \'feature-integration\' into \'master\'')
         localGit.push().setForce(true).call()
         when: 'calling release task indirectly'
         project.tasks['release'].tasks.each { task ->
@@ -49,17 +50,17 @@ class GitReleasePluginIntegrationTests extends GitSpecification {
         }
         def st = localGit.status().call()
         gitHardReset(remoteGit)
-        then: 'project version updated'
-        project.version == '1.2'
-        and: 'mo modified files in local repo'
+        then: 'project version after tag is updated'
+        project.version == '1.2.1'
+        and: 'no modified files in local repo'
         st.modified.size() == 0 && st.added.size() == 0 && st.changed.size() == 0
-        and: 'tag with old version 1.1 created in local repo'
-        localGit.tagList().call().any { shortenRefName(it.name) == '1.1' }
-        and: 'property file updated to new version in local repo'
-        localGit.repository.workTree.listFiles().any { it.name == 'gradle.properties' && it.text.contains("version=1.2") }
-        and: 'property file with new version pushed to remote repo'
-        remoteGit.repository.workTree.listFiles().any { it.name == 'gradle.properties' && it.text.contains("version=1.2") }
-        and: 'tag with old version 1.1 pushed to remote repo'
-        remoteGit.tagList().call().any { shortenRefName(it.name) == '1.1' }
+        and: 'tag with version 1.2.0 created in local repo'
+        localGit.tagList().call().any { shortenRefName(it.name) == '1.2.0' }
+        and: 'property file updated to new version in local repo to match tag'
+        localGit.repository.workTree.listFiles().any { it.name == 'gradle.properties' && it.text.contains("version=1.2.1") }
+        and: 'property file with new version pushed to remote repo to match tag'
+        remoteGit.repository.workTree.listFiles().any { it.name == 'gradle.properties' && it.text.contains("version=1.2.1") }
+        and: 'tag with version 1.2.0 pushed to remote repo'
+        remoteGit.tagList().call().any { shortenRefName(it.name) == '1.2.0' }
     }
 }

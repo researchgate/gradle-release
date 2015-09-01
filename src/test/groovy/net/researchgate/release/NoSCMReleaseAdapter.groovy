@@ -57,4 +57,9 @@ class NoSCMReleaseAdapter extends BaseScmAdapter {
     void revert() {
         //To change body of implemented methods use File | Settings | File Templates.
     }
+	
+	@Override
+	String assignReleaseVersionAutomatically(String currentVersion) {
+		//
+	}
 }

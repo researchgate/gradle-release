@@ -209,4 +209,9 @@ class SvnAdapter extends BaseScmAdapter {
             throw new GradleException('Could not determine root SVN url or revision.')
         }
     }
+	
+	@Override
+	String assignReleaseVersionAutomatically(String currentVersion) {
+		throw new GradleException("Method not implemented yet.")
+	}
 }

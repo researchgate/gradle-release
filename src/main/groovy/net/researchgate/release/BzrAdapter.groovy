@@ -124,4 +124,9 @@ class BzrAdapter extends BaseScmAdapter {
     void revert() {
         exec(['bzr', 'revert', findPropertiesFile().name], errorMessage: 'Error reverting changes made by the release plugin.', errorPatterns: [ERROR])
     }
+	
+	@Override
+	String assignReleaseVersionAutomatically(String currentVersion) {
+		throw new GradleException("Method not implemented yet.")
+	}
 }

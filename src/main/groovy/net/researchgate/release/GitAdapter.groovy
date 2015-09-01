@@ -116,6 +116,35 @@ class GitAdapter extends BaseScmAdapter {
     void revert() {
         exec(['git', 'checkout', findPropertiesFile().name], errorMessage: 'Error reverting changes made by the release plugin.')
     }
+	
+	@Override
+	String assignReleaseVersionAutomatically(String currentVersion) {
+		def lastCommitMessage = exec(['git', 'log', '-1', '--pretty=%B']).readLines()[0]
+		def latestTag = getLatestTag()
+		def version = new SemanticVersion(currentVersion)
+		if (latestTag != null) {
+			version = new SemanticVersion(latestTag)
+		}
+		
+		def newVersion = null
+		if (lastCommitMessage.contains('feature-')) {
+			newVersion = version.newFeature()
+		} else if (lastCommitMessage.contains('patch-')) {
+			newVersion = version.newPatch()
+		} else if (lastCommitMessage.contains('major-')) {
+			newVersion = version.newMajor()
+		} else {
+			throw new GradleException("Could not assign release version automatically because " +  
+				"there is no information on last commit message to identify whether the change is major, feature or patch." +
+				"Last commit message should contain one of these keywords: major-, feature-, patch- in order to version automatically")
+		}
+		return newVersion.toString()
+	}
+	
+	private String getLatestTag() {
+		def latestTag = exec(['git', 'describe', '--abbrev=0']).readLines()[0]
+		return latestTag
+	}
 
     private boolean shouldPush() {
         def shouldPush = false
