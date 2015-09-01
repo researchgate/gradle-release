@@ -100,7 +100,7 @@ class GitAdapter extends BaseScmAdapter {
 
     @Override
     void commit(String message) {
-        exec(['git', 'commit', '-a', '-m', message])
+        exec(['git', 'commit', '-a', '-m', message], errorPatterns: ['error: ', 'fatal: '])
         if (shouldPush()) {
             def branch
             if (extension.git.pushToCurrentBranch) {
