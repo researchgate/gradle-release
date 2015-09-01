@@ -33,9 +33,8 @@ class Executor {
 
         logger?.info("Running $commands in [$directory]")
         Process process = commands.execute(processEnv, directory)
-        logger?.info("Running $commands produced output: [${out.toString().trim()}]")
-
         process.waitForProcessOutput(out, err)
+        logger?.info("Running $commands produced output: [${out.toString().trim()}]")
 
         if (err.toString()) {
             def message = "Running $commands produced an error: [${err.toString().trim()}]"
