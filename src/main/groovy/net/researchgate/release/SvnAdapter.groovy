@@ -19,7 +19,7 @@ class SvnAdapter extends BaseScmAdapter {
 
     private static final String ERROR = 'Commit failed'
 
-    private static final def urlPattern = ~/URL:\s(.*?)(\/(trunk|branches|tags).*?)$/
+    private static final def urlPattern = ~/URL:\s(.*?)(\/(?i)(trunk|branches|tags).*?)$/
 
     private static final def revPattern = ~/Revision:\s(.*?)$/
 
