@@ -27,6 +27,9 @@ class GitAdapter extends BaseScmAdapter {
     class GitConfig {
         String requireBranch = 'master'
         def pushToRemote = 'origin' // needs to be def as can be boolean or string
+
+        /** @deprecated Remove in version 3.0 */
+        @Deprecated
         boolean pushToCurrentBranch = false
     }
 
@@ -101,13 +104,7 @@ class GitAdapter extends BaseScmAdapter {
     void commit(String message) {
         exec(['git', 'commit', '-a', '-m', message], errorPatterns: ['error: ', 'fatal: '])
         if (shouldPush()) {
-            def branch
-            if (extension.git.pushToCurrentBranch) {
-                branch = gitCurrentBranch()
-            } else {
-                branch = extension.git.requireBranch ? extension.git.requireBranch : 'master'
-            }
-            exec(['git', 'push', '--porcelain', extension.git.pushToRemote, branch], errorMessage: 'Failed to push to remote', errorPatterns: ['[rejected]', 'error: ', 'fatal: '])
+            exec(['git', 'push', '--porcelain', extension.git.pushToRemote, gitCurrentBranch()], errorMessage: 'Failed to push to remote', errorPatterns: ['[rejected]', 'error: ', 'fatal: '])
         }
     }
 

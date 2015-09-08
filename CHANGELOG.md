@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.3.0
+##### Released: not yet
+
+### Bugfixes
+
+* GIT: The option ```pushToCurrentBranch``` is deprecated, as it was simply unnecessary
+
 ## 2.2.2
 ##### Released: 8. September 2015
 
