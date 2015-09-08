@@ -64,7 +64,7 @@ class GitReleasePluginTests extends Specification {
         given:
         project.release.git.requireBranch = 'myBranch'
         when:
-        (new GitAdapter(project)).init()
+        (new GitAdapter(project, [:])).init()
         then:
         GradleException ex = thrown()
         ex.message == 'Current Git branch is "master" and not "myBranch".'
@@ -74,7 +74,7 @@ class GitReleasePluginTests extends Specification {
         given:
         project.release.git.requireBranch = /myBranch|master/
         when:
-        (new GitAdapter(project)).init()
+        (new GitAdapter(project, [:])).init()
         then:
         noExceptionThrown()
     }

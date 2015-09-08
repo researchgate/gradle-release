@@ -28,9 +28,9 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
     void apply(Project project) {
         this.project = project
-        extension = project.extensions.create('release', ReleaseExtension, project)
+        extension = project.extensions.create('release', ReleaseExtension, project, attributes)
 
-        def preCommitText = findProperty('release.preCommitText') ?: findProperty('preCommitText')
+        def preCommitText = findProperty('release.preCommitText', null, 'preCommitText')
         if (preCommitText) {
             extension.preCommitText = preCommitText
         }
@@ -39,31 +39,18 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
             startParameter = project.getGradle().startParameter.newInstance()
 
             tasks = [
-                    'createScmAdapter',
-                    //  0. (This Plugin) Initializes the corresponding SCM plugin (Git/Bazaar/Svn/Mercurial).
-                    'initScmAdapter',
-                    //  1. (SCM Plugin) Check to see if source needs to be checked in.
-                    'checkCommitNeeded',
-                    //  2. (SCM Plugin) Check to see if source is out of date
-                    'checkUpdateNeeded',
-                    //  3. (This Plugin) Update Snapshot version if used
-                    //     Needs to be done before checking for snapshot versions since the project might depend on other
-                    //     Modules within the same project.
-                    'unSnapshotVersion',
-                    //  4. (This Plugin) Confirm this release version
-                    'confirmReleaseVersion',
-                    //  5. (This Plugin) Check for SNAPSHOT dependencies if required.
-                    'checkSnapshotDependencies',
-                    //  6. (This Plugin) Build && run Unit tests
-                    'runBuildTasks',
-                    //  7. (This Plugin) Commit Snapshot update (if done)
-                    'preTagCommit',
-                    //  8. (SCM Plugin) Create tag of release.
-                    'createReleaseTag',
-                    //  9. (This Plugin) Update version to next version.
-                    'updateVersion',
-                    // 10. (This Plugin) Commit version update.
-                    'commitNewVersion'
+                'createScmAdapter',
+                'initScmAdapter',
+                'checkCommitNeeded',
+                'checkUpdateNeeded',
+                'unSnapshotVersion',
+                'confirmReleaseVersion',
+                'checkSnapshotDependencies',
+                'runBuildTasks',
+                'preTagCommit',
+                'createReleaseTag',
+                'updateVersion',
+                'commitNewVersion'
             ]
         }
 
@@ -75,31 +62,31 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
             description: 'Checks to see if there are any added, modified, removed, or un-versioned files.') << this.&checkCommitNeeded
         project.task('checkUpdateNeeded', group: RELEASE_GROUP,
             description: 'Checks to see if there are any incoming or outgoing changes that haven\'t been applied locally.') << this.&checkUpdateNeeded
-        project.task('checkSnapshotDependencies', group: RELEASE_GROUP,
-            description: 'Checks to see if your project has any SNAPSHOT dependencies.') << this.&checkSnapshotDependencies
         project.task('unSnapshotVersion', group: RELEASE_GROUP,
             description: 'Removes "-SNAPSHOT" from your project\'s current version.') << this.&unSnapshotVersion
         project.task('confirmReleaseVersion', group: RELEASE_GROUP,
             description: 'Prompts user for this release version. Allows for alpha or pre releases.') << this.&confirmReleaseVersion
-        project.task('preTagCommit', group: RELEASE_GROUP,
-            description: 'Commits any changes made by the Release plugin - eg. If the unSnapshotVersion tas was executed') << this.&preTagCommit
-        project.task('updateVersion', group: RELEASE_GROUP,
-            description: 'Prompts user for the next version. Does it\'s best to supply a smart default.') << this.&updateVersion
-        project.task('commitNewVersion', group: RELEASE_GROUP,
-            description: 'Commits the version update to your SCM') << this.&commitNewVersion
-        project.task('createReleaseTag', group: RELEASE_GROUP,
-            description: 'Creates a tag in SCM for the current (un-snapshotted) version.') << this.&commitTag
+        project.task('checkSnapshotDependencies', group: RELEASE_GROUP,
+            description: 'Checks to see if your project has any SNAPSHOT dependencies.') << this.&checkSnapshotDependencies
         project.task('runBuildTasks', group: RELEASE_GROUP, description: 'Runs the build process in a separate gradle run.', type: GradleBuild) {
             startParameter = project.getGradle().startParameter.newInstance()
 
             project.afterEvaluate {
                 tasks = [
                     'beforeReleaseBuild',
-                     extension.buildTasks,
-                     'afterReleaseBuild'
+                    extension.buildTasks,
+                    'afterReleaseBuild'
                 ].flatten()
             }
         }
+        project.task('preTagCommit', group: RELEASE_GROUP,
+            description: 'Commits any changes made by the Release plugin - eg. If the unSnapshotVersion tas was executed') << this.&preTagCommit
+        project.task('createReleaseTag', group: RELEASE_GROUP,
+            description: 'Creates a tag in SCM for the current (un-snapshotted) version.') << this.&commitTag
+        project.task('updateVersion', group: RELEASE_GROUP,
+            description: 'Prompts user for the next version. Does it\'s best to supply a smart default.') << this.&updateVersion
+        project.task('commitNewVersion', group: RELEASE_GROUP,
+            description: 'Commits the version update to your SCM') << this.&commitNewVersion
 
         project.task('beforeReleaseBuild', group: RELEASE_GROUP, description: 'Runs immediately before the build when doing a release') {}
         project.task('afterReleaseBuild', group: RELEASE_GROUP, description: 'Runs immediately after the build when doing a release') {}
@@ -172,7 +159,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
     }
 
     String getReleaseVersion(String candidateVersion = "${project.version}") {
-        String releaseVersion = project.properties['releaseVersion']
+        String releaseVersion = findProperty('release.releaseVersion', null, 'releaseVersion')
 
         if (useAutomaticVersion()) {
             return releaseVersion ?: candidateVersion
@@ -185,17 +172,14 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
         def version = project.version.toString()
 
         if (version.contains('-SNAPSHOT')) {
-            project.ext.set('usesSnapshot', true)
-            project.ext.set('snapshotVersion', version)
+            attributes.usesSnapshot = true
             version -= '-SNAPSHOT'
             updateVersionProperty(version)
-        } else {
-            project.ext.set('usesSnapshot', false)
         }
     }
 
     void preTagCommit() {
-        if (project.properties['usesSnapshot'] || project.properties['versionModified']) {
+        if (attributes.usesSnapshot || attributes.versionModified) {
             // should only be committed if the project was using a snapshot version.
             def message = extension.preTagCommitMessage + " '${tagName()}'."
 
@@ -219,15 +203,13 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
             if (matcher.find()) {
                 String nextVersion = handler(matcher, project)
-                if (project.properties['usesSnapshot']) {
+                if (attributes.usesSnapshot) {
                     nextVersion += '-SNAPSHOT'
                 }
 
                 nextVersion = getNextVersion(nextVersion)
-
-                project.ext.set('release.oldVersion', project.version)
-                project.ext.set('release.newVersion', nextVersion)
                 updateVersionProperty(nextVersion)
+
                 return
             }
         }
@@ -236,7 +218,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
     }
 
     String getNextVersion(String candidateVersion) {
-        String nextVersion = project.properties['newVersion']
+        String nextVersion = findProperty('release.newVersion', null, 'newVersion')
 
         if (useAutomaticVersion()) {
             return nextVersion ?: candidateVersion
@@ -286,7 +268,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
         extension.scmAdapters.find {
             assert BaseScmAdapter.isAssignableFrom(it)
 
-            BaseScmAdapter instance = it.getConstructor(Project.class).newInstance(project)
+            BaseScmAdapter instance = it.getConstructor(Project.class, Map.class).newInstance(project, attributes)
             if (instance.isSupported(projectPath)) {
                 adapter = instance
                 return true

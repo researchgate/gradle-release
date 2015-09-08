@@ -14,8 +14,9 @@ import org.gradle.api.Project
 
 abstract class BaseScmAdapter extends PluginHelper {
 
-    BaseScmAdapter(Project project) {
+    BaseScmAdapter(Project project, Map<String, Object> attributes) {
         this.project = project
+        this.attributes = attributes
         extension = project.extensions['release'] as ReleaseExtension
     }
 

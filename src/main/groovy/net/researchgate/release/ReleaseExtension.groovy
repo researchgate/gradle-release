@@ -74,8 +74,10 @@ class ReleaseExtension {
     String tagPrefix
 
     private Project project
+    private Map<String, Object> attributes
 
-    ReleaseExtension(Project project) {
+    ReleaseExtension(Project project, Map<String, Object> attributes) {
+        this.attributes = attributes
         this.project = project
         ExpandoMetaClass mc = new ExpandoMetaClass(ReleaseExtension, false, true)
         mc.initialize()
@@ -122,7 +124,7 @@ class ReleaseExtension {
                 return false
             }
 
-            adapter = it.getConstructor(Project.class).newInstance(project)
+            adapter = it.getConstructor(Project.class, Map.class).newInstance(project, attributes)
 
             return true
         }

@@ -16,8 +16,8 @@ class HgAdapter extends BaseScmAdapter {
 
     private static final String ERROR = 'abort:'
 
-    HgAdapter(Project project) {
-        super(project)
+    HgAdapter(Project project, Map<String, Object> attributes) {
+        super(project, attributes)
     }
 
     @Override

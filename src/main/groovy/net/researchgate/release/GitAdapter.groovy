@@ -30,8 +30,8 @@ class GitAdapter extends BaseScmAdapter {
         boolean pushToCurrentBranch = false
     }
 
-    GitAdapter(Project project) {
-        super(project)
+    GitAdapter(Project project, Map<String, Object> attributes) {
+        super(project, attributes)
     }
 
     @Override

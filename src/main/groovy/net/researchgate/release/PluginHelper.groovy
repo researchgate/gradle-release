@@ -29,6 +29,8 @@ class PluginHelper {
 
     protected Executor executor
 
+    protected Map<String, Object> attributes = [:]
+
     /**
      * Retrieves SLF4J {@link Logger} instance.
      *
@@ -40,8 +42,7 @@ class PluginHelper {
     Logger getLog() { project?.logger ?: LoggerFactory.getLogger(this.class) }
 
     boolean useAutomaticVersion() {
-        project.hasProperty('release.useAutomaticVersion') && project.getProperty('release.useAutomaticVersion') == "true" ||
-            project.hasProperty('gradle.release.useAutomaticVersion') && project.getProperty('gradle.release.useAutomaticVersion') == "true"
+        findProperty('release.useAutomaticVersion', null, 'gradle.release.useAutomaticVersion') == 'true'
     }
 
     /**
@@ -70,10 +71,11 @@ class PluginHelper {
         File propertiesFile = project.file(extension.versionPropertyFile)
         if (!propertiesFile.file) {
             if (!isVersionDefined()) {
-                project.version = useAutomaticVersion() ? '1.0' : readLine('Version property not set, please set it now:', '1.0')
+                project.version = useAutomaticVersion() ? '1.0.0' : readLine('Version property not set, please set it now:', '1.0.0')
+                attributes.usesSnapshot = true
             }
-            boolean createIt = project.hasProperty('version') && promptYesOrNo("[$propertiesFile.canonicalPath] not found, create it with version = ${project.version}")
-            if (createIt) {
+
+            if (promptYesOrNo("[$propertiesFile.canonicalPath] not found, create it with version = ${project.version}")) {
                 writeVersion(propertiesFile, 'version', project.version)
             } else {
                 log.debug "[$propertiesFile.canonicalPath] was not found, and user opted out of it being created. Throwing exception."
@@ -125,8 +127,14 @@ class PluginHelper {
         tagName
     }
 
-    String findProperty(String key, String defaultVal = "") {
-        System.getProperty(key) ?: project.hasProperty(key) ? project.property(key) : defaultVal
+    String findProperty(String key, Object defaultVal = null, String deprecatedKey = null) {
+        def property = System.getProperty(key) ?: project.hasProperty(key) ? project.property(key) : null
+
+        if (!property && deprecatedKey) {
+            property = System.getProperty(deprecatedKey) ?: project.hasProperty(deprecatedKey) ? project.property(deprecatedKey) : null
+        }
+
+        property ?: defaultVal
     }
 
 
@@ -140,7 +148,7 @@ class PluginHelper {
         def oldVersion = "${project.version}"
         if (oldVersion != newVersion) {
             project.version = newVersion
-            project.ext.set('versionModified', true)
+            attributes.versionModified = true
             project.subprojects?.each { Project subProject ->
                 subProject.version = newVersion
             }
@@ -176,7 +184,7 @@ class PluginHelper {
         }
         println "$_message (WAITING FOR INPUT BELOW)"
 
-        return System.in.newReader().readLine() ?: defaultValue
+        System.in.newReader().readLine() ?: defaultValue
     }
 
     private static boolean promptYesOrNo(String message, boolean defaultValue = false) {
@@ -185,6 +193,7 @@ class PluginHelper {
         if (consoleVal) {
             return consoleVal.toLowerCase().startsWith('y')
         }
+
         defaultValue
     }
 }

@@ -18,8 +18,8 @@ class BzrAdapter extends BaseScmAdapter {
     private static final String ERROR = 'ERROR'
     private static final String DELIM = '\n  * '
 
-    BzrAdapter(Project project) {
-        super(project)
+    BzrAdapter(Project project, Map<String, Object> attributes) {
+        super(project, attributes)
     }
 
     @Override

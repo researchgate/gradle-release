@@ -14,8 +14,8 @@ import org.gradle.api.Project
 
 class NoSCMReleaseAdapter extends BaseScmAdapter {
 
-    NoSCMReleaseAdapter(Project project) {
-        super(project)
+    NoSCMReleaseAdapter(Project project, Map<String, Object> attributes) {
+        super(project, attributes)
     }
 
     @Override
