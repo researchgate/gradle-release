@@ -79,6 +79,18 @@ class GitReleasePluginTests extends Specification {
         noExceptionThrown()
     }
 
+    def 'when the HEAD commit of requireBranch is checked-out then don\'t throw an exception'() {
+        given:
+        project.release.git.requireBranch = 'master'
+        // in the case where we're working in a 'detached head' mode, we should still identify the associated branch
+        def commitHash = this.executor.exec(['git', 'rev-parse', 'HEAD'], failOnStderr: true, directory: localRepo, env: [:])
+        this.executor.exec(['git', 'checkout', commitHash.trim()], failOnStderr: false, directory: localRepo, env: [:])
+        when:
+        (new GitAdapter(project)).init()
+        then:
+        noExceptionThrown()
+    }
+
     def 'should accept config as closure'() {
         when:
         project.release {
