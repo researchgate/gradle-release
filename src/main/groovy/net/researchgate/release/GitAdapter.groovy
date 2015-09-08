@@ -131,8 +131,7 @@ class GitAdapter extends BaseScmAdapter {
     }
 
     private String gitCurrentBranch() {
-        def matches = exec(['git', 'branch']).readLines().grep(~/\s*\*.*/)
-        matches[0].trim() - (~/^\*\s+/)
+        exec(['git', 'name-rev', '--name-only', 'HEAD']).readLines()[0]
     }
 
     private Map<String, List<String>> gitStatus() {
