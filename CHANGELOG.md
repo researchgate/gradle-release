@@ -5,6 +5,7 @@
 
 ### Bugfixes
 
+* GIT: Respect option ```pushToOrigin``` when pushing tag to remote
 * GIT: Catch errors correctly when doing commit (#128 thanks grigorigoldman)
 * SVN: Detect trunk/tag/branch directories case-insensitive (#130 thanks naugler)
 
