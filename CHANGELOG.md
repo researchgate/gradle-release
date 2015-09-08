@@ -1,17 +1,23 @@
 # Changelog
 
 ## 2.2.2
-##### Released:  not yet
+##### Released: 8. September 2015
 
+### Bugfixes
+
+* GIT: Respect option ```pushToOrigin``` when pushing tag to remote
 * GIT: Catch errors correctly when doing commit (#128 thanks grigorigoldman)
+* SVN: Detect trunk/tag/branch directories case-insensitive (#130 thanks naugler)
 
 ## 2.2.1
-##### Released:  18. August 2015
+##### Released: 18. August 2015
+
+### Bugfixes
 
 * COMMON: Fix incompatibility with maven-publish plugin (#125 thanks raphsoft and alibkord)
 
 ## 2.2.0
-##### Released:  9. August 2015
+##### Released: 9. August 2015
 
 ### Bugfixes
 

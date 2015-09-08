@@ -6,7 +6,7 @@ buildscript {
         classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:3.1.0'
         classpath 'nu.studer:gradle-plugindev-plugin:1.0.3'
         classpath 'org.codehaus.groovy:groovy-backports-compat23:2.4.3'
-        classpath 'net.researchgate:gradle-release:2.1.2'
+        classpath 'net.researchgate:gradle-release:2.2.1'
     }
 }
 
@@ -35,6 +35,13 @@ plugindev {
     projectUrl 'https://github.com/researchgate/gradle-release'
     projectInceptionYear '2011'
     done() // do not omit this
+}
+
+release {
+    git {
+        requireBranch = '(master|\\d+\\.\\d+)'
+        pushToCurrentBranch = true
+    }
 }
 
 bintray {
