@@ -55,6 +55,10 @@ bintray {
                 sign = true
                 passphrase = project.hasProperty('bintrayGpgPassphrase') ? bintrayGpgPassphrase : ''
             }
+            mavenCentralSync {
+                user = project.hasProperty('sonatypeUser') ? sonatypeUser : ''
+                password = project.hasProperty('sonatypePassword') ? sonatypePassword : ''
+            }
         }
     }
     publish = true
