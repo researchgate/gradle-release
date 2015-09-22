@@ -115,12 +115,12 @@ class PluginHelper {
             def engine = new SimpleTemplateEngine()
             def binding = [
                 "version": project.version,
-                "name"   : project.rootProject.name
+                "name"   : project.name
             ]
             tagName = engine.createTemplate(extension.tagTemplate).make(binding).toString()
         } else {
             // Backward compatible remove in version 3.0
-            String prefix = extension.tagPrefix ? "${extension.tagPrefix}-" : (extension.includeProjectNameInTag ? "${project.rootProject.name}-" : "")
+            String prefix = extension.tagPrefix ? "${extension.tagPrefix}-" : (extension.includeProjectNameInTag ? "${project.name}-" : "")
             tagName = "${prefix}${project.version}"
         }
 
