@@ -29,10 +29,10 @@ class Executor {
         StringBuffer err = new StringBuffer()
 
         File directory = options['directory'] ? options['directory'] as File : null
-        List processEnv = options['env'] ? ((options['env'] as Map) << System.getenv()).collect { "$it.key=$it.value" } : null
+        Map processEnv = options['env'] ? System.getenv() + (options['env'] as Map) : System.getenv()
 
         logger?.info("Running $commands in [$directory]")
-        Process process = commands.execute(processEnv, directory)
+        Process process = commands.execute(processEnv.collect { "$it.key=$it.value" }, directory)
         process.waitForProcessOutput(out, err)
         logger?.info("Running $commands produced output: [${out.toString().trim()}]")
 
