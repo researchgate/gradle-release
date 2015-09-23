@@ -55,7 +55,7 @@ class BzrAdapter extends BaseScmAdapter {
         def unknown = xml.unknown?.size() ?: 0
 
         def c = { String name ->
-            ["${ capitalize(name)}:",
+            ["${name.capitalize()}:",
                     xml."$name".file.collect { it.text().trim() },
                     xml."$name".directory.collect { it.text().trim() }].
                     flatten().

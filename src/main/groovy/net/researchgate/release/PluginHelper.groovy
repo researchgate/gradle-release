@@ -161,16 +161,6 @@ class PluginHelper {
     }
 
     /**
-     * Capitalizes first letter of the String specified.
-     *
-     * @param s String to capitalize
-     * @return String specified with first letter capitalized
-     */
-    protected static String capitalize(String s) {
-        s[0].toUpperCase() + (s.size() > 1 ? s[1..-1] : '')
-    }
-
-    /**
      * Reads user input from the console.
      *
      * @param message Message to display
