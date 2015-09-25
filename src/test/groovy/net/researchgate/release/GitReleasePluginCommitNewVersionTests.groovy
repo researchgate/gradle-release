@@ -10,6 +10,7 @@
 
 package net.researchgate.release
 
+import org.eclipse.jgit.lib.Constants
 import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
 
@@ -35,6 +36,17 @@ class GitReleasePluginCommitNewVersionTests extends GitSpecification {
         when:
         project.commitNewVersion.execute()
         gitHardReset(remoteGit)
+        then: 'remote repo contains updated properties file'
+        remoteGit.repository.workTree.listFiles().any { it.name == 'gradle.properties' && it.text.contains("version=$project.version") }
+    }
+
+    def 'should push new version to branch using the branch prefix when it is specified'() {
+        given:
+        project.file('gradle.properties').withWriter { it << "version=${project.version}" }
+        project.release.git.pushToBranchPrefix = 'refs/for/'
+        when:
+        project.commitNewVersion.execute()
+        gitCheckoutBranch(remoteGit, "refs/for/$Constants.MASTER")
         then: 'remote repo contains updated properties file'
         remoteGit.repository.workTree.listFiles().any { it.name == 'gradle.properties' && it.text.contains("version=$project.version") }
     }

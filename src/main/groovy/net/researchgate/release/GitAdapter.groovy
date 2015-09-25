@@ -31,6 +31,7 @@ class GitAdapter extends BaseScmAdapter {
         /** @deprecated Remove in version 3.0 */
         @Deprecated
         boolean pushToCurrentBranch = false
+        String pushToBranchPrefix
     }
 
     GitAdapter(Project project, Map<String, Object> attributes) {
@@ -104,7 +105,11 @@ class GitAdapter extends BaseScmAdapter {
     void commit(String message) {
         exec(['git', 'commit', '-a', '-m', message], errorPatterns: ['error: ', 'fatal: '])
         if (shouldPush()) {
-            exec(['git', 'push', '--porcelain', extension.git.pushToRemote, gitCurrentBranch()], errorMessage: 'Failed to push to remote', errorPatterns: ['[rejected]', 'error: ', 'fatal: '])
+            def branch = gitCurrentBranch()
+            if (extension.git.pushToBranchPrefix) {
+                branch = "HEAD:${extension.git.pushToBranchPrefix}${branch}"
+            }
+            exec(['git', 'push', '--porcelain', extension.git.pushToRemote, branch], errorMessage: 'Failed to push to remote', errorPatterns: ['[rejected]', 'error: ', 'fatal: '])
         }
     }
 
