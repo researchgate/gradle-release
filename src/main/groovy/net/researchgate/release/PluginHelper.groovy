@@ -71,12 +71,16 @@ class PluginHelper {
         File propertiesFile = project.file(extension.versionPropertyFile)
         if (!propertiesFile.file) {
             if (!isVersionDefined()) {
-                project.version = useAutomaticVersion() ? '1.0.0' : readLine('Version property not set, please set it now:', '1.0.0')
+                project.version = getReleaseVersion('1.0.0')
+            }
+
+            if (!useAutomaticVersion() && promptYesOrNo('Do you want to use SNAPSHOT versions inbetween releases')) {
                 attributes.usesSnapshot = true
             }
 
-            if (promptYesOrNo("[$propertiesFile.canonicalPath] not found, create it with version = ${project.version}")) {
+            if (useAutomaticVersion() || promptYesOrNo("[$propertiesFile.canonicalPath] not found, create it with version = ${project.version}")) {
                 writeVersion(propertiesFile, 'version', project.version)
+                attributes.propertiesFileCreated = true
             } else {
                 log.debug "[$propertiesFile.canonicalPath] was not found, and user opted out of it being created. Throwing exception."
                 throw new GradleException("[$propertiesFile.canonicalPath] not found and you opted out of it being created,\n please create it manually and and specify the version property.")
@@ -87,10 +91,14 @@ class PluginHelper {
 
     protected void writeVersion(File file, String key, version) {
         try {
-            // we use replace here as other ant tasks escape and modify the whole file
-            project.ant.replaceregexp(file: file, byline: true) {
-                regexp(pattern: "$key(\\s*)=(\\s*).+")
-                substitution(expression: "$key\\1=\\2$version")
+            if (!file.file) {
+                project.ant.echo(file: file, message: "$key=$version")
+            } else {
+                // we use replace here as other ant tasks escape and modify the whole file
+                project.ant.replaceregexp(file: file, byline: true) {
+                    regexp(pattern: "$key(\\s*)=(\\s*).+")
+                    substitution(expression: "$key\\1=\\2$version")
+                }
             }
         } catch (BuildException be) {
             throw new GradleException('Unable to write version property.', be)
@@ -137,6 +145,15 @@ class PluginHelper {
         property ?: defaultVal
     }
 
+    String getReleaseVersion(String candidateVersion = "${project.version}") {
+        String releaseVersion = findProperty('release.releaseVersion', null, 'releaseVersion')
+
+        if (useAutomaticVersion()) {
+            return releaseVersion ?: candidateVersion
+        }
+
+        return readLine("This release version:", releaseVersion ?: candidateVersion)
+    }
 
     /**
      * Updates properties file (<code>gradle.properties</code> by default) with new version specified.
@@ -145,7 +162,7 @@ class PluginHelper {
      * @param newVersion new version to store in the file
      */
     void updateVersionProperty(String newVersion) {
-        def oldVersion = "${project.version}"
+        String oldVersion = project.version as String
         if (oldVersion != newVersion) {
             project.version = newVersion
             attributes.versionModified = true

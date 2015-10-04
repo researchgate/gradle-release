@@ -43,7 +43,7 @@ class ReleasePluginTests extends Specification {
         project.release {
             versionPropertyFile = 'version.properties'
         }
-        project.initScmAdapter.execute()
+        project.unSnapshotVersion.execute()
         expect:
         project.version == '1.2'
 

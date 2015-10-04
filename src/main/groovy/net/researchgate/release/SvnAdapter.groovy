@@ -157,6 +157,11 @@ class SvnAdapter extends BaseScmAdapter {
     }
 
     @Override
+    void add(File file) {
+        svnExec(['add', file.path], errorMessage: "Error adding file ${file.name}", errorPatterns: ['warning:'])
+    }
+
+    @Override
     void revert() {
         svnExec(['revert', findPropertiesFile().name], errorMessage: 'Error reverting changes made by the release plugin.', errorPatterns: [ERROR])
     }

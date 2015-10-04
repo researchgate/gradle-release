@@ -32,6 +32,8 @@ abstract class BaseScmAdapter extends PluginHelper {
 
     abstract void createReleaseTag(String message)
 
+    abstract void add(File file)
+
     abstract void commit(String message)
 
     abstract void revert()

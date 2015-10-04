@@ -109,6 +109,11 @@ class GitAdapter extends BaseScmAdapter {
     }
 
     @Override
+    void add(File file) {
+        exec(['git', 'add', file.path], errorMessage: "Error adding file ${file.name}", errorPatterns: ['error: ', 'fatal: '])
+    }
+
+    @Override
     void revert() {
         exec(['git', 'checkout', findPropertiesFile().name], errorMessage: 'Error reverting changes made by the release plugin.')
     }

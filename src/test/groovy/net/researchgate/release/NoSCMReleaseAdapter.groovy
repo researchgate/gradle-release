@@ -30,31 +30,29 @@ class NoSCMReleaseAdapter extends BaseScmAdapter {
 
     @Override
     void init() {
-        //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @Override
     void checkCommitNeeded() {
-        //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @Override
     void checkUpdateNeeded() {
-        //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @Override
-    void createReleaseTag(String message = "") {
-        //To change body of implemented methods use File | Settings | File Templates.
+    void createReleaseTag(String message) {
     }
 
     @Override
     void commit(String message) {
-        //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    void add(File file) {
     }
 
     @Override
     void revert() {
-        //To change body of implemented methods use File | Settings | File Templates.
     }
 }

@@ -121,6 +121,11 @@ class BzrAdapter extends BaseScmAdapter {
     }
 
     @Override
+    void add(File file) {
+        exec(['bzr', 'add', file.path], errorMessage: "Error adding file ${file.name}", errorPatterns: [ERROR])
+    }
+
+    @Override
     void revert() {
         exec(['bzr', 'revert', findPropertiesFile().name], errorMessage: 'Error reverting changes made by the release plugin.', errorPatterns: [ERROR])
     }

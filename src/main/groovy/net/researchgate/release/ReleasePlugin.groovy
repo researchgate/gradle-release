@@ -124,7 +124,6 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
     }
 
     void initScmAdapter() {
-        checkPropertiesFile()
         scmAdapter.init()
     }
 
@@ -167,21 +166,14 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
     }
 
     void confirmReleaseVersion() {
-        def version = getReleaseVersion()
-        updateVersionProperty(version)
-    }
-
-    String getReleaseVersion(String candidateVersion = "${project.version}") {
-        String releaseVersion = findProperty('release.releaseVersion', null, 'releaseVersion')
-
-        if (useAutomaticVersion()) {
-            return releaseVersion ?: candidateVersion
+        if (attributes.propertiesFileCreated) {
+            return
         }
-
-        return readLine("This release version:", releaseVersion ?: candidateVersion)
+        updateVersionProperty(getReleaseVersion())
     }
 
     void unSnapshotVersion() {
+        checkPropertiesFile()
         def version = project.version.toString()
 
         if (version.contains('-SNAPSHOT')) {
@@ -192,12 +184,16 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
     }
 
     void preTagCommit() {
-        if (attributes.usesSnapshot || attributes.versionModified) {
+        if (attributes.usesSnapshot || attributes.versionModified || attributes.propertiesFileCreated) {
             // should only be committed if the project was using a snapshot version.
             def message = extension.preTagCommitMessage + " '${tagName()}'."
 
             if (extension.preCommitText) {
                 message = "${extension.preCommitText} ${message}"
+            }
+
+            if (attributes.propertiesFileCreated) {
+                scmAdapter.add(findPropertiesFile());
             }
             scmAdapter.commit(message)
         }
@@ -210,7 +206,6 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
         for (entry in patterns) {
 
             String pattern = entry.key
-            //noinspection GroovyUnusedAssignment
             Closure handler = entry.value
             Matcher matcher = version =~ pattern
 
