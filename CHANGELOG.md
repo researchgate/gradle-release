@@ -3,8 +3,15 @@
 ## 2.3.0
 ##### Released: not yet
 
+### New Features
+
+* COMMON: Possibility to use the release plugin in multiprojects where each project has its own version (#116, thanks christierney)
+    * see [the example](https://github.com/researchgate/gradle-release-examples/tree/master/multi-project-multiple-versions)
+
 ### Bugfixes
 
+* COMMON: Fixed internal bug in Executor not overwritting environment variables as expected (#135, thanks ddimtirov)
+* COMMON: Fix bug with projects that do not yet have a property file created (#123, thanks dodgex) 
 * GIT: The option ```pushToCurrentBranch``` is deprecated, as it was simply unnecessary
 
 ## 2.2.2
@@ -13,18 +20,23 @@
 ### Bugfixes
 
 * GIT: Respect option ```pushToRemote``` when pushing tag to remote
-* GIT: Catch errors correctly when doing commit (#128 thanks grigorigoldman)
-* SVN: Detect trunk/tag/branch directories case-insensitive (#130 thanks naugler)
+* GIT: Catch errors correctly when doing commit (#128, thanks grigorigoldman)
+* SVN: Detect trunk/tag/branch directories case-insensitive (#130, thanks naugler)
 
 ## 2.2.1
 ##### Released: 18. August 2015
 
 ### Bugfixes
 
-* COMMON: Fix incompatibility with maven-publish plugin (#125 thanks raphsoft and alibkord)
+* COMMON: Fix incompatibility with maven-publish plugin (#125, thanks raphsoft and alibkord)
 
 ## 2.2.0
 ##### Released: 9. August 2015
+
+### New Features
+
+* COMMON: Possibility to use a regex for the option requireBranch (#118,#119, thanks grigorigoldman)
+* COMMON: Possibility to use custom build tasks by setting the option ```buildTasks``` (#117, thanks ntarocco)
 
 ### Bugfixes
 
@@ -33,22 +45,17 @@
     * No other properties will be touched
     * DateTime will not be written anymore
 
-### New Features
-
-* COMMON: Possibility to use a regex for the option requireBranch (#118,#119, thanks grigorigoldman)
-* COMMON: Possibility to use custom build tasks by setting the option ```buildTasks``` (#117, thanks ntarocco)
-
 ## 2.1.2
 ##### Released: 12. June 2015
+
+### Changes
+
+* COMMON: Added cli option ```release.useAutomaticVersion``` to normalize with the other options. ```gradle.release.useAutomaticVersion``` will be deprecated in the future.
 
 ### Bugfixes
 
 * SVN: Fix checkUpdateNeeded when externals were used (#106, thanks pstanoev)
 * SVN: Fix creating tags when subdirectories are used in tagname (#110, thanks kmoens)
-
-### Changes
-
-* COMMON: Added cli option ```release.useAutomaticVersion``` to normalize with the other options. ```gradle.release.useAutomaticVersion``` will be deprecated in the future.
 
 ## 2.1.1
 ##### Released: 2. June 2015
