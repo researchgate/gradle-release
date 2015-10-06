@@ -13,6 +13,7 @@
 * COMMON: Fixed internal bug in Executor not overwritting environment variables as expected (#135, thanks ddimtirov)
 * COMMON: Fix bug with projects that do not yet have a property file created (#123, thanks dodgex) 
 * GIT: The option ```pushToCurrentBranch``` is deprecated, as it was simply unnecessary
+* GIT: Option ```pushToBranchPrefix``` can now be set to specify a remote branch prefix when committing next version
 
 ## 2.2.2
 ##### Released: 8. September 2015
