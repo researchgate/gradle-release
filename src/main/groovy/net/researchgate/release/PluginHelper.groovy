@@ -140,6 +140,9 @@ class PluginHelper {
 
         if (!property && deprecatedKey) {
             property = System.getProperty(deprecatedKey) ?: project.hasProperty(deprecatedKey) ? project.property(deprecatedKey) : null
+            if (property) {
+                log.warn("You are using the deprecated parameter '${deprecatedKey}'. Please use the new parameter '$key'. The deprecated parameter will be removed in 3.0")
+            }
         }
 
         property ?: defaultVal

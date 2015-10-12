@@ -30,7 +30,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
         this.project = project
         extension = project.extensions.create('release', ReleaseExtension, project, attributes)
 
-        def preCommitText = findProperty('release.preCommitText', null, 'preCommitText')
+        String preCommitText = findProperty('release.preCommitText', null, 'preCommitText')
         if (preCommitText) {
             extension.preCommitText = preCommitText
         }
