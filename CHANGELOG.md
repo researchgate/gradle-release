@@ -13,7 +13,7 @@
 
 * COMMON: Fixed internal bug in Executor not overwritting environment variables as expected (#135, thanks ddimtirov)
 * COMMON: Fix bug with projects that do not yet have a property file created (#123, thanks dodgex)
-* COMMON: Fix bug with release failing when using --parallel option fro gradle (#60, thanks tschulte)
+* COMMON: Fix bug with release failing when using --parallel option for gradle (#60, thanks tschulte)
 * GIT: The option ```pushToCurrentBranch``` is deprecated, as it was simply unnecessary
 
 ## 2.2.2
