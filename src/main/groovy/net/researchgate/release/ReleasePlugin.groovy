@@ -35,12 +35,12 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
             extension.preCommitText = preCommitText
         }
 
+        // name tasks with an absolute path so subprojects can be released independently
+        String p = project.path
+        p = !p.endsWith(Project.PATH_SEPARATOR) ? p + Project.PATH_SEPARATOR : p
+
         project.task('release', description: 'Verify project, release, and update version to next.', group: RELEASE_GROUP, type: GradleBuild) {
             startParameter = project.getGradle().startParameter.newInstance()
-
-            // name tasks with an absolute path so subprojects can be released independently
-            String p = project.getPath()
-            p = !p.endsWith(Project.PATH_SEPARATOR) ? p + Project.PATH_SEPARATOR : p;
 
             tasks = [
                 "${p}createScmAdapter" as String,
@@ -72,17 +72,15 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
             description: 'Prompts user for this release version. Allows for alpha or pre releases.') << this.&confirmReleaseVersion
         project.task('checkSnapshotDependencies', group: RELEASE_GROUP,
             description: 'Checks to see if your project has any SNAPSHOT dependencies.') << this.&checkSnapshotDependencies
-        project.task('runBuildTasks', group: RELEASE_GROUP, description: 'Runs the build process in a separate gradle run.', type: GradleBuild) {
+
+        List<String> buildTasks = []
+        extension.buildTasks.each { String task ->
+            buildTasks.add(p + task);
+        }
+
+        project.task('runBuildTasks', group: RELEASE_GROUP,
+            description: 'Runs the build process in a separate gradle run.', type: GradleBuild) {
             startParameter = project.getGradle().startParameter.newInstance()
-
-            // name tasks with an absolute path so subprojects can be released independently
-            String p = project.getPath()
-            p = !p.endsWith(Project.PATH_SEPARATOR) ? p + Project.PATH_SEPARATOR : p;
-
-            ArrayList<String> buildTasks = new ArrayList<>();
-            extension.buildTasks.each { String task ->
-                buildTasks.add(p + task);
-            }
 
             project.afterEvaluate {
                 tasks = [
@@ -101,8 +99,25 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
         project.task('commitNewVersion', group: RELEASE_GROUP,
             description: 'Commits the version update to your SCM') << this.&commitNewVersion
 
-        project.task('beforeReleaseBuild', group: RELEASE_GROUP, description: 'Runs immediately before the build when doing a release') {}
-        project.task('afterReleaseBuild', group: RELEASE_GROUP, description: 'Runs immediately after the build when doing a release') {}
+        project.tasks.initScmAdapter.mustRunAfter(project.tasks.createScmAdapter)
+        project.tasks.checkCommitNeeded.mustRunAfter(project.tasks.initScmAdapter)
+        project.tasks.checkUpdateNeeded.mustRunAfter(project.tasks.checkCommitNeeded)
+        project.tasks.unSnapshotVersion.mustRunAfter(project.tasks.checkUpdateNeeded)
+        project.tasks.confirmReleaseVersion.mustRunAfter(project.tasks.unSnapshotVersion)
+        project.tasks.checkSnapshotDependencies.mustRunAfter(project.tasks.confirmReleaseVersion)
+        project.tasks.runBuildTasks.mustRunAfter(project.tasks.checkSnapshotDependencies)
+        project.tasks.preTagCommit.mustRunAfter(project.tasks.runBuildTasks)
+        project.tasks.createReleaseTag.mustRunAfter(project.tasks.preTagCommit)
+        project.tasks.updateVersion.mustRunAfter(project.tasks.createReleaseTag)
+        project.tasks.commitNewVersion.mustRunAfter(project.tasks.updateVersion)
+
+        project.task('beforeReleaseBuild', group: RELEASE_GROUP,
+            description: 'Runs immediately before the build when doing a release') {}
+        project.task('afterReleaseBuild', group: RELEASE_GROUP,
+            description: 'Runs immediately after the build when doing a release') {}
+
+        project.task(buildTasks.first()).mustRunAfter(project.tasks.beforeReleaseBuild)
+        project.tasks.afterReleaseBuild.mustRunAfter(buildTasks.last())
 
         project.gradle.taskGraph.afterTask { Task task, TaskState state ->
             if (state.failure && task.name == "release") {
