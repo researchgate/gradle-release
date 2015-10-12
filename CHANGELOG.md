@@ -1,5 +1,16 @@
 # Changelog
 
+## 3.0.0
+##### Released: not yet
+
+### Breaking change
+
+* Requirement for gradle increased to gradle 1.6
+
+### Bugfixes
+
+* COMMON: Fix bug with release failing when using --parallel option fro gradle (#60, thanks tschulte)
+
 ## 2.3.0
 ##### Released: not yet
 

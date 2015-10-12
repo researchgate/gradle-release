@@ -1,5 +1,14 @@
 # Upgrade instructions
 
+## 2.x to 3.0
+
+### Minimum gradle dependency version increased
+
+**MANDATORY**
+
+Make sure you are using gradle 1.6 or newer, when using the release plugin. If you are still using gradle 1.5 or lower, please stay with the 2.x version.
+
+
 ## 2.0 to 2.1
 
 ### Location of git configuration changed
@@ -61,7 +70,7 @@ These two scenarios should make it easy to get the same result as before:
 * ``includeProjectNameInTag`` not set or set to false
 * ``tagPrefix`` set to "something"
 
-Remove ``includeProjectNameInTag`` or ``tagPrefix`` and add 
+Remove ``includeProjectNameInTag`` or ``tagPrefix`` and add
 ```
 release {
     tagTemplate = 'something-$version'
@@ -72,7 +81,7 @@ release {
 
 * ``includeProjectNameInTag`` set to true
 
-Remove ``includeProjectNameInTag`` or ``tagPrefix`` and add 
+Remove ``includeProjectNameInTag`` or ``tagPrefix`` and add
 
 ```
 release {
