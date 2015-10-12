@@ -1,16 +1,5 @@
 # Changelog
 
-## 3.0.0
-##### Released: not yet
-
-### Breaking change
-
-* Requirement for gradle increased to gradle 1.6
-
-### Bugfixes
-
-* COMMON: Fix bug with release failing when using --parallel option fro gradle (#60, thanks tschulte)
-
 ## 2.3.0
 ##### Released: not yet
 
@@ -23,7 +12,8 @@
 ### Bugfixes
 
 * COMMON: Fixed internal bug in Executor not overwritting environment variables as expected (#135, thanks ddimtirov)
-* COMMON: Fix bug with projects that do not yet have a property file created (#123, thanks dodgex) 
+* COMMON: Fix bug with projects that do not yet have a property file created (#123, thanks dodgex)
+* COMMON: Fix bug with release failing when using --parallel option fro gradle (#60, thanks tschulte)
 * GIT: The option ```pushToCurrentBranch``` is deprecated, as it was simply unnecessary
 
 ## 2.2.2

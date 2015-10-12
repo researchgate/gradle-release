@@ -1,14 +1,5 @@
 # Upgrade instructions
 
-## 2.x to 3.0
-
-### Minimum gradle dependency version increased
-
-**MANDATORY**
-
-Make sure you are using gradle 1.6 or newer, when using the release plugin. If you are still using gradle 1.5 or lower, please stay with the 2.x version.
-
-
 ## 2.0 to 2.1
 
 ### Location of git configuration changed

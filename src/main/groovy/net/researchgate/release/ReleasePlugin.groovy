@@ -99,25 +99,33 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
         project.task('commitNewVersion', group: RELEASE_GROUP,
             description: 'Commits the version update to your SCM') << this.&commitNewVersion
 
-        project.tasks.initScmAdapter.mustRunAfter(project.tasks.createScmAdapter)
-        project.tasks.checkCommitNeeded.mustRunAfter(project.tasks.initScmAdapter)
-        project.tasks.checkUpdateNeeded.mustRunAfter(project.tasks.checkCommitNeeded)
-        project.tasks.unSnapshotVersion.mustRunAfter(project.tasks.checkUpdateNeeded)
-        project.tasks.confirmReleaseVersion.mustRunAfter(project.tasks.unSnapshotVersion)
-        project.tasks.checkSnapshotDependencies.mustRunAfter(project.tasks.confirmReleaseVersion)
-        project.tasks.runBuildTasks.mustRunAfter(project.tasks.checkSnapshotDependencies)
-        project.tasks.preTagCommit.mustRunAfter(project.tasks.runBuildTasks)
-        project.tasks.createReleaseTag.mustRunAfter(project.tasks.preTagCommit)
-        project.tasks.updateVersion.mustRunAfter(project.tasks.createReleaseTag)
-        project.tasks.commitNewVersion.mustRunAfter(project.tasks.updateVersion)
+        Boolean supportsMustRunAfter = project.tasks.initScmAdapter.respondsTo('mustRunAfter')
+
+        project.logger.warn('bla test test');
+        if (supportsMustRunAfter) {
+            project.logger.warn('test test test');
+            project.tasks.initScmAdapter.mustRunAfter(project.tasks.createScmAdapter)
+            project.tasks.checkCommitNeeded.mustRunAfter(project.tasks.initScmAdapter)
+            project.tasks.checkUpdateNeeded.mustRunAfter(project.tasks.checkCommitNeeded)
+            project.tasks.unSnapshotVersion.mustRunAfter(project.tasks.checkUpdateNeeded)
+            project.tasks.confirmReleaseVersion.mustRunAfter(project.tasks.unSnapshotVersion)
+            project.tasks.checkSnapshotDependencies.mustRunAfter(project.tasks.confirmReleaseVersion)
+            project.tasks.runBuildTasks.mustRunAfter(project.tasks.checkSnapshotDependencies)
+            project.tasks.preTagCommit.mustRunAfter(project.tasks.runBuildTasks)
+            project.tasks.createReleaseTag.mustRunAfter(project.tasks.preTagCommit)
+            project.tasks.updateVersion.mustRunAfter(project.tasks.createReleaseTag)
+            project.tasks.commitNewVersion.mustRunAfter(project.tasks.updateVersion)
+        }
 
         project.task('beforeReleaseBuild', group: RELEASE_GROUP,
             description: 'Runs immediately before the build when doing a release') {}
         project.task('afterReleaseBuild', group: RELEASE_GROUP,
             description: 'Runs immediately after the build when doing a release') {}
 
-        project.task(buildTasks.first()).mustRunAfter(project.tasks.beforeReleaseBuild)
-        project.tasks.afterReleaseBuild.mustRunAfter(buildTasks.last())
+        if (supportsMustRunAfter) {
+            project.task(buildTasks.first()).mustRunAfter(project.tasks.beforeReleaseBuild)
+            project.tasks.afterReleaseBuild.mustRunAfter(buildTasks.last())
+        }
 
         project.gradle.taskGraph.afterTask { Task task, TaskState state ->
             if (state.failure && task.name == "release") {
