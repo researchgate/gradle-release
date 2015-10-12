@@ -193,7 +193,6 @@ release {
     git {
         requireBranch = 'master'
         pushToRemote = 'origin'
-        pushToCurrentBranch = false
         pushToBranchPrefix = ''
     }
 
