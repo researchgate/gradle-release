@@ -111,7 +111,11 @@ class ReleaseExtension {
             return ConfigureUtil.configure(varClosure, this."$name")
         }
 
-        return ConfigureUtil.configure(args[0] as Closure, this."$name")
+        try {
+            return ConfigureUtil.configure(args[0] as Closure, this."$name")
+        } catch (MissingPropertyException e) {
+            throw new MissingMethodException(name, this.class, args)
+        }
     }
 
     private getAdapterForName(String name) {

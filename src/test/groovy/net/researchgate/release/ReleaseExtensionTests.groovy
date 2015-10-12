@@ -36,6 +36,13 @@ class ReleaseExtensionTests extends Specification {
         value instanceof TestAdapter.TestConfig
     }
 
+    def 'test dynamic getting property on extension fails for non adapter'() {
+        when:
+        extension.footest
+        then:
+        thrown(MissingPropertyException)
+    }
+
     def 'test dynamic setting property on extension'() {
         when:
         extension.test = null
@@ -43,6 +50,13 @@ class ReleaseExtensionTests extends Specification {
         then:
         noExceptionThrown()
         value == null
+    }
+
+    def 'test dynamic setting property on extension fails for non adapter'() {
+        when:
+        extension.footest = null
+        then:
+        thrown(MissingPropertyException)
     }
 
     def 'test dynamic setting callback on extension'() {
@@ -55,5 +69,15 @@ class ReleaseExtensionTests extends Specification {
         noExceptionThrown()
         value instanceof TestAdapter.TestConfig
         value.testOption == '1234'
+    }
+
+    def 'test dynamic setting callback on extension fails for non adapter'() {
+        when:
+        extension.footest {
+            testOption = '1234'
+        }
+        then:
+        thrown(MissingMethodException)
+
     }
 }
