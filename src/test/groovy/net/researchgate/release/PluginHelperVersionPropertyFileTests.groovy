@@ -26,7 +26,7 @@ public class PluginHelperVersionPropertyFileTests extends Specification {
         project = ProjectBuilder.builder().withName("ReleasePluginTest").withProjectDir(testDir).build()
         project.version = '1.1'
         project.apply plugin: ReleasePlugin
-        project.release.scmAdapters = [NoSCMReleaseAdapter]
+        project.release.scmAdapters = [TestAdapter]
 
         helper = new PluginHelper(project: project, extension: project.extensions['release'] as ReleaseExtension)
 

@@ -198,7 +198,7 @@ class PluginHelper {
     }
 
     private static boolean promptYesOrNo(String message, boolean defaultValue = false) {
-        def defaultStr = defaultValue ? 'Y' : 'n'
+        String defaultStr = defaultValue ? 'Y' : 'n'
         String consoleVal = readLine("${message} (Y|n)", defaultStr)
         if (consoleVal) {
             return consoleVal.toLowerCase().startsWith('y')

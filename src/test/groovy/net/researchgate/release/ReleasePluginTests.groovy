@@ -27,7 +27,7 @@ class ReleasePluginTests extends Specification {
             w.writeLine 'version=1.2'
         }
         project.apply plugin: ReleasePlugin
-        project.release.scmAdapters = [NoSCMReleaseAdapter]
+        project.release.scmAdapters = [TestAdapter]
 
         project.createScmAdapter.execute()
     }

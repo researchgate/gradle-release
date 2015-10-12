@@ -34,12 +34,12 @@ class GitReleasePluginIntegrationTests extends GitSpecification {
     def 'integration test'() {
         given: 'setting project version to 1.1'
         project.version = '1.1'
-        project.ext.set('gradle.release.useAutomaticVersion', "true")
+        project.ext.set('release.useAutomaticVersion', 'true')
         gitAddAndCommit(localGit, "gradle.properties") { it << "version=$project.version" }
         localGit.push().setForce(true).call()
         when: 'calling release task indirectly'
         project.tasks['release'].tasks.each { task ->
-            if (task == ":runBuildTasks") {
+            if (task == ':runBuildTasks') {
                 project.tasks.getByPath(task).tasks.each { buildTask ->
                     project.tasks.getByPath(buildTask).execute()
                 }

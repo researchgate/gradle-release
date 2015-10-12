@@ -12,15 +12,19 @@ package net.researchgate.release
 
 import org.gradle.api.Project
 
-class NoSCMReleaseAdapter extends BaseScmAdapter {
+class TestAdapter extends BaseScmAdapter {
 
-    NoSCMReleaseAdapter(Project project, Map<String, Object> attributes) {
+    TestAdapter(Project project, Map<String, Object> attributes) {
         super(project, attributes)
+    }
+
+    class TestConfig {
+        String testOption = ''
     }
 
     @Override
     Object createNewConfig() {
-        return null
+        new TestConfig()
     }
 
     @Override
