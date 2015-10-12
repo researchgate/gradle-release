@@ -101,9 +101,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
         Boolean supportsMustRunAfter = project.tasks.initScmAdapter.respondsTo('mustRunAfter')
 
-        project.logger.warn('bla test test');
         if (supportsMustRunAfter) {
-            project.logger.warn('test test test');
             project.tasks.initScmAdapter.mustRunAfter(project.tasks.createScmAdapter)
             project.tasks.checkCommitNeeded.mustRunAfter(project.tasks.initScmAdapter)
             project.tasks.checkUpdateNeeded.mustRunAfter(project.tasks.checkCommitNeeded)
