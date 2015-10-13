@@ -49,29 +49,17 @@ class ReleaseExtension {
 
     List buildTasks = ['build']
 
-    def versionPatterns = [
+    Map<String, Closure<String>> versionPatterns = [
         // Increments last number: "2.5-SNAPSHOT" => "2.6-SNAPSHOT"
         /(\d+)([^\d]*$)/: { Matcher m, Project p -> m.replaceAll("${(m[0][1] as int) + 1}${m[0][2]}") }
     ]
 
-    def scmAdapters = [
+    List<Class<? extends BaseScmAdapter>> scmAdapters = [
         GitAdapter,
         SvnAdapter,
         HgAdapter,
         BzrAdapter
     ];
-
-    /**
-     * @deprecated to be removed in 3.0 see tagTemplate
-     */
-    @Deprecated
-    boolean includeProjectNameInTag = false
-
-    /**
-     * @deprecated to be removed in 3.0 see tagTemplate
-     */
-    @Deprecated
-    String tagPrefix
 
     private Project project
     private Map<String, Object> attributes
@@ -81,33 +69,45 @@ class ReleaseExtension {
         this.project = project
         ExpandoMetaClass mc = new ExpandoMetaClass(ReleaseExtension, false, true)
         mc.initialize()
-        this.metaClass = mc
+        metaClass = mc
     }
 
     def propertyMissing(String name) {
-        BaseScmAdapter adapter = getAdapterForName(name)
+        if (isDeprecatedOption(name)) {
+            def value = null
+            if (name == 'includeProjectNameInTag') {
+                value = false
+            }
 
-        if (!adapter || !adapter.createNewConfig()) {
+            return metaClass."$name" = value
+        }
+        BaseScmAdapter adapter = getAdapterForName(name)
+        Object result = adapter?.createNewConfig()
+
+        if (!adapter || !result) {
             throw new MissingPropertyException(name, this.class)
         }
 
-        Object result = adapter.createNewConfig()
-        this.metaClass."$name" = result
-
-        result
+        metaClass."$name" = result
     }
 
     def propertyMissing(String name, value) {
+        if (isDeprecatedOption(name)) {
+            project.logger?.warn("You are setting the deprecated option '${name}'. The deprecated option will be removed in 3.0")
+            project.logger?.warn("Please upgrade your configuration to use 'tagTemplate'. See https://github.com/researchgate/gradle-release/blob/master/UPGRADE.md#migrate-to-new-tagtemplate-configuration")
+
+            return metaClass."$name" = value
+        }
         BaseScmAdapter adapter = getAdapterForName(name)
 
         if (!adapter) {
             throw new MissingPropertyException(name, this.class)
         }
-        this.metaClass."$name" = value
+        metaClass."$name" = value
     }
 
     def methodMissing(String name, args) {
-        this.metaClass."$name" = { Closure varClosure ->
+        metaClass."$name" = { Closure varClosure ->
             return ConfigureUtil.configure(varClosure, this."$name")
         }
 
@@ -118,9 +118,13 @@ class ReleaseExtension {
         }
     }
 
-    private getAdapterForName(String name) {
+    private boolean isDeprecatedOption(String name) {
+        name == 'includeProjectNameInTag' || name == 'tagPrefix'
+    }
+
+    private BaseScmAdapter getAdapterForName(String name) {
         BaseScmAdapter adapter = null
-        this.scmAdapters.find {
+        scmAdapters.find {
             assert BaseScmAdapter.isAssignableFrom(it)
 
             Pattern pattern = Pattern.compile("^${name}", Pattern.CASE_INSENSITIVE);

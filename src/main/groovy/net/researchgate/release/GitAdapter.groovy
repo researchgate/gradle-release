@@ -32,6 +32,14 @@ class GitAdapter extends BaseScmAdapter {
         @Deprecated
         boolean pushToCurrentBranch = false
         String pushToBranchPrefix
+
+        void setProperty(String name, Object value) {
+            if (name == 'pushToCurrentBranch') {
+                project.logger?.warn("You are setting the deprecated and unused option '${name}'. The deprecated option will be removed in 3.0")
+            }
+
+            metaClass.setProperty(this, name, value)
+        }
     }
 
     GitAdapter(Project project, Map<String, Object> attributes) {
