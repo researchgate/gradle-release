@@ -9,12 +9,16 @@
     * see [the example](https://github.com/researchgate/gradle-release-examples/tree/master/multi-project-multiple-versions)
 * GIT: Option ```pushToBranchPrefix``` can now be set to specify a remote branch prefix when committing next version (#140, #113, thanks muryoh)
 
+### Changes
+
+* COMMON: The plugin now emits warnings when setting deprecated configuration or cli options
+
 ### Bugfixes
 
-* COMMON: Fixed internal bug in Executor not overwritting environment variables as expected (#135, thanks ddimtirov)
+* COMMON: Fixed internal bug in Executor not overwriting environment variables as expected (#135, thanks ddimtirov)
 * COMMON: Fix bug with projects that do not yet have a property file created (#123, thanks dodgex)
 * COMMON: Fix bug with release failing when using --parallel option for gradle (#60, thanks tschulte)
-* GIT: The option ```pushToCurrentBranch``` is deprecated, as it was simply unnecessary
+* GIT: The option ```pushToCurrentBranch``` is deprecated, as it was simply unnecessary and can be safely removed
 
 ## 2.2.2
 ##### Released: 8. September 2015
