@@ -23,7 +23,7 @@ Current SCM support: [Bazaar](http://bazaar.canonical.com/en/), [Git](http://git
 
 ## Installation
 
-The gradle-release plugin will work with Gradle 1.6 and beyond
+The gradle-release plugin will work with Gradle 1.0M3 and beyond
 
 ### Gradle 1.x and 2.0
 
