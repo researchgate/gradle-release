@@ -1,7 +1,7 @@
 # Changelog
 
 ## 2.3.0
-##### Released: not yet
+##### Released: 13. October 2015
 
 ### New Features
 
