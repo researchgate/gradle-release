@@ -2,6 +2,9 @@
 
 [![Build Status](https://travis-ci.org/researchgate/gradle-release.svg?branch=master)](https://travis-ci.org/researchgate/gradle-release)
 [![Download](https://api.bintray.com/packages/researchgate/gradle-plugins/gradle-release/images/download.svg)](https://bintray.com/researchgate/gradle-plugins/gradle-release/_latestVersion)
+[![Gitter](https://img.shields.io/badge/chat-online-brightgreen.svg?style=flat)](https://gitter.im/researchgate/gradle-release)
+
+
 
 ## Introduction
 
@@ -233,8 +236,12 @@ $ gradle release -Prelease.useAutomaticVersion=true -Prelease.releaseVersion=1.0
 
 ## Getting Help
 
-To ask questions or report bugs, please use the GitHub project.
+To ask questions please use stackoverflow or gitter.
+
+* Chat/Gitter: [https://gitter.im/researchgate/gradle-release](https://gitter.im/researchgate/gradle-release)
+* Stack Overflow: [http://stackoverflow.com/questions/ask?tags=gradle-release-plugin](http://stackoverflow.com/questions/ask?tags=gradle-release-plugin)
+
+To report bugs, please use the GitHub project.
 
 * Project Page: [https://github.com/researchgate/gradle-release](https://github.com/researchgate/gradle-release)
-* Asking Questions: [https://github.com/researchgate/gradle-release/issues](https://github.com/researchgate/gradle-release/issues)
 * Reporting Bugs: [https://github.com/researchgate/gradle-release/issues](https://github.com/researchgate/gradle-release/issues)
