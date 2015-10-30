@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.3.1
+##### Released: 30. October 2015
+
+### Bugfixes
+
+* SVN: Fix NPE happening in checkUpdateNeeded (#145, thanks IVU-chl)
+
 ## 2.3.0
 ##### Released: 13. October 2015
 
