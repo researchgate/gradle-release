@@ -97,9 +97,7 @@ class SvnAdapter extends BaseScmAdapter {
 
     @Override
     void checkUpdateNeeded() {
-        def props = project.properties
-        String svnUrl = props.releaseSvnUrl
-        String svnRev = props.initialSvnRev
+        String svnRev = attributes.initialSvnRev
         String svnRemoteRev = ''
 
         String out = svnExec(['status', '-q', '-u'])
@@ -118,7 +116,7 @@ class SvnAdapter extends BaseScmAdapter {
             warnOrThrow(extension.failOnUpdateNeeded, "You are missing ${missing} changes.")
         }
 
-        out = svnExec(['info', svnUrl])
+        out = svnExec(['info', attributes.svnUrl as String])
         out.eachLine { line ->
             Matcher matcher = line =~ revPattern
             if (matcher.matches()) {
