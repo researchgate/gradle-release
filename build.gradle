@@ -40,7 +40,6 @@ plugindev {
 release {
     git {
         requireBranch = '(master|\\d+\\.\\d+)'
-        pushToCurrentBranch = true
     }
 }
 
