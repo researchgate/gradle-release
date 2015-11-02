@@ -1,7 +1,14 @@
 # Changelog
 
+## 2.3.2
+##### Released: 2. October 2015
+
+### Bugfixes
+
+* SVN: Fix loogic in checkUpdateNeeded (#146, thanks Myllyenko)
+
 ## 2.3.1
-##### Released: 30. October 2015
+##### Released: 30. November 2015
 
 ### Bugfixes
 
