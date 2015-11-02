@@ -98,7 +98,6 @@ class SvnAdapter extends BaseScmAdapter {
     @Override
     void checkUpdateNeeded() {
         String svnRev = attributes.initialSvnRev
-        String svnRemoteRev = ''
 
         String out = svnExec(['status', '-q', '-u'])
         int missing = 0
@@ -123,9 +122,9 @@ class SvnAdapter extends BaseScmAdapter {
                 attributes.remoteSvnRev = matcher.group(1)
             }
         }
-        if (svnRev != svnRemoteRev) {
+        if (svnRev != attributes.remoteSvnRev) {
             // warn that there's a difference in local revision versus remote
-            warnOrThrow(extension.failOnUpdateNeeded, "Local revision (${svnRev}) does not match remote (${svnRemoteRev}), local revision is used in tag creation.")
+            warnOrThrow(extension.failOnUpdateNeeded, "Local revision (${svnRev}) does not match remote (${attributes.remoteSvnRev}), local revision is used in tag creation.")
         }
     }
 
