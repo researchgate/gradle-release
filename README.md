@@ -32,12 +32,14 @@ The gradle-release plugin will work with Gradle 1.0M3 and beyond
 
 ```groovy
 buildscript {
-    repositories {
-        jcenter()
+  repositories {
+    maven {
+      url 'https://plugins.gradle.org/m2/'
     }
-    dependencies {
-        classpath 'net.researchgate:gradle-release:2.3.1'
-    }
+  }
+  dependencies {
+    classpath 'net.researchgate:gradle-release:2.3.2'
+  }
 }
 
 apply plugin: 'net.researchgate.release'
@@ -47,7 +49,7 @@ apply plugin: 'net.researchgate.release'
 
 ```groovy
 plugins {
-  id 'net.researchgate.release' version '2.3.1'
+  id 'net.researchgate.release' version '2.3.2'
 }
 ```
 
