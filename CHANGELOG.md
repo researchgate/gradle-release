@@ -5,7 +5,7 @@
 
 ### Bugfixes
 
-* SVN: Fix loogic in checkUpdateNeeded (#146, thanks Myllyenko)
+* SVN: Fix logic in checkUpdateNeeded (#146, thanks Myllyenko)
 
 ## 2.3.1
 ##### Released: 30. November 2015
