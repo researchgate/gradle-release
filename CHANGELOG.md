@@ -9,7 +9,7 @@
 * COMMON: Order of tasks was not completely correct for --parallel runs
 
 ## 2.3.2
-##### Released: 2. October 2015
+##### Released: 4. October 2015
 
 ### Bugfixes
 
