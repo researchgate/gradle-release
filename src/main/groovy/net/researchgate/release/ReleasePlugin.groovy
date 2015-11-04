@@ -73,11 +73,6 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
         project.task('checkSnapshotDependencies', group: RELEASE_GROUP,
             description: 'Checks to see if your project has any SNAPSHOT dependencies.') << this.&checkSnapshotDependencies
 
-        List<String> buildTasks = []
-        extension.buildTasks.each { String task ->
-            buildTasks.add(p + task);
-        }
-
         project.task('runBuildTasks', group: RELEASE_GROUP,
             description: 'Runs the build process in a separate gradle run.', type: GradleBuild) {
             startParameter = project.getGradle().startParameter.newInstance()
@@ -85,7 +80,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
             project.afterEvaluate {
                 tasks = [
                     "${p}beforeReleaseBuild" as String,
-                    buildTasks,
+                    extension.buildTasks.collect { p + it },
                     "${p}afterReleaseBuild" as String
                 ].flatten()
             }
@@ -121,8 +116,10 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
             description: 'Runs immediately after the build when doing a release') {}
 
         if (supportsMustRunAfter) {
-            project.task(buildTasks.first()).mustRunAfter(project.tasks.beforeReleaseBuild)
-            project.tasks.afterReleaseBuild.mustRunAfter(buildTasks.last())
+            project.afterEvaluate {
+                project.task(p + extension.buildTasks.first()).mustRunAfter(project.tasks.beforeReleaseBuild)
+                project.tasks.afterReleaseBuild.mustRunAfter(p + extension.buildTasks.last())
+            }
         }
 
         project.gradle.taskGraph.afterTask { Task task, TaskState state ->
