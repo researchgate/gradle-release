@@ -169,14 +169,9 @@ class PluginHelper {
         if (oldVersion != newVersion) {
             project.version = newVersion
             attributes.versionModified = true
-            project.subprojects?.each { Project subProject ->
-                subProject.version = newVersion
-            }
-            def versionProperties = extension.versionProperties + 'version'
-            def propFile = findPropertiesFile()
-            versionProperties.each { String prop ->
-                writeVersion(propFile, prop, project.version)
-            }
+            project.subprojects?.each { it.version = newVersion }
+            List<String> versionProperties = extension.versionProperties + 'version'
+            versionProperties.each { writeVersion(findPropertiesFile(), it, project.version) }
         }
     }
 
