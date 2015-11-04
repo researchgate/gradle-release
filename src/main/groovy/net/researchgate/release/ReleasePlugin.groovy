@@ -117,8 +117,8 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
         if (supportsMustRunAfter) {
             project.afterEvaluate {
-                project.task(p + extension.buildTasks.first()).mustRunAfter(project.tasks.beforeReleaseBuild)
-                project.tasks.afterReleaseBuild.mustRunAfter(p + extension.buildTasks.last())
+                project.tasks[extension.buildTasks.first()].mustRunAfter(project.tasks.beforeReleaseBuild)
+                project.tasks.afterReleaseBuild.mustRunAfter(project.tasks[extension.buildTasks.last()])
             }
         }
 
