@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.3.3
+##### Released: 5. October 2015
+
+### Bugfixes
+
+* COMMON: Calling custom buildTasks was broken (#144, thanks madhead)
+* COMMON: Order of tasks was not completely correct for --parallel runs
+
 ## 2.3.2
 ##### Released: 2. October 2015
 
