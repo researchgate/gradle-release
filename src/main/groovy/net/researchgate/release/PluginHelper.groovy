@@ -87,8 +87,8 @@ class PluginHelper {
         try {
             // we use replace here as other ant tasks escape and modify the whole file
             project.ant.replaceregexp(file: file, byline: true) {
-                regexp(pattern: "$key(\\s*)=(\\s*).+")
-                substitution(expression: "$key\\1=\\2$version")
+                regexp(pattern: "^(\\s*)$key(\\s*)=(\\s*).+")
+                substitution(expression: "\\1$key\\2=\\3$version")
             }
         } catch (BuildException be) {
             throw new GradleException('Unable to write version property.', be)
