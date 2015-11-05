@@ -118,6 +118,7 @@ public class PluginHelperVersionPropertyFileTests extends Specification {
         props.withWriter {
             it << "version=${project.version}\n"
             it << "something=http://www.gradle.org/test\n"
+            it << "  another.prop.version =  1.1\n"
         }
         project.createScmAdapter.execute()
         when:
@@ -128,5 +129,6 @@ public class PluginHelperVersionPropertyFileTests extends Specification {
         noExceptionThrown()
         lines[0] == 'version=3.1'
         lines[1] == 'something=http://www.gradle.org/test'
+        lines[2] == '  another.prop.version =  1.1'
     }
 }
