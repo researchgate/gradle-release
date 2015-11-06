@@ -49,6 +49,13 @@
 * COMMON: Fix bug with release failing when using --parallel option for gradle (#60, thanks tschulte)
 * GIT: The option ```pushToCurrentBranch``` is deprecated, as it was simply unnecessary and can be safely removed
 
+## 2.2.3
+##### Released: 6. November 2015
+
+### Bugfixes
+
+* COMMON: Writing version property could override other properties (#149 thanks markalanturner)
+
 ## 2.2.2
 ##### Released: 8. September 2015
 
