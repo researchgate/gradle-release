@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.2.3
+##### Released: 6. November 2015
+
+### Bugfixes
+
+* COMMON: Writing version property could override other properties (#149 thanks markalanturner)
+
 ## 2.2.2
 ##### Released: 8. September 2015
 
