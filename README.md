@@ -115,7 +115,7 @@ Below are some properties of the Release Plugin Convention that can be used to c
 	<tr>
 		<td>tagTemplate</td>
 		<td>$version</td>
-		<td>The string template which is used to generate the tag name. Possible variables are $version and $name. Example: "$name-$version" will result in "myproject-1.1.0"</td>
+		<td>The string template which is used to generate the tag name. Possible variables are $version and $name. Example: '$name-$version' will result in "myproject-1.1.0". (Always ensure to use single-quotes, otherwise `$` is interpreted already in your build script)</td>
 	</tr>
 	<tr>
 		<td>preCommitText</td>
