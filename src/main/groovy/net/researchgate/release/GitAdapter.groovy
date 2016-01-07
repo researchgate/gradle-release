@@ -32,6 +32,7 @@ class GitAdapter extends BaseScmAdapter {
         @Deprecated
         boolean pushToCurrentBranch = false
         String pushToBranchPrefix
+        boolean commitVersionFileOnly = false
 
         void setProperty(String name, Object value) {
             if (name == 'pushToCurrentBranch') {
@@ -111,7 +112,12 @@ class GitAdapter extends BaseScmAdapter {
 
     @Override
     void commit(String message) {
-        exec(['git', 'commit', '-a', '-m', message], errorPatterns: ['error: ', 'fatal: '])
+        if (extension.git.commitVersionFileOnly) {
+            exec(['git', 'commit', extension.versionPropertyFile, '-m', message], errorPatterns: ['error: ', 'fatal: '])
+        }
+        else {
+            exec(['git', 'commit', '-a', '-m', message], errorPatterns: ['error: ', 'fatal: '])
+        }
         if (shouldPush()) {
             def branch = gitCurrentBranch()
             if (extension.git.pushToBranchPrefix) {

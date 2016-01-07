@@ -199,6 +199,7 @@ release {
         requireBranch = 'master'
         pushToRemote = 'origin'
         pushToBranchPrefix = ''
+        commitVersionFileOnly = false
     }
 
     svn {

@@ -50,4 +50,20 @@ class GitReleasePluginCommitNewVersionTests extends GitSpecification {
         then: 'remote repo contains updated properties file'
         remoteGit.repository.workTree.listFiles().any { it.name == 'gradle.properties' && it.text.contains("version=$project.version") }
     }
+
+    def 'should only push the version file to branch when pushVersionFileOnly is true'() {
+        given:
+        project.file('gradle.properties').withWriter { it << "version=${project.version}" }
+        gitAdd(localGit, 'test.txt') {
+            it << 'testTarget'
+        }
+        project.file('test.txt').withWriter { it << "testTarget" }
+        project.release.git.commitVersionFileOnly = true
+        when:
+        project.commitNewVersion.execute()
+        gitHardReset(remoteGit)
+        then: 'remote repo does not get the .gitignore update'
+        remoteGit.repository.workTree.listFiles().any { it.name == 'gradle.properties' && it.text.contains("version=$project.version") }
+        ! remoteGit.repository.workTree.listFiles().any { it.name == 'test.txt' && it.text.contains('testTarget') }
+    }
 }
