@@ -106,7 +106,7 @@ class PluginHelper {
     }
 
     boolean isVersionDefined() {
-        project.version && 'unspecified' != project.version
+        project.version && Project.DEFAULT_VERSION != project.version
     }
 
     void warnOrThrow(boolean doThrow, String message) {
