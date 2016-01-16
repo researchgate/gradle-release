@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.3.5
+##### Released: 16. January 2016
+
+### Bugfixes
+
+* COMMON: Avoid exception when buildtasks is an empy list (#156 thanks pepijnve)
+* GIT: Disable coloring for git-branch call (#157 thanks diegotori)
+
 ## 2.3.4
 ##### Released: 5. October 2015
 
