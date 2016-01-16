@@ -1,12 +1,20 @@
 # Changelog
 
-## 2.3.5
-#####
+## 2.4.0
+##### Not yet released
 
 ### New Features
 
 * GIT: Option ```commitVersionFileOnly``` can now be set to make sure we only commit the versionFile instead of all modified file.
     * This will be useful in some case when the repository is modified by the build job on some files to work around build server limitation.
+
+## 2.3.5
+##### Released: 16. January 2016
+
+### Bugfixes
+
+* COMMON: Avoid exception when buildtasks is an empy list (#156 thanks pepijnve)
+* GIT: Disable coloring for git-branch call (#157 thanks diegotori)
 
 ## 2.3.4
 ##### Released: 5. October 2015
