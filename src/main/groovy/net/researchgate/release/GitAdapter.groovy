@@ -112,12 +112,15 @@ class GitAdapter extends BaseScmAdapter {
 
     @Override
     void commit(String message) {
+        List<String> command = ['git', 'commit', '-m', message]
         if (extension.git.commitVersionFileOnly) {
-            exec(['git', 'commit', extension.versionPropertyFile, '-m', message], errorPatterns: ['error: ', 'fatal: '])
+            command << extension.versionPropertyFile
+        } else {
+            command << '-a'
         }
-        else {
-            exec(['git', 'commit', '-a', '-m', message], errorPatterns: ['error: ', 'fatal: '])
-        }
+
+        exec(command, errorPatterns: ['error: ', 'fatal: '])
+
         if (shouldPush()) {
             def branch = gitCurrentBranch()
             if (extension.git.pushToBranchPrefix) {
