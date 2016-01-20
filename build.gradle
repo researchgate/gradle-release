@@ -22,6 +22,7 @@ dependencies {
     testCompile("org.spockframework:spock-core:$spockVersion") { exclude group: 'org.codehaus.groovy' }
     testCompile "junit:junit:$junitVersion"
     testCompile "org.eclipse.jgit:org.eclipse.jgit:$jgitVersion"
+    testCompile "cglib:cglib-nodep:$cglibVersion"
 }
 
 plugindev {
