@@ -205,6 +205,7 @@ release {
     svn {
         username = null
         password = null
+        pinExternals = false   // allows to pin the externals when tagging, requires subversion client >= 1.9.0
     }
 }
 ```

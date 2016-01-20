@@ -34,6 +34,7 @@ class SvnAdapter extends BaseScmAdapter {
     class SvnConfig {
         String username
         String password
+        boolean pinExternals = false
     }
 
     @Override
@@ -135,7 +136,11 @@ class SvnAdapter extends BaseScmAdapter {
         String svnRoot = attributes.svnRoot
         String svnTag = tagName()
 
-        svnExec(['copy', "${svnUrl}@${svnRev}", "${svnRoot}/tags/${svnTag}", '--parents', '-m', message])
+        List<String> commands = ['copy', "${svnUrl}@${svnRev}", "${svnRoot}/tags/${svnTag}", '--parents', '-m', message]
+        if (extension.svn.pinExternals) {
+            commands += '--pin-externals'
+        }
+        svnExec(commands)
     }
 
     @Override
