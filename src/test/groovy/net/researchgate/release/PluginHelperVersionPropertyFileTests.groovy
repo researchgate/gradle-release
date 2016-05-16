@@ -100,6 +100,11 @@ public class PluginHelperVersionPropertyFileTests extends Specification {
         def props = project.file("gradle.properties")
         props.withWriter {
             it << "version = ${project.version}\n"
+            it << "version1 : ${project.version}\n"
+            it << "version2   ${project.version}\n"
+        }
+        project.release {
+            versionProperties = ['version1', 'version2']
         }
         project.createScmAdapter.execute()
         when:
@@ -109,6 +114,8 @@ public class PluginHelperVersionPropertyFileTests extends Specification {
         then:
         noExceptionThrown()
         lines[0] == 'version = 2.6'
+        lines[1] == 'version1 : 2.6'
+        lines[2] == 'version2   2.6'
     }
 
     def 'should not escape other stuff'() {
@@ -130,5 +137,27 @@ public class PluginHelperVersionPropertyFileTests extends Specification {
         lines[0] == 'version=3.1'
         lines[1] == 'something=http://www.gradle.org/test'
         lines[2] == '  another.prop.version =  1.1'
+    }
+
+    def 'should not fail on other property separators'() {
+        given:
+        project.version = '3.2'
+        def props = project.file("gradle.properties")
+        props.withWriter {
+            it << "version:${project.version}\n"
+            it << "version1=${project.version}\n"
+            it << "version2 ${project.version}\n"
+        }
+        project.release {
+            versionProperties = ['version1', 'version2']
+        }
+        when:
+        helper.updateVersionProperty('3.3')
+        def lines = project.file("gradle.properties").readLines()
+        then:
+        noExceptionThrown()
+        lines[0] == 'version:3.3'
+        lines[1] == 'version1=3.3'
+        lines[2] == 'version2 3.3'
     }
 }
