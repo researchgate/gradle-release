@@ -1,12 +1,17 @@
 # Changelog
 
 ## 2.4.0
-##### Not yet released
+##### Released: 25. May 2016
 
 ### New Features
 
-* GIT: Option ```commitVersionFileOnly``` can now be set to make sure we only commit the versionFile instead of all modified file.
+* GIT: Option `git.commitVersionFileOnly` can now be set to make sure we only commit the versionFile instead of all modified file.
     * This will be useful in some case when the repository is modified by the build job on some files to work around build server limitation.
+* SVN: Option `svn.pinExternals` can now be set to pin the version of externals
+
+### Bugfixes
+
+* COMMON: Fix support for properties in gradle.properties separated by space or colon.
 
 ## 2.3.5
 ##### Released: 16. January 2016
