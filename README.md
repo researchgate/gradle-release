@@ -200,6 +200,7 @@ release {
         pushToRemote = 'origin'
         pushToBranchPrefix = ''
         commitVersionFileOnly = false
+        forceCommitVersionFileOnly = false
     }
 
     svn {
