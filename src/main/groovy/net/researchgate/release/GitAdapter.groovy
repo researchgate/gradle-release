@@ -33,6 +33,7 @@ class GitAdapter extends BaseScmAdapter {
         boolean pushToCurrentBranch = false
         String pushToBranchPrefix
         boolean commitVersionFileOnly = false
+        boolean forceCommitVersionFileOnly = false
 
         void setProperty(String name, Object value) {
             if (name == 'pushToCurrentBranch') {
@@ -113,7 +114,7 @@ class GitAdapter extends BaseScmAdapter {
     @Override
     void commit(String message) {
         List<String> command = ['git', 'commit', '-m', message]
-        if (extension.git.commitVersionFileOnly) {
+        if (extension.git.commitVersionFileOnly || extension.git.forceCommitVersionFileOnly ) {
             command << extension.versionPropertyFile
         } else {
             command << '-a'
@@ -126,7 +127,13 @@ class GitAdapter extends BaseScmAdapter {
             if (extension.git.pushToBranchPrefix) {
                 branch = "HEAD:${extension.git.pushToBranchPrefix}${branch}"
             }
-            exec(['git', 'push', '--porcelain', extension.git.pushToRemote, branch], errorMessage: 'Failed to push to remote', errorPatterns: ['[rejected]', 'error: ', 'fatal: '])
+
+            def gitCommand = ['git', 'push', '--porcelain', extension.git.pushToRemote, branch]
+            if (extension.git.forceCommitVersionFileOnly) {
+                gitCommand.push('--force')
+            }
+            exec(gitCommand, errorMessage: 'Failed to push to remote', 
+                    errorPatterns: ['[rejected]', 'error: ', 'fatal: '])
         }
     }
 

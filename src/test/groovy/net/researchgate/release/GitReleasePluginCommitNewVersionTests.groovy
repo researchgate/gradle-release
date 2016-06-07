@@ -66,4 +66,17 @@ class GitReleasePluginCommitNewVersionTests extends GitSpecification {
         remoteGit.repository.workTree.listFiles().any { it.name == 'gradle.properties' && it.text.contains("version=$project.version") }
         ! remoteGit.repository.workTree.listFiles().any { it.name == 'test.txt' && it.text.contains('testTarget') }
     }
+
+    def 'should push the version file to branch when forceCommitVersionFileOnly is true'() {
+        given:
+        // TODO: remoteGit not working as I'd expect. Could not get a new file
+        // pushed into it that was pulled down after the gitHardReset or gitCheckoutBranch
+        project.file('gradle.properties').withWriter { it << "version=${project.version}" }
+        project.release.git.forceCommitVersionFileOnly = true
+        when:
+        project.commitNewVersion.execute()
+        gitHardReset(remoteGit)
+        then: 'remote repo gets the version update'
+        remoteGit.repository.workTree.listFiles().any { it.name == 'gradle.properties' && it.text.contains("version=$project.version") }
+    }
 }
