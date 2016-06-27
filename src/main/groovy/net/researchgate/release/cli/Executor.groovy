@@ -36,7 +36,7 @@ class Executor {
         process.waitForProcessOutput(out, err)
         logger?.info("Running $commands produced output: [${out.toString().trim()}]")
 
-        if (err.toString()) {
+        if (process.exitValue()) {
             def message = "Running $commands produced an error: [${err.toString().trim()}]"
 
             if (options['failOnStderr'] as boolean) {
