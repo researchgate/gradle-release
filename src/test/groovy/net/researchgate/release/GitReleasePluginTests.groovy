@@ -84,6 +84,7 @@ class GitReleasePluginTests extends Specification {
         project.release {
             git {
                 requireBranch = 'myBranch'
+                pushOptions = ['--no-verify', '--verbose']
             }
         }
         then:
