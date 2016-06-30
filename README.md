@@ -153,6 +153,12 @@ Below are some properties of the Release Plugin Convention that are specific to 
 		<td>master</td>
 		<td>Defines the branch which releases must be done off of. Eg. set to `release` to require releases are done on the `release` branch (or use a regular expression to allow releases from multiple branches, e.g. `/release|master/`). Set to '' to ignore.</td>
 	</tr>
+	<tr>
+		<td>Git</td>
+		<td>pushOptions</td>
+		<td>{empty}</td>
+		<td>Defines an array of options to add to the git adapter during a push.  This could be useful to have the vc hooks skipped during a release. Example `pushOptions = ["--no-verify"]`</td>
+	</tr>
 </table>
 
 To set any of these properties to false, add a "release" configuration to your project's ```build.gradle``` file. Eg. To ignore un-versioned files, you would add the following to your ```build.gradle``` file:
