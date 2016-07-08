@@ -27,7 +27,8 @@ class GitAdapter extends BaseScmAdapter {
     class GitConfig {
         String requireBranch = 'master'
         def pushToRemote = 'origin' // needs to be def as can be boolean or string
-
+        def pushOptions = []
+        
         /** @deprecated Remove in version 3.0 */
         @Deprecated
         boolean pushToCurrentBranch = false
@@ -106,7 +107,7 @@ class GitAdapter extends BaseScmAdapter {
         def tagName = tagName()
         exec(['git', 'tag', '-a', tagName, '-m', message], errorMessage: "Duplicate tag [$tagName]", errorPatterns: ['already exists'])
         if (shouldPush()) {
-            exec(['git', 'push', '--porcelain', extension.git.pushToRemote, tagName], errorMessage: "Failed to push tag [$tagName] to remote", errorPatterns: ['[rejected]', 'error: ', 'fatal: '])
+            exec(['git', 'push', '--porcelain', extension.git.pushToRemote, tagName] + extension.git.pushOptions, errorMessage: "Failed to push tag [$tagName] to remote", errorPatterns: ['[rejected]', 'error: ', 'fatal: '])
         }
     }
 
@@ -126,7 +127,7 @@ class GitAdapter extends BaseScmAdapter {
             if (extension.git.pushToBranchPrefix) {
                 branch = "HEAD:${extension.git.pushToBranchPrefix}${branch}"
             }
-            exec(['git', 'push', '--porcelain', extension.git.pushToRemote, branch], errorMessage: 'Failed to push to remote', errorPatterns: ['[rejected]', 'error: ', 'fatal: '])
+            exec(['git', 'push', '--porcelain', extension.git.pushToRemote, branch] + extension.git.pushOptions, errorMessage: 'Failed to push to remote', errorPatterns: ['[rejected]', 'error: ', 'fatal: '])
         }
     }
 
