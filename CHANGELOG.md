@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.5.0
+##### Released: xx. July 2016
+
+### New Features
+
+* GIT: Option `git.pushOptions` can now be set to add additional git options to the git push.
+
 ## 2.4.0
 ##### Released: 25. May 2016
 
@@ -7,7 +14,6 @@
 
 * GIT: Option `git.commitVersionFileOnly` can now be set to make sure we only commit the versionFile instead of all modified file.
     * This will be useful in some case when the repository is modified by the build job on some files to work around build server limitation.
-* GIT: Option `git.pushOptions` can now be set to add additional git options to the git push.
 * SVN: Option `svn.pinExternals` can now be set to pin the version of externals
 
 ### Bugfixes
