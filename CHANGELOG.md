@@ -7,6 +7,10 @@
 
 * GIT: Option `git.pushOptions` can now be set to add additional git options to the git push.
 
+### Bugfixes
+
+* COMMON: Detect errors of executed commands with their exit value
+
 ## 2.4.0
 ##### Released: 25. May 2016
 
