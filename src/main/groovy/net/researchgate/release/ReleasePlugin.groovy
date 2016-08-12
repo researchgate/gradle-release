@@ -86,7 +86,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
             }
         }
         project.task('preTagCommit', group: RELEASE_GROUP,
-            description: 'Commits any changes made by the Release plugin - eg. If the unSnapshotVersion tas was executed') << this.&preTagCommit
+            description: 'Commits any changes made by the Release plugin - eg. If the unSnapshotVersion task was executed') << this.&preTagCommit
         project.task('createReleaseTag', group: RELEASE_GROUP,
             description: 'Creates a tag in SCM for the current (un-snapshotted) version.') << this.&commitTag
         project.task('updateVersion', group: RELEASE_GROUP,
@@ -129,7 +129,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
             if (state.failure && task.name == "release") {
                 try {
                     createScmAdapter()
-                } catch (Exception e) {}
+                } catch (Exception ignored) {}
                 if (scmAdapter && extension.revertOnFail && project.file(extension.versionPropertyFile)?.exists()) {
                     log.error('Release process failed, reverting back any changes made by Release Plugin.')
                     scmAdapter.revert()

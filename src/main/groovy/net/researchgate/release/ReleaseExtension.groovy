@@ -113,7 +113,7 @@ class ReleaseExtension {
 
         try {
             return ConfigureUtil.configure(args[0] as Closure, this."$name")
-        } catch (MissingPropertyException e) {
+        } catch (MissingPropertyException ignored) {
             throw new MissingMethodException(name, this.class, args)
         }
     }
