@@ -84,4 +84,4 @@ artifactory {
 
 afterReleaseBuild.dependsOn bintrayUpload
 
-wrapper.gradleVersion = '1.12'
+wrapper.gradleVersion = '2.14'
