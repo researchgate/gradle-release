@@ -52,8 +52,7 @@ bintray {
         userOrg = 'researchgate'
         version {
             gpg {
-                sign = true
-                passphrase = project.hasProperty('bintrayGpgPassphrase') ? bintrayGpgPassphrase : ''
+                sign = false
             }
             mavenCentralSync {
                 user = project.hasProperty('sonatypeUser') ? sonatypeUser : ''
@@ -61,7 +60,7 @@ bintray {
             }
         }
     }
-    publish = true
+    publish = false
 }
 
 artifactory {
