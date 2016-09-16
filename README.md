@@ -249,7 +249,7 @@ $ gradle release -Prelease.useAutomaticVersion=true -Prelease.releaseVersion=1.0
 To ask questions please use stackoverflow or gitter.
 
 * Chat/Gitter: [https://gitter.im/researchgate/gradle-release](https://gitter.im/researchgate/gradle-release)
-* Stack Overflow: [http://stackoverflow.com/questions/ask?tags=gradle-release-plugin](http://stackoverflow.com/questions/ask?tags=gradle-release-plugin)
+* Stack Overflow: [http://stackoverflow.com/questions/tagged/gradle-release-plugin](http://stackoverflow.com/questions/tagged/gradle-release-plugin)
 
 To report bugs, please use the GitHub project.
 
