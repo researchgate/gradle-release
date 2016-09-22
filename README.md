@@ -13,7 +13,7 @@ The `gradle release` task defines the following as the default release process:
 
 * The plugin checks for any un-committed files (Added, modified, removed, or un-versioned).
 * Checks for any incoming or outgoing changes.
-* Removes the SNAPSHOT flag on your projects version (If used)
+* Removes the SNAPSHOT flag on your project's version (If used)
 * Prompts you for the release version.
 * Checks if your project is using any SNAPSHOT dependencies
 * Will `build` your project.
