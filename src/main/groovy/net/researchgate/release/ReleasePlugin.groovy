@@ -292,7 +292,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
      */
     protected BaseScmAdapter findScmAdapter() {
         BaseScmAdapter adapter
-        File projectPath = project.rootProject.projectDir.canonicalFile
+        File projectPath = project.projectDir.canonicalFile
 
         extension.scmAdapters.find {
             assert BaseScmAdapter.isAssignableFrom(it)

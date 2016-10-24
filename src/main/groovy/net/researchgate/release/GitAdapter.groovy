@@ -24,6 +24,8 @@ class GitAdapter extends BaseScmAdapter {
     private static final String AHEAD = 'ahead'
     private static final String BEHIND = 'behind'
 
+    private File workingDirectory
+
     class GitConfig {
         String requireBranch = 'master'
         def pushToRemote = 'origin' // needs to be def as can be boolean or string
@@ -59,6 +61,7 @@ class GitAdapter extends BaseScmAdapter {
             return directory.parentFile? isSupported(directory.parentFile) : false
         }
 
+        workingDirectory = directory
         true
     }
 
@@ -89,7 +92,7 @@ class GitAdapter extends BaseScmAdapter {
 
     @Override
     void checkUpdateNeeded() {
-        exec(['git', 'remote', 'update'], errorPatterns: ['error: ', 'fatal: '])
+        exec(['git', 'remote', 'update'], directory: workingDirectory, errorPatterns: ['error: ', 'fatal: '])
 
         def status = gitRemoteStatus()
 
@@ -105,9 +108,9 @@ class GitAdapter extends BaseScmAdapter {
     @Override
     void createReleaseTag(String message) {
         def tagName = tagName()
-        exec(['git', 'tag', '-a', tagName, '-m', message], errorMessage: "Duplicate tag [$tagName]", errorPatterns: ['already exists'])
+        exec(['git', 'tag', '-a', tagName, '-m', message], directory: workingDirectory, errorMessage: "Duplicate tag [$tagName]", errorPatterns: ['already exists'])
         if (shouldPush()) {
-            exec(['git', 'push', '--porcelain', extension.git.pushToRemote, tagName] + extension.git.pushOptions, errorMessage: "Failed to push tag [$tagName] to remote", errorPatterns: ['[rejected]', 'error: ', 'fatal: '])
+            exec(['git', 'push', '--porcelain', extension.git.pushToRemote, tagName] + extension.git.pushOptions, directory: workingDirectory, errorMessage: "Failed to push tag [$tagName] to remote", errorPatterns: ['[rejected]', 'error: ', 'fatal: '])
         }
     }
 
@@ -120,31 +123,31 @@ class GitAdapter extends BaseScmAdapter {
             command << '-a'
         }
 
-        exec(command, errorPatterns: ['error: ', 'fatal: '])
+        exec(command, directory: workingDirectory, errorPatterns: ['error: ', 'fatal: '])
 
         if (shouldPush()) {
             def branch = gitCurrentBranch()
             if (extension.git.pushToBranchPrefix) {
                 branch = "HEAD:${extension.git.pushToBranchPrefix}${branch}"
             }
-            exec(['git', 'push', '--porcelain', extension.git.pushToRemote, branch] + extension.git.pushOptions, errorMessage: 'Failed to push to remote', errorPatterns: ['[rejected]', 'error: ', 'fatal: '])
+            exec(['git', 'push', '--porcelain', extension.git.pushToRemote, branch] + extension.git.pushOptions, directory: workingDirectory, errorMessage: 'Failed to push to remote', errorPatterns: ['[rejected]', 'error: ', 'fatal: '])
         }
     }
 
     @Override
     void add(File file) {
-        exec(['git', 'add', file.path], errorMessage: "Error adding file ${file.name}", errorPatterns: ['error: ', 'fatal: '])
+        exec(['git', 'add', file.path], directory: workingDirectory, errorMessage: "Error adding file ${file.name}", errorPatterns: ['error: ', 'fatal: '])
     }
 
     @Override
     void revert() {
-        exec(['git', 'checkout', findPropertiesFile().name], errorMessage: 'Error reverting changes made by the release plugin.')
+        exec(['git', 'checkout', findPropertiesFile().name], directory: workingDirectory, errorMessage: 'Error reverting changes made by the release plugin.')
     }
 
     private boolean shouldPush() {
         def shouldPush = false
         if (extension.git.pushToRemote) {
-            exec(['git', 'remote']).eachLine { line ->
+            exec(['git', 'remote'], directory: workingDirectory).eachLine { line ->
                 Matcher matcher = line =~ ~/^\s*(.*)\s*$/
                 if (matcher.matches() && matcher.group(1) == extension.git.pushToRemote) {
                     shouldPush = true
@@ -159,12 +162,12 @@ class GitAdapter extends BaseScmAdapter {
     }
 
     private String gitCurrentBranch() {
-        def matches = exec(['git', 'branch', '--no-color']).readLines().grep(~/\s*\*.*/)
+        def matches = exec(['git', 'branch', '--no-color'], directory: workingDirectory).readLines().grep(~/\s*\*.*/)
         matches[0].trim() - (~/^\*\s+/)
     }
 
     private Map<String, List<String>> gitStatus() {
-        exec(['git', 'status', '--porcelain']).readLines().groupBy {
+        exec(['git', 'status', '--porcelain'], directory: workingDirectory).readLines().groupBy {
             if (it ==~ /^\s*\?{2}.*/) {
                 UNVERSIONED
             } else {
@@ -174,7 +177,7 @@ class GitAdapter extends BaseScmAdapter {
     }
 
     private Map<String, Integer> gitRemoteStatus() {
-        def branchStatus = exec(['git', 'status', '--porcelain', '-b']).readLines()[0]
+        def branchStatus = exec(['git', 'status', '--porcelain', '-b'], directory: workingDirectory).readLines()[0]
         def aheadMatcher = branchStatus =~ /.*ahead (\d+).*/
         def behindMatcher = branchStatus =~ /.*behind (\d+).*/
 
