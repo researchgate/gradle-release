@@ -59,19 +59,19 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
         }
 
         project.task('createScmAdapter', group: RELEASE_GROUP,
-            description: 'Finds the correct SCM plugin') << this.&createScmAdapter
+            description: 'Finds the correct SCM plugin') doLast this.&createScmAdapter
         project.task('initScmAdapter', group: RELEASE_GROUP,
-            description: 'Initializes the SCM plugin') << this.&initScmAdapter
+            description: 'Initializes the SCM plugin') doLast this.&initScmAdapter
         project.task('checkCommitNeeded', group: RELEASE_GROUP,
-            description: 'Checks to see if there are any added, modified, removed, or un-versioned files.') << this.&checkCommitNeeded
+            description: 'Checks to see if there are any added, modified, removed, or un-versioned files.') doLast this.&checkCommitNeeded
         project.task('checkUpdateNeeded', group: RELEASE_GROUP,
-            description: 'Checks to see if there are any incoming or outgoing changes that haven\'t been applied locally.') << this.&checkUpdateNeeded
+            description: 'Checks to see if there are any incoming or outgoing changes that haven\'t been applied locally.') doLast this.&checkUpdateNeeded
         project.task('unSnapshotVersion', group: RELEASE_GROUP,
-            description: 'Removes "-SNAPSHOT" from your project\'s current version.') << this.&unSnapshotVersion
+            description: 'Removes "-SNAPSHOT" from your project\'s current version.') doLast this.&unSnapshotVersion
         project.task('confirmReleaseVersion', group: RELEASE_GROUP,
-            description: 'Prompts user for this release version. Allows for alpha or pre releases.') << this.&confirmReleaseVersion
+            description: 'Prompts user for this release version. Allows for alpha or pre releases.') doLast this.&confirmReleaseVersion
         project.task('checkSnapshotDependencies', group: RELEASE_GROUP,
-            description: 'Checks to see if your project has any SNAPSHOT dependencies.') << this.&checkSnapshotDependencies
+            description: 'Checks to see if your project has any SNAPSHOT dependencies.') doLast this.&checkSnapshotDependencies
 
         project.task('runBuildTasks', group: RELEASE_GROUP,
             description: 'Runs the build process in a separate gradle run.', type: GradleBuild) {
@@ -86,13 +86,13 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
             }
         }
         project.task('preTagCommit', group: RELEASE_GROUP,
-            description: 'Commits any changes made by the Release plugin - eg. If the unSnapshotVersion task was executed') << this.&preTagCommit
+            description: 'Commits any changes made by the Release plugin - eg. If the unSnapshotVersion task was executed') doLast this.&preTagCommit
         project.task('createReleaseTag', group: RELEASE_GROUP,
-            description: 'Creates a tag in SCM for the current (un-snapshotted) version.') << this.&commitTag
+            description: 'Creates a tag in SCM for the current (un-snapshotted) version.') doLast this.&commitTag
         project.task('updateVersion', group: RELEASE_GROUP,
-            description: 'Prompts user for the next version. Does it\'s best to supply a smart default.') << this.&updateVersion
+            description: 'Prompts user for the next version. Does it\'s best to supply a smart default.') doLast this.&updateVersion
         project.task('commitNewVersion', group: RELEASE_GROUP,
-            description: 'Commits the version update to your SCM') << this.&commitNewVersion
+            description: 'Commits the version update to your SCM') doLast this.&commitNewVersion
 
         Boolean supportsMustRunAfter = project.tasks.initScmAdapter.respondsTo('mustRunAfter')
 
