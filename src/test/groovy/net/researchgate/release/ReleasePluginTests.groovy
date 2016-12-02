@@ -18,9 +18,12 @@ class ReleasePluginTests extends Specification {
 
     Project project
 
-    def testDir = new File("build/tmp/test/${getClass().simpleName}")
+    File testDir = new File("build/tmp/test/${getClass().simpleName}")
 
     def setup() {
+        if (!testDir.exists()) {
+            testDir.mkdirs()
+        }
         project = ProjectBuilder.builder().withName('ReleasePluginTest').withProjectDir(testDir).build()
         def testVersionPropertyFile = project.file('version.properties')
         testVersionPropertyFile.withWriter { w ->
