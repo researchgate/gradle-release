@@ -30,6 +30,7 @@ class GitAdapter extends BaseScmAdapter {
         String requireBranch = 'master'
         def pushToRemote = 'origin' // needs to be def as can be boolean or string
         def pushOptions = []
+        boolean signTag = false
         
         /** @deprecated Remove in version 3.0 */
         @Deprecated
@@ -108,7 +109,11 @@ class GitAdapter extends BaseScmAdapter {
     @Override
     void createReleaseTag(String message) {
         def tagName = tagName()
-        exec(['git', 'tag', '-a', tagName, '-m', message], directory: workingDirectory, errorMessage: "Duplicate tag [$tagName]", errorPatterns: ['already exists'])
+        def params = ['git', 'tag', '-a', tagName, '-m', message]
+        if (extension.git.signTag) {
+            params.add('-s')
+        }
+        exec(params, directory: workingDirectory, errorMessage: "Duplicate tag [$tagName]", errorPatterns: ['already exists'])
         if (shouldPush()) {
             exec(['git', 'push', '--porcelain', extension.git.pushToRemote, tagName] + extension.git.pushOptions, directory: workingDirectory, errorMessage: "Failed to push tag [$tagName] to remote", errorPatterns: ['[rejected]', 'error: ', 'fatal: '])
         }

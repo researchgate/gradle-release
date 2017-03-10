@@ -159,6 +159,12 @@ Below are some properties of the Release Plugin Convention that are specific to 
 		<td>{empty}</td>
 		<td>Defines an array of options to add to the git adapter during a push.  This could be useful to have the vc hooks skipped during a release. Example `pushOptions = ["--no-verify"]`</td>
 	</tr>
+	<tr>
+	    <td>Git</td>
+	    <td>signTag</td>
+	    <td>false</td>
+	    <td>Adds `-s` parameter to the tag command</td>
+	</tr>
 </table>
 
 To set any of these properties to false, add a "release" configuration to your project's ```build.gradle``` file. Eg. To ignore un-versioned files, you would add the following to your ```build.gradle``` file:
@@ -206,6 +212,7 @@ release {
         pushToRemote = 'origin'
         pushToBranchPrefix = ''
         commitVersionFileOnly = false
+        signTag = false
     }
 
     svn {
