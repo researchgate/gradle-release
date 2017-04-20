@@ -165,6 +165,12 @@ Below are some properties of the Release Plugin Convention that are specific to 
 	    <td>false</td>
 	    <td>Adds `-s` parameter to the tag command</td>
 	</tr>
+	<tr>
+	    <td>Git</td>
+	    <td>pushToBranch</td>
+	    <td>{empty}</td>
+	    <td>Defines the remote branch to push to.  Useful when running the release with a detached head.</td>
+	</tr>
 </table>
 
 To set any of these properties to false, add a "release" configuration to your project's ```build.gradle``` file. Eg. To ignore un-versioned files, you would add the following to your ```build.gradle``` file:
@@ -210,6 +216,7 @@ release {
     git {
         requireBranch = 'master'
         pushToRemote = 'origin'
+        pushToBranch = ''
         pushToBranchPrefix = ''
         commitVersionFileOnly = false
         signTag = false

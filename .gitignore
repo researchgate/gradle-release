@@ -10,3 +10,4 @@ build
 out
 
 /.nb-gradle/
+/bin/
