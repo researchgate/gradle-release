@@ -134,7 +134,7 @@ class GitAdapter extends BaseScmAdapter {
         if (shouldPush()) {
             def branch = gitCurrentBranch()
             if (extension.git.pushToBranch) {
-                branch = pushToBranch
+                branch = extension.git.pushToBranch
             }
             if (extension.git.pushToBranchPrefix) {
                 branch = "HEAD:${extension.git.pushToBranchPrefix}${branch}"
