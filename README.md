@@ -169,7 +169,7 @@ Below are some properties of the Release Plugin Convention that are specific to 
 	    <td>Git</td>
 	    <td>pushToBranch</td>
 	    <td>{empty}</td>
-	    <td>Defines the remote branch to push to.  Useful when running the release in a detached head.</td>
+	    <td>Defines the remote branch to push to.  Useful when running the release with a detached head.</td>
 	</tr>
 </table>
 
@@ -216,6 +216,7 @@ release {
     git {
         requireBranch = 'master'
         pushToRemote = 'origin'
+        pushToBranch = ''
         pushToBranchPrefix = ''
         commitVersionFileOnly = false
         signTag = false
