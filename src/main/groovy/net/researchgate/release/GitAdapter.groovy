@@ -37,7 +37,8 @@ class GitAdapter extends BaseScmAdapter {
         boolean pushToCurrentBranch = false
         String pushToBranchPrefix
         boolean commitVersionFileOnly = false
-
+        String pushToBranch
+        
         void setProperty(String name, Object value) {
             if (name == 'pushToCurrentBranch') {
                 project.logger?.warn("You are setting the deprecated and unused option '${name}'. You can safely remove it. The deprecated option will be removed in 3.0")
@@ -132,7 +133,9 @@ class GitAdapter extends BaseScmAdapter {
 
         if (shouldPush()) {
             def branch = gitCurrentBranch()
-            if (extension.git.pushToBranchPrefix) {
+            if (extension.git.pushToBranch) {
+                branch = pushToBranch
+            } else if (extension.git.pushToBranchPrefix) {
                 branch = "HEAD:${extension.git.pushToBranchPrefix}${branch}"
             }
             exec(['git', 'push', '--porcelain', extension.git.pushToRemote, branch] + extension.git.pushOptions, directory: workingDirectory, errorMessage: 'Failed to push to remote', errorPatterns: ['[rejected]', 'error: ', 'fatal: '])
