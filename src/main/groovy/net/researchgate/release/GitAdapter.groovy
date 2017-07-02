@@ -24,6 +24,9 @@ class GitAdapter extends BaseScmAdapter {
     private static final String AHEAD = 'ahead'
     private static final String BEHIND = 'behind'
 
+    private final String snapshotBranch;
+    private final String releaseBranch;
+
     private File workingDirectory
 
     class GitConfig {
@@ -49,6 +52,9 @@ class GitAdapter extends BaseScmAdapter {
 
     GitAdapter(Project project, Map<String, Object> attributes) {
         super(project, attributes)
+
+        this.snapshotBranch = gitCurrentBranch()
+        this.releaseBranch = extension.pushReleaseVersionBranch ? extension.pushReleaseVersionBranch : snapshotBranch
     }
 
     @Override
@@ -147,6 +153,22 @@ class GitAdapter extends BaseScmAdapter {
     @Override
     void revert() {
         exec(['git', 'checkout', findPropertiesFile().name], directory: workingDirectory, errorMessage: 'Error reverting changes made by the release plugin.')
+    }
+
+    @Override
+    void checkoutMergeToReleaseBranch() {
+        checkoutMerge(snapshotBranch, releaseBranch)
+    }
+
+    @Override
+    void checkoutMergeFromReleaseBranch() {
+        checkoutMerge(releaseBranch, snapshotBranch)
+    }
+
+    private checkoutMerge(String fromBranch, String toBranch) {
+        exec(['git', 'fetch'], directory: workingDirectory, errorPatterns: ['error: ', 'fatal: '])
+        exec(['git', 'checkout', toBranch], directory: workingDirectory, errorPatterns: ['error: ', 'fatal: '])
+        exec(['git', 'merge', '--no-ff', '--no-commit', fromBranch], directory: workingDirectory, errorPatterns: ['error: ', 'fatal: '])
     }
 
     private boolean shouldPush() {

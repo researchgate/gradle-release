@@ -38,6 +38,8 @@ class ReleaseExtension {
 
     String newVersionCommitMessage = '[Gradle Release Plugin] - new version commit: '
 
+    def pushReleaseVersionBranch = false
+
     /**
      * as of 3.0 set this to "$version" by default
      */
