@@ -141,12 +141,6 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
                     project.tasks.afterReleaseBuild.mustRunAfter(project.tasks[buildTasks.last()])
                 }
             }
-
-            if (extension.pushReleaseVersionBranch && !extension.failOnCommitNeeded) {
-                log.warn('/!\\Warning/!\\')
-                log.warn('It is strongly discouraged to set failOnCommitNeeded to false with pushReleaseVersionBranch is enabled.')
-                log.warn('Merging if an uncleaned working directory will lead to unexpected results.')
-            }
         }
 
         project.gradle.taskGraph.afterTask { Task task, TaskState state ->
@@ -181,10 +175,22 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
     }
 
     void checkoutAndMergeToReleaseBranch() {
+        if (extension.pushReleaseVersionBranch && !extension.failOnCommitNeeded) {
+            log.warn('/!\\Warning/!\\')
+            log.warn('It is strongly discouraged to set failOnCommitNeeded to false with pushReleaseVersionBranch is enabled.')
+            log.warn('Merging with an uncleaned working directory will lead to unexpected results.')
+        }
+
         scmAdapter.checkoutMergeToReleaseBranch()
     }
 
     void checkoutAndMergeFromReleaseBranch() {
+        if (extension.pushReleaseVersionBranch && !extension.failOnCommitNeeded) {
+            log.warn('/!\\Warning/!\\')
+            log.warn('It is strongly discouraged to set failOnCommitNeeded to false with pushReleaseVersionBranch is enabled.')
+            log.warn('Merging with an uncleaned working directory will lead to unexpected results.')
+        }
+
         scmAdapter.checkoutMergeFromReleaseBranch()
     }
 
