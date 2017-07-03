@@ -24,7 +24,7 @@ class GitAdapter extends BaseScmAdapter {
     private static final String AHEAD = 'ahead'
     private static final String BEHIND = 'behind'
 
-    private final String snapshotBranch;
+    private final String workingBranch;
     private final String releaseBranch;
 
     private File workingDirectory
@@ -53,8 +53,8 @@ class GitAdapter extends BaseScmAdapter {
     GitAdapter(Project project, Map<String, Object> attributes) {
         super(project, attributes)
 
-        this.snapshotBranch = gitCurrentBranch()
-        this.releaseBranch = extension.pushReleaseVersionBranch ? extension.pushReleaseVersionBranch : snapshotBranch
+        workingBranch = gitCurrentBranch()
+        releaseBranch = extension.pushReleaseVersionBranch ? extension.pushReleaseVersionBranch : workingBranch
     }
 
     @Override
@@ -75,9 +75,8 @@ class GitAdapter extends BaseScmAdapter {
     @Override
     void init() {
         if (extension.git.requireBranch) {
-            def branch = gitCurrentBranch()
-            if (!(branch ==~ extension.git.requireBranch)) {
-                throw new GradleException("Current Git branch is \"$branch\" and not \"${ extension.git.requireBranch }\".")
+            if (!(workingBranch ==~ extension.git.requireBranch)) {
+                throw new GradleException("Current Git branch is \"$workingBranch\" and not \"${ extension.git.requireBranch }\".")
             }
         }
     }
@@ -152,17 +151,22 @@ class GitAdapter extends BaseScmAdapter {
 
     @Override
     void revert() {
+        // Try to go back to the requireBranch (workingBranch is irrelevant here, a new GitAdapter instance has been created specifically during revert)
+        if (extension.git.requireBranch) {
+            exec(['git', 'checkout', extension.git.requireBranch], directory: workingDirectory, errorMessage: 'Error reverting changes made by the release plugin.')
+        }
+        // Revert changes on gradle.properties
         exec(['git', 'checkout', findPropertiesFile().name], directory: workingDirectory, errorMessage: 'Error reverting changes made by the release plugin.')
     }
 
     @Override
     void checkoutMergeToReleaseBranch() {
-        checkoutMerge(snapshotBranch, releaseBranch)
+        checkoutMerge(workingBranch, releaseBranch)
     }
 
     @Override
     void checkoutMergeFromReleaseBranch() {
-        checkoutMerge(releaseBranch, snapshotBranch)
+        checkoutMerge(releaseBranch, workingBranch)
     }
 
     private checkoutMerge(String fromBranch, String toBranch) {
