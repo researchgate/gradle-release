@@ -143,16 +143,9 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
             }
 
             if (extension.pushReleaseVersionBranch && !extension.failOnCommitNeeded) {
-                extension.failOnCommitNeeded = true
-                log.warn('Warning : Property release.failOnCommitNeeded enforced to be true when release.pushReleaseVersionBranch is set.')
-            }
-            if (extension.pushReleaseVersionBranch && !extension.failOnPublishNeeded) {
-                extension.failOnPublishNeeded = true
-                log.warn('Warning : Property release.failOnPublishNeeded enforced to be true when release.pushReleaseVersionBranch is set.')
-            }
-            if (extension.pushReleaseVersionBranch && !extension.failOnUpdateNeeded) {
-                extension.failOnUpdateNeeded = true
-                log.warn('Warning : Property release.failOnUpdateNeeded enforced to be true when release.pushReleaseVersionBranch is set.')
+                log.warn('/!\\Warning/!\\')
+                log.warn('It is strongly discouraged to set failOnCommitNeeded to false with pushReleaseVersionBranch is enabled.')
+                log.warn('Merging if an uncleaned working directory will lead to unexpected results.')
             }
         }
 
