@@ -133,8 +133,8 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
         project.task('afterReleaseBuild', group: RELEASE_GROUP,
             description: 'Runs immediately after the build when doing a release') {}
 
-        project.afterEvaluate {
-            if (supportsMustRunAfter) {
+        if (supportsMustRunAfter) {
+            project.afterEvaluate {
                 def buildTasks = extension.buildTasks
                 if (!buildTasks.empty) {
                     project.tasks[buildTasks.first()].mustRunAfter(project.tasks.beforeReleaseBuild)
