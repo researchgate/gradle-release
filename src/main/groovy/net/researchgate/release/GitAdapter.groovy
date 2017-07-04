@@ -194,7 +194,11 @@ class GitAdapter extends BaseScmAdapter {
 
     private String gitCurrentBranch() {
         def matches = exec(['git', 'branch', '--no-color'], directory: workingDirectory).readLines().grep(~/\s*\*.*/)
-        matches[0].trim() - (~/^\*\s+/)
+		if (!matches.isEmpty()) {
+			matches[0].trim() - (~/^\*\s+/)
+		} else {
+			throw new GradleException('Error, this repository is empty.')
+		}
     }
 
     private Map<String, List<String>> gitStatus() {
