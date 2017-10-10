@@ -27,8 +27,8 @@ class SvnAdapter extends BaseScmAdapter {
 
     private static final def environment = [LANG: 'C', LC_MESSAGES: 'C', LC_ALL: ''];
 
-    SvnAdapter(Project project, Map<String, Object> attributes) {
-        super(project, attributes)
+    SvnAdapter(Project project) {
+        super(project)
     }
 
     class SvnConfig {
