@@ -1,4 +1,4 @@
-sudo: false
+sudo: true
 cache:
   directories:
   - $HOME/.gradle/caches/
@@ -7,3 +7,6 @@ jdk:
   - oraclejdk8
   - openjdk7
   - openjdk6
+before_install:
+  - chmod +x .travis/before_install.sh
+  - .travis/before_install.sh
