@@ -5,5 +5,9 @@ cache:
 language: groovy
 jdk:
   - oraclejdk8
-  - oraclejdk7
+  - openjdk7
   - openjdk6
+before_install:
+  - chmod +x .travis/before_install.sh
+  - .travis/before_install.sh
+
