@@ -167,6 +167,9 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
             project.configurations.each { cfg ->
                 snapshotDependencies += cfg.dependencies?.matching(matcher)?.collect(collector)
             }
+            project.buildscript.configurations.each { cfg ->
+                snapshotDependencies += cfg.dependencies?.matching(matcher)?.collect(collector)
+            }
             if (snapshotDependencies.size() > 0) {
                 message += "\n\t${project.name}: ${snapshotDependencies}"
             }
