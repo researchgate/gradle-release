@@ -5,4 +5,3 @@ cache:
 language: groovy
 jdk:
   - oraclejdk8
-  - openjdk7
