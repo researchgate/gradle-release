@@ -47,8 +47,8 @@ class GitAdapter extends BaseScmAdapter {
         }
     }
 
-    GitAdapter(Project project, Map<String, Object> attributes) {
-        super(project, attributes)
+    GitAdapter(Project project) {
+        super(project)
     }
 
     @Override

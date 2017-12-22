@@ -18,18 +18,31 @@ import org.gradle.api.Project
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+import java.util.regex.Matcher
+
 class PluginHelper {
 
     private static final String LINE_SEP = System.getProperty('line.separator')
     private static final String PROMPT = "${LINE_SEP}??>"
 
-    protected Project project
+    BaseScmAdapter scmAdapter = null
 
-    protected ReleaseExtension extension
+    ReleaseExtension extension
 
-    protected Executor executor
+    Executor executor
 
-    protected Map<String, Object> attributes = [:]
+    Project project
+
+    Logger log
+
+    Map attributes = [:]
+
+    PluginHelper(ReleaseExtension extension, Project project) {
+        this.extension = extension
+        this.project = project
+        log = PluginHelper.getLog(project)
+        this.executor = new Executor(log)
+    }
 
     /**
      * Retrieves SLF4J {@link Logger} instance.
@@ -39,9 +52,10 @@ class PluginHelper {
      *
      * @return SLF4J {@link Logger} instance
      */
-    Logger getLog() { project?.logger ?: LoggerFactory.getLogger(this.class) }
+    static Logger getLog(Project project) { project?.logger ?: LoggerFactory.getLogger(this.class) }
 
     boolean useAutomaticVersion() {
+        String nextVersion = findProperty('release.newVersion', null)
         findProperty('release.useAutomaticVersion', null, 'gradle.release.useAutomaticVersion') == 'true'
     }
 
@@ -56,25 +70,18 @@ class PluginHelper {
         Map options = [:],
         List<String> commands
     ) {
-        initExecutor()
         options['directory'] = options['directory'] ?: project.rootDir
         executor.exec(options, commands)
-    }
-
-    private void initExecutor() {
-        if (!executor) {
-            executor = new Executor(log)
-        }
     }
 
     File findPropertiesFile() {
         File propertiesFile = project.file(extension.versionPropertyFile)
         if (!propertiesFile.file) {
             if (!isVersionDefined()) {
-                project.version = getReleaseVersion('1.0.0')
+                project.version = getReleaseVersion('0.1.0')
             }
 
-            if (!useAutomaticVersion() && promptYesOrNo('Do you want to use SNAPSHOT versions inbetween releases')) {
+            if ((Boolean.TRUE.equals(extension.useSnapshotVersion)) || (!useAutomaticVersion() && promptYesOrNo('Do you want to use SNAPSHOT versions inbetween releases'))) {
                 attributes.usesSnapshot = true
             }
 
@@ -87,6 +94,27 @@ class PluginHelper {
             }
         }
         propertiesFile
+    }
+
+    void checkPropertiesFile() {
+        File propertiesFile = findPropertiesFile()
+
+        if (!propertiesFile.canRead() || !propertiesFile.canWrite()) {
+            throw new GradleException("Unable to update version property. Please check file permissions.")
+        }
+
+        Properties properties = new Properties()
+        propertiesFile.withReader { properties.load(it) }
+
+        assert properties.version, "[$propertiesFile.canonicalPath] contains no 'version' property"
+        assert extension.versionPatterns.keySet().any { (properties.version =~ it).find() },
+                "[$propertiesFile.canonicalPath] version [$properties.version] doesn't match any of known version patterns: " +
+                        extension.versionPatterns.keySet()
+
+        // set the project version from the properties file if it was not otherwise specified
+        if (!isVersionDefined()) {
+            project.version = properties.version
+        }
     }
 
     protected void writeVersion(File file, String key, version) {
@@ -141,14 +169,14 @@ class PluginHelper {
         if (!property && deprecatedKey) {
             property = System.getProperty(deprecatedKey) ?: project.hasProperty(deprecatedKey) ? project.property(deprecatedKey) : null
             if (property) {
-                log.warn("You are using the deprecated parameter '${deprecatedKey}'. Please use the new parameter '$key'. The deprecated parameter will be removed in 3.0")
+                project.logger.warn("You are using the deprecated parameter '${deprecatedKey}'. Please use the new parameter '$key'. The deprecated parameter will be removed in 3.0")
             }
         }
 
         property ?: defaultVal
     }
 
-    String getReleaseVersion(String candidateVersion = "${project.version}") {
+    String getReleaseVersion(String candidateVersion) {
         String releaseVersion = findProperty('release.releaseVersion', null, 'releaseVersion')
 
         if (useAutomaticVersion()) {
@@ -173,6 +201,16 @@ class PluginHelper {
             List<String> versionProperties = extension.versionProperties + 'version'
             versionProperties.each { writeVersion(findPropertiesFile(), it, project.version) }
         }
+    }
+
+    String getNextVersion(String candidateVersion) {
+        String nextVersion = findProperty('release.newVersion', null, 'newVersion')
+
+        if (useAutomaticVersion()) {
+            return nextVersion ?: candidateVersion
+        }
+
+        return readLine("Enter the next version (current one released as [${project.version}]):", nextVersion ?: candidateVersion)
     }
 
     /**

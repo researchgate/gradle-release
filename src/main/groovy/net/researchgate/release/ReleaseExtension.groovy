@@ -11,6 +11,10 @@
 package net.researchgate.release
 
 import org.gradle.api.Project
+import org.gradle.api.Task
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.Optional
 import org.gradle.util.ConfigureUtil
 
 import java.util.regex.Matcher
@@ -30,6 +34,8 @@ class ReleaseExtension {
 
     boolean revertOnFail = true
 
+    Boolean  useSnapshotVersion = null
+
     String preCommitText = ''
 
     String preTagCommitMessage = '[Gradle Release Plugin] - pre tag commit: '
@@ -43,11 +49,11 @@ class ReleaseExtension {
      */
     String tagTemplate
 
-    String versionPropertyFile = 'gradle.properties'
+    File versionPropertyFile = new File('gradle.properties')
 
     List versionProperties = []
 
-    List buildTasks = ['build']
+    List<Task> buildTasks = ['build']
 
     Map<String, Closure<String>> versionPatterns = [
         // Increments last number: "2.5-SNAPSHOT" => "2.6-SNAPSHOT"
@@ -70,6 +76,7 @@ class ReleaseExtension {
         ExpandoMetaClass mc = new ExpandoMetaClass(ReleaseExtension, false, true)
         mc.initialize()
         metaClass = mc
+        tagTemplate = project.version
     }
 
     def propertyMissing(String name) {
@@ -132,7 +139,7 @@ class ReleaseExtension {
                 return false
             }
 
-            adapter = it.getConstructor(Project.class, Map.class).newInstance(project, attributes)
+            adapter = it.getConstructor(Project.class).newInstance(project)
 
             return true
         }
