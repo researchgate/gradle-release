@@ -128,7 +128,7 @@ class GitAdapter extends BaseScmAdapter {
     void commit(String message) {
         List<String> command = ['git', 'commit', '-m', message]
         if (extension.git.commitVersionFileOnly) {
-            command << extension.versionPropertyFile
+            command << project.file(extension.versionPropertyFile)
         } else {
             command << '-a'
         }
