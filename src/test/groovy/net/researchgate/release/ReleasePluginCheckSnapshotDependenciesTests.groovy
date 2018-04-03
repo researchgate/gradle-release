@@ -114,7 +114,7 @@ public class ReleasePluginCheckSnapshotDependenciesTests extends Specification {
         given:
         project.configurations { custom }
         project.dependencies { custom 'my:my:1.1.1-SNAPSHOT' }
-        project.release.ignoredSnapshotDependencies = ['my']
+        project.release.ignoredSnapshotDependencies = ['my:my']
         when:
         project.checkSnapshotDependencies.execute()
         then:

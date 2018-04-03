@@ -157,7 +157,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
     }
 
     void checkSnapshotDependencies() {
-        def matcher = { Dependency d -> d.version?.contains('SNAPSHOT') && !extension.ignoredSnapshotDependencies.contains(d.name) }
+        def matcher = { Dependency d -> d.version?.contains('SNAPSHOT') && !extension.ignoredSnapshotDependencies.contains("${d.group ?: ''}:${d.name}".toString()) }
         def collector = { Dependency d -> "${d.group ?: ''}:${d.name}:${d.version ?: ''}" }
 
         def message = ""

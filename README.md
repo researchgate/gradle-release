@@ -86,7 +86,7 @@ Below are some properties of the Release Plugin Convention that can be used to m
 	<tr>
 		<td>failOnSnapshotDependencies</td>
 		<td>true</td>
-		<td>Fail when the project has dependencies on SNAPSHOT versions unless those SNAPSHOT dependencies have been defined as 'ignoredSnapshotDependencies'</td>
+		<td>Fail when the project has dependencies on SNAPSHOT versions unless those SNAPSHOT dependencies have been defined as <i>'ignoredSnapshotDependencies'</i> using the syntax '$group:$name'</td>
 	</tr>
 	<tr>
 		<td>failOnUnversionedFiles</td>
