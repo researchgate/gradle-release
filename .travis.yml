@@ -6,5 +6,6 @@ language: groovy
 jdk:
   - oraclejdk8
   - openjdk7
+script: ./gradlew check build
 notifications:
     webhooks: https://www.travisbuddy.com/
