@@ -1,5 +1,4 @@
-sudo: false
-dist: precise
+dist: trusty
 cache:
   directories:
   - $HOME/.gradle/caches/
