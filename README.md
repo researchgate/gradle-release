@@ -86,7 +86,7 @@ Below are some properties of the Release Plugin Convention that can be used to m
 	<tr>
 		<td>failOnSnapshotDependencies</td>
 		<td>true</td>
-		<td>Fail when the project has dependencies on SNAPSHOT versions</td>
+		<td>Fail when the project has dependencies on SNAPSHOT versions unless those SNAPSHOT dependencies have been defined as 'ignoredSnapshotDependencies'</td>
 	</tr>
 	<tr>
 		<td>failOnUnversionedFiles</td>
@@ -197,6 +197,7 @@ release {
     versionPropertyFile = 'gradle.properties'
     versionProperties = []
     buildTasks = ['build']
+    ignoredSnapshotDependencies = []
     versionPatterns = [
         /(\d+)([^\d]*$)/: { Matcher m, Project p -> m.replaceAll("${(m[0][1] as int) + 1}${m[0][2]}") }
     ]
