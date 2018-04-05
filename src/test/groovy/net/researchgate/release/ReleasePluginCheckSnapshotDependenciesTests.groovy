@@ -176,12 +176,15 @@ public class ReleasePluginCheckSnapshotDependenciesTests extends Specification {
         given:
         project.configurations { custom }
         project.dependencies { custom 'my:my:1.1.1-SNAPSHOT' }
-        project.release.ignoredSnapshotDependencies = ['my:my']
+        project.buildscript.dependencies {
+            classpath 'my2:my2:1.1.1-SNAPSHOT'
+        }
+        project.release.ignoredSnapshotDependencies = ['my:my', 'my2:my2']
         when:
         project.checkSnapshotDependencies.execute()
         then:
         notThrown GradleException
-    }	
+    }
 
   def 'when few SNAPSHOT deps in several configurations - including buildscript - then show all in exception'() {
         given:
@@ -198,5 +201,4 @@ public class ReleasePluginCheckSnapshotDependenciesTests extends Specification {
         GradleException ex = thrown()
         ex.cause.message.contains '[my1:my1:1.1.1-SNAPSHOT, my2:my2:1.1.1-SNAPSHOT, my3:my3:1.1.1-SNAPSHOT]'
     }
-
 }
