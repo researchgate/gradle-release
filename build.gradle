@@ -6,7 +6,7 @@ buildscript {
         classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.3.0'
         classpath 'nu.studer:gradle-plugindev-plugin:1.0.4'
         classpath 'org.codehaus.groovy:groovy-backports-compat23:2.4.6'
-        classpath 'net.researchgate:gradle-release:2.3.5'
+        classpath 'net.researchgate:gradle-release:2.6.0'
     }
 }
 
@@ -30,9 +30,9 @@ plugindev {
     pluginDescription 'gradle-release is a plugin for providing a Maven-like release process to project using Gradle.'
     pluginLicenses 'MIT'
     pluginTags 'gradle', 'plugin', 'release'
-    authorId 'danez'
-    authorName 'Daniel Tschinder'
-    authorEmail 'daniel.tschinder@researchgate.net'
+    authorId 'hillkorn'
+    authorName 'Dennis Schumann'
+    authorEmail 'dennis.schumann@researchgate.net'
     projectUrl 'https://github.com/researchgate/gradle-release'
     projectInceptionYear '2011'
     done() // do not omit this
