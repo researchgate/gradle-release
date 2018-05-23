@@ -80,4 +80,15 @@ public class PluginHelperTagNameTests extends Specification {
         expect:
         helper.tagName() == 'PREF-ReleasePluginTest-1.1'
     }
+
+    def 'when tagTemplate not blank and project name and project version formatters have been set then they are used to build the tag name'() {
+        given:
+        project.release {
+            tagTemplate = 'PREF-$name-$version'
+			tagProjectVersionFormatter = {version -> version.replace('.', '_')}
+			tagProjectNameFormatter = {name -> name.toLowerCase()}
+        }
+        expect:
+        helper.tagName() == 'PREF-releaseplugintest-1_1'
+    }
 }

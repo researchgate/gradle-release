@@ -118,6 +118,16 @@ Below are some properties of the Release Plugin Convention that can be used to c
 		<td>The string template which is used to generate the tag name. Possible variables are $version and $name. Example: '$name-$version' will result in "myproject-1.1.0". (Always ensure to use single-quotes, otherwise `$` is interpreted already in your build script)</td>
 	</tr>
 	<tr>
+		<td>tagProjectNameFormatter</td>
+		<td></td>
+		<td>The formatter to use to change the format of the project name before generating the tag name. The expected value is a closure that returns a String with the project name as argument, for example {name -> name.toLowerCase()}. Only used when tagTemplate is set.</td>
+	</tr>
+	<tr>
+		<td>tagProjectVersionFormatter</td>
+		<td></td>
+		<td>The formatter to use to change the format of the project version before generating the tag name. The expected value is a closure that returns a String with the project version as argument, for example {version -> version.replace('.', '_')}. Only used when tagTemplate is set.</td>
+	</tr>
+	<tr>
 		<td>preCommitText</td>
 		<td></td>
 		<td>This will be prepended to all commits done by the plugin. A good place for code review, or ticket numbers</td>
@@ -194,6 +204,8 @@ release {
     tagCommitMessage = '[Gradle Release Plugin] - creating tag: '
     newVersionCommitMessage = '[Gradle Release Plugin] - new version commit: '
     tagTemplate = '${version}'
+    tagProjectNameFormatter = null
+    tagProjectVersionFormatter = null
     versionPropertyFile = 'gradle.properties'
     versionProperties = []
     buildTasks = ['build']

@@ -122,8 +122,8 @@ class PluginHelper {
         if (extension.tagTemplate) {
             def engine = new SimpleTemplateEngine()
             def binding = [
-                "version": project.version,
-                "name"   : project.name
+                "version": extension.tagProjectVersionFormatter?.call(project.version) ?: project.version,
+                "name"   : extension.tagProjectNameFormatter?.call(project.name) ?: project.name
             ]
             tagName = engine.createTemplate(extension.tagTemplate).make(binding).toString()
         } else {
