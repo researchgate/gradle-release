@@ -42,6 +42,14 @@ class ReleaseExtension {
      * as of 3.0 set this to "$version" by default
      */
     String tagTemplate
+    /**
+     * Allows to format the project version used to build the tag name
+     */
+    Closure<String> tagProjectVersionFormatter
+    /**
+     * Allows to format the project name used to build the tag name
+     */
+    Closure<String> tagProjectNameFormatter
 
     String versionPropertyFile = 'gradle.properties'
 
