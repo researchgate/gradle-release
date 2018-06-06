@@ -6,6 +6,6 @@ class InitScmAdapterTask extends BaseScmTask {
 
     @TaskAction
     void initScmAdapter() {
-        getScmAdapter()
+        pluginHelper.scmAdapter.init()
     }
 }

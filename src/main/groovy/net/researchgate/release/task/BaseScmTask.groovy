@@ -19,6 +19,7 @@ class BaseScmTask extends DefaultTask {
      * @param directory the directory to start from
      */
     protected BaseScmAdapter getScmAdapter() {
+        println(pluginHelper.scmAdapter)
         if (pluginHelper.scmAdapter != null) {
             return pluginHelper.scmAdapter
         }

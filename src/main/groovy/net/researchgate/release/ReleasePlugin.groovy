@@ -17,20 +17,17 @@ import net.researchgate.release.task.CheckUpdateNeededTask
 import net.researchgate.release.task.CommitNewVersionTask
 import net.researchgate.release.task.CommitTagTask
 import net.researchgate.release.task.ConfirmReleaseVersionTask
+import net.researchgate.release.task.CreateScmAdapterTask
 import net.researchgate.release.task.InitScmAdapterTask
 import net.researchgate.release.task.PreTagCommitTask
 import net.researchgate.release.task.RunBuildTasksTask
 import net.researchgate.release.task.UnSnapshotVersionTask
 import net.researchgate.release.task.UpdateVersionTask
-import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.artifacts.Dependency
 import org.gradle.api.tasks.GradleBuild
 import org.gradle.api.tasks.TaskState
-
-import java.util.regex.Matcher
 
 class ReleasePlugin implements Plugin<Project> {
 
@@ -74,35 +71,52 @@ class ReleasePlugin implements Plugin<Project> {
             ]
         }
 
+        project.tasks.create('createScmAdapter', CreateScmAdapterTask.class) {
+            delegate.extension = this.extension
+            delegate.pluginHelper = this.pluginHelper
+            delegate.group RELEASE_GROUP
+            delegate.description 'Finds the correct SCM plugin'
+        }
+
         InitScmAdapterTask initScmAdapterTask = project.tasks.create('initScmAdapter', InitScmAdapterTask.class)
         initScmAdapterTask.with {
+            delegate.extension = this.extension
+            delegate.pluginHelper = this.pluginHelper
             delegate.group RELEASE_GROUP
             delegate.description 'Initializes the SCM plugin'
         }
 
         project.tasks.create('checkCommitNeeded', CheckCommitNeededTask.class).with {
-            group RELEASE_GROUP
-            description 'Checks to see if there are any added, modified, removed, or un-versioned files.'
             delegate.extension = this.extension
             delegate.pluginHelper = this.pluginHelper
+            group RELEASE_GROUP
+            description 'Checks to see if there are any added, modified, removed, or un-versioned files.'
             dependsOn project.tasks.initScmAdapter
         }
         project.tasks.create('checkUpdateNeeded', CheckUpdateNeededTask.class).with {
+            delegate.extension = this.extension
+            delegate.pluginHelper = this.pluginHelper
             group RELEASE_GROUP
             description 'Checks to see if there are any incoming or outgoing changes that haven\'t been applied locally.'
             dependsOn project.tasks.checkCommitNeeded
         }
         project.tasks.create('unSnapshotVersion', UnSnapshotVersionTask.class).with {
+            delegate.extension = this.extension
+            delegate.pluginHelper = this.pluginHelper
             group RELEASE_GROUP
             description 'Removes "-SNAPSHOT" from your project\'s current version.'
             dependsOn project.tasks.checkUpdateNeeded
         }
         project.tasks.create('confirmReleaseVersion', ConfirmReleaseVersionTask.class).with {
+            delegate.extension = this.extension
+            delegate.pluginHelper = this.pluginHelper
             group RELEASE_GROUP
             description 'Prompts user for this release version. Allows for alpha or pre releases.'
             dependsOn project.tasks.unSnapshotVersion
         }
         project.tasks.create('checkSnapshotDependencies', CheckSnapshotDependenciesTask.class).with {
+            delegate.extension = this.extension
+            delegate.pluginHelper = this.pluginHelper
             group RELEASE_GROUP
             description 'Checks to see if your project has any SNAPSHOT dependencies.'
             dependsOn project.tasks.confirmReleaseVersion
@@ -123,21 +137,29 @@ class ReleasePlugin implements Plugin<Project> {
             }
         }
         project.tasks.create('preTagCommit', PreTagCommitTask.class).with {
+            delegate.extension = this.extension
+            delegate.pluginHelper = this.pluginHelper
             group RELEASE_GROUP
             description 'Commits any changes made by the Release plugin - eg. If the unSnapshotVersion task was executed'
             dependsOn project.tasks.runBuildTasks
         }
         project.tasks.create('createReleaseTag', CommitTagTask.class).with {
+            delegate.extension = this.extension
+            delegate.pluginHelper = this.pluginHelper
             group RELEASE_GROUP
             description 'Creates a tag in SCM for the current (un-snapshotted) version.'
             dependsOn project.tasks.preTagCommit
         }
         project.tasks.create('updateVersion', UpdateVersionTask.class).with {
+            delegate.extension = this.extension
+            delegate.pluginHelper = this.pluginHelper
             group RELEASE_GROUP
             description 'Prompts user for the next version. Does it\'s best to supply a smart default.'
             dependsOn project.tasks.createReleaseTag
         }
         project.tasks.create('commitNewVersion', CommitNewVersionTask.class).with {
+            delegate.extension = this.extension
+            delegate.pluginHelper = this.pluginHelper
             group RELEASE_GROUP
             description 'Commits the version update to your SCM'
             dependsOn project.tasks.updateVersion
@@ -146,6 +168,8 @@ class ReleasePlugin implements Plugin<Project> {
         Boolean supportsMustRunAfter = initScmAdapterTask.respondsTo('mustRunAfter')
 
         if (supportsMustRunAfter) {
+            project.tasks.initScmAdapter.mustRunAfter(project.tasks.createScmAdapter)
+            project.tasks.checkCommitNeeded.mustRunAfter(project.tasks.initScmAdapter)
             project.tasks.checkCommitNeeded.mustRunAfter(project.tasks.initScmAdapter)
             project.tasks.checkUpdateNeeded.mustRunAfter(project.tasks.checkCommitNeeded)
             project.tasks.unSnapshotVersion.mustRunAfter(project.tasks.checkUpdateNeeded)

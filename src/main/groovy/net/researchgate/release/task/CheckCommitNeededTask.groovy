@@ -6,6 +6,7 @@ class CheckCommitNeededTask extends BaseScmTask {
 
     @TaskAction
     void checkCommitNeeded() {
+        println('Action CheckCommitNeededTask')
         getScmAdapter().checkCommitNeeded()
     }
 }

@@ -22,6 +22,7 @@ class GitReleasePluginCheckCommitNeededTests extends GitSpecification {
         project = ProjectBuilder.builder().withName("GitReleasePluginTest").withProjectDir(localGit.repository.getWorkTree()).build()
         project.apply plugin: ReleasePlugin
         project.createScmAdapter.execute()
+        project.initScmAdapter.execute()
     }
 
     def cleanup() {
@@ -55,6 +56,8 @@ class GitReleasePluginCheckCommitNeededTests extends GitSpecification {
         gitAddAndCommit(localGit, 'changed.txt') { it << 'changed1' }
         project.file("changed.txt").withWriter { it << "changed2" }
         when:
+        println('Run commit needed')
+        println('Check dryRun ' + project.createScmAdapter.pluginHelper.findProperty('release.dryRun', false))
         project.checkCommitNeeded.execute()
         then:
         GradleException ex = thrown()

@@ -78,7 +78,9 @@ class GitAdapter extends BaseScmAdapter {
 
     @Override
     void checkCommitNeeded() {
+        println('run checkCommitNeeded function')
         def status = gitStatus()
+        println(status)
 
         if (status[UNVERSIONED]) {
             warnOrThrow(extension.failOnUnversionedFiles,
