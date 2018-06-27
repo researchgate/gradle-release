@@ -114,8 +114,8 @@ Below are some properties of the Release Plugin Convention that can be used to c
 	</tr>
 	<tr>
 		<td>tagTemplate</td>
-		<td>$version</td>
-		<td>The string template which is used to generate the tag name. Possible variables are $version and $name. Example: '$name-$version' will result in "myproject-1.1.0". (Always ensure to use single-quotes, otherwise `$` is interpreted already in your build script)</td>
+		<td>${version}</td>
+		<td>The string template which is used to generate the tag name. Possible variables are ${version} and ${name}. Example: '${name}-${version}' will result in "myproject-1.1.0". (Always ensure to use single-quotes, otherwise `$` is interpreted already in your build script)</td>
 	</tr>
 	<tr>
 		<td>preCommitText</td>
@@ -240,12 +240,21 @@ Apply the plugin separately to each subproject that you wish to release. Release
     ./gradlew :sub:release # release a subproject named "sub"
     ./gradlew :release # release the root project
 
+### Multi-Project Versioning
+
+By default all subprojects will have the same release version which is defined in the top level version properties file.
+
+Individual versioning per subproject is supported for Git projects. To enable this the following property should be configured and a version properties file can then be used on each subproject level instead of at the root project level:
+
+    release {
+        useMultipleVersionFiles = true
+    }
 
 ### Working in Continuous Integration
 
 In a continuous integration environment like Jenkins or Hudson, you don't want to have an interactive release process. To avoid having to enter any information manually during the process, you can tell the plugin to automatically set and update the version number.
 
-You can do this by setting the `release.useAutomaticVersion` property on the command line, or in Jenkins when you execute gradle. The version to release and the next version can be optionally defined using the properties `release.releaseVersion` and `release.newVersion`.
+You can do this by setting the `release.useAutomaticVersion` property on the command line, or in Jenkins when you execute gradle. The version to release and the next version can be optionally defined using the properties `release.releaseVersion` and `release.newVersion`, or `release.subproject1.releaseVersion` and `release.subproject1.newVersion` for a subproject named "subproject1".
 
 ```bash
 $ gradle release -Prelease.useAutomaticVersion=true -Prelease.releaseVersion=1.0.0 -Prelease.newVersion=1.1.0-SNAPSHOT

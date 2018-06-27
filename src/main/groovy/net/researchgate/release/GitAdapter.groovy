@@ -107,8 +107,7 @@ class GitAdapter extends BaseScmAdapter {
     }
 
     @Override
-    void createReleaseTag(String message) {
-        def tagName = tagName()
+    void createReleaseTag(String message, String tagName) {
         def params = ['git', 'tag', '-a', tagName, '-m', message]
         if (extension.git.signTag) {
             params.add('-s')
@@ -123,6 +122,7 @@ class GitAdapter extends BaseScmAdapter {
     void commit(String message) {
         List<String> command = ['git', 'commit', '-m', message]
         if (extension.git.commitVersionFileOnly) {
+            //TODO fix?
             command << project.file(extension.versionPropertyFile)
         } else {
             command << '-a'
@@ -145,8 +145,8 @@ class GitAdapter extends BaseScmAdapter {
     }
 
     @Override
-    void revert() {
-        exec(['git', 'checkout', findPropertiesFile().name], directory: workingDirectory, errorMessage: 'Error reverting changes made by the release plugin.')
+    void revert(File file) {
+        exec(['git', 'checkout', file.path], directory: workingDirectory, errorMessage: 'Error reverting changes made by the release plugin.')
     }
 
     private boolean shouldPush() {
@@ -169,6 +169,11 @@ class GitAdapter extends BaseScmAdapter {
     private String gitCurrentBranch() {
         def matches = exec(['git', 'branch', '--no-color'], directory: workingDirectory).readLines().grep(~/\s*\*.*/)
         matches[0].trim() - (~/^\*\s+/)
+    }
+
+    @Override
+    String getLatestTag(String projectName) {
+        return exec(['git', 'describe', '--tags', '--abbrev=0', '--match', projectName + "*"], directory: workingDirectory).readLines()[0]
     }
 
     private Map<String, List<String>> gitStatus() {

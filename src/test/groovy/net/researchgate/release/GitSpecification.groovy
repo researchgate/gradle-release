@@ -44,6 +44,10 @@ abstract class GitSpecification extends Specification {
         git.checkout().setName(branchName).setCreateBranch(createBranch).setForce(true).call()
     }
 
+    def createDefaultVersionFile() {
+        return true;
+    }
+
     def setupSpec() {
         if (testDir.exists()) testDir.deleteDir()
         testDir.mkdirs()
@@ -55,8 +59,10 @@ abstract class GitSpecification extends Specification {
         remoteGit.repository.config.setString("receive", null, "denyCurrentBranch", "ignore")
         remoteGit.repository.config.save()
 
-        gitAddAndCommit(remoteGit, 'gradle.properties') {
-            it << 'version=0.0'
+        if (createDefaultVersionFile()) {
+            gitAddAndCommit(remoteGit, 'gradle.properties') {
+                it << 'version=0.0'
+            }
         }
 
         localGit = Git.cloneRepository().setDirectory(localRepo).setURI(remoteRepo.canonicalPath).call()

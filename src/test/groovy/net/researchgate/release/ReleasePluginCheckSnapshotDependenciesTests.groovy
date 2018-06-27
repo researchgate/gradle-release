@@ -10,6 +10,8 @@
 
 package net.researchgate.release
 
+import net.researchgate.release.tasks.CheckSnapshotDependencies
+import net.researchgate.release.tasks.UnSnapshotVersion
 import org.gradle.api.GradleException
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
@@ -27,7 +29,7 @@ public class ReleasePluginCheckSnapshotDependenciesTests extends Specification {
 
     def 'when no deps then no exception'() {
         when:
-        project.checkSnapshotDependencies.execute()
+        project.task('task', type: CheckSnapshotDependencies).execute()
         then:
         notThrown GradleException
     }
@@ -44,7 +46,7 @@ public class ReleasePluginCheckSnapshotDependenciesTests extends Specification {
             classpath 'my2:my2:1.1.1'
         }
         when:
-        project.checkSnapshotDependencies.execute()
+        project.task('task', type: CheckSnapshotDependencies).execute()
         then:
         notThrown GradleException
     }
@@ -53,7 +55,7 @@ public class ReleasePluginCheckSnapshotDependenciesTests extends Specification {
         given:
         project.dependencies { compile 'my:my:1.1.1-SNAPSHOT' }
         when:
-        project.checkSnapshotDependencies.execute()
+        project.task('task', type: CheckSnapshotDependencies).execute()
         then:
         GradleException ex = thrown()
         ex.cause.message =~ /my:my:1.1.1-SNAPSHOT/
@@ -63,7 +65,7 @@ public class ReleasePluginCheckSnapshotDependenciesTests extends Specification {
         given:
         project.buildscript.dependencies { classpath 'my:my:1.1.1-SNAPSHOT' }
         when:
-        project.checkSnapshotDependencies.execute()
+        project.task('task', type: CheckSnapshotDependencies).execute()
         then:
         GradleException ex = thrown()
         ex.cause.message =~ /my:my:1.1.1-SNAPSHOT/
@@ -74,7 +76,7 @@ public class ReleasePluginCheckSnapshotDependenciesTests extends Specification {
         project.configurations { custom }
         project.dependencies { custom 'my:my:1.1.1-SNAPSHOT' }
         when:
-        project.checkSnapshotDependencies.execute()
+        project.task('task', type: CheckSnapshotDependencies).execute()
         then:
         GradleException ex = thrown()
         ex.cause.message =~ /my:my:1.1.1-SNAPSHOT/
@@ -85,7 +87,7 @@ public class ReleasePluginCheckSnapshotDependenciesTests extends Specification {
         project.configurations { custom }
         project.buildscript.dependencies { classpath 'my:my:1.1.1-SNAPSHOT' }
         when:
-        project.checkSnapshotDependencies.execute()
+        project.task('task', type: CheckSnapshotDependencies).execute()
         then:
         GradleException ex = thrown()
         ex.cause.message =~ /my:my:1.1.1-SNAPSHOT/
@@ -102,7 +104,7 @@ public class ReleasePluginCheckSnapshotDependenciesTests extends Specification {
         proj2.dependencies { compile 'my2:my2:1.1.1' }
 
         when:
-        project.checkSnapshotDependencies.execute()
+        project.task('task', type: CheckSnapshotDependencies).execute()
         then:
         GradleException ex = thrown()
         ex.cause.message.contains 'proj1: [my1:my1:1.1.1-SNAPSHOT]'
@@ -122,7 +124,7 @@ public class ReleasePluginCheckSnapshotDependenciesTests extends Specification {
         proj2.buildscript.dependencies { classpath 'my4:my4:1.1.1-SNAPSHOT' }
 
         when:
-        project.checkSnapshotDependencies.execute()
+        project.task('task', type: CheckSnapshotDependencies).execute()
         then:
         GradleException ex = thrown()
         ex.cause.message.contains 'proj1: [my2:my2:1.1.1-SNAPSHOT]'
@@ -137,7 +139,7 @@ public class ReleasePluginCheckSnapshotDependenciesTests extends Specification {
             runtime 'my:my:1.1.1-SNAPSHOT'
         }
         when:
-        project.checkSnapshotDependencies.execute()
+        project.task('task', type: CheckSnapshotDependencies).execute()
         then:
         GradleException ex = thrown()
         ex.cause.message.contains '[my:my:1.1.1-SNAPSHOT]'
@@ -153,7 +155,7 @@ public class ReleasePluginCheckSnapshotDependenciesTests extends Specification {
             classpath 'my:my:1.1.1-SNAPSHOT'
         }
         when:
-        project.checkSnapshotDependencies.execute()
+        project.task('task', type: CheckSnapshotDependencies).execute()
         then:
         GradleException ex = thrown()
         ex.cause.message.contains '[my:my:1.1.1-SNAPSHOT]'
@@ -166,7 +168,7 @@ public class ReleasePluginCheckSnapshotDependenciesTests extends Specification {
             runtime 'my2:my2:1.1.1-SNAPSHOT'
         }
         when:
-        project.checkSnapshotDependencies.execute()
+        project.task('task', type: CheckSnapshotDependencies).execute()
         then:
         GradleException ex = thrown()
         ex.cause.message.contains '[my1:my1:1.1.1-SNAPSHOT, my2:my2:1.1.1-SNAPSHOT]'
@@ -181,7 +183,7 @@ public class ReleasePluginCheckSnapshotDependenciesTests extends Specification {
         }
         project.release.ignoredSnapshotDependencies = ['my:my', 'my2:my2']
         when:
-        project.checkSnapshotDependencies.execute()
+        project.task('task', type: CheckSnapshotDependencies).execute()
         then:
         notThrown GradleException
     }
@@ -196,7 +198,7 @@ public class ReleasePluginCheckSnapshotDependenciesTests extends Specification {
             classpath 'my3:my3:1.1.1-SNAPSHOT'
         }
         when:
-        project.checkSnapshotDependencies.execute()
+        project.task('task', type: CheckSnapshotDependencies).execute()
         then:
         GradleException ex = thrown()
         ex.cause.message.contains '[my1:my1:1.1.1-SNAPSHOT, my2:my2:1.1.1-SNAPSHOT, my3:my3:1.1.1-SNAPSHOT]'

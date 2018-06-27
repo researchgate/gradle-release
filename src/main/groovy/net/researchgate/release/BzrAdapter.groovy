@@ -46,6 +46,11 @@ class BzrAdapter extends BaseScmAdapter {
     }
 
     @Override
+    String getLatestTag(String projectName) {
+        throw new GradleException('Querying for the latest tag is not yet supported by this SCM adapter')
+    }
+
+    @Override
     void checkCommitNeeded() {
         String out = exec(['bzr', 'xmlstatus'])
         def xml = new XmlSlurper().parseText(out)
@@ -108,9 +113,9 @@ class BzrAdapter extends BaseScmAdapter {
      * @param message ignored.
      */
     @Override
-    void createReleaseTag(String message) {
+    void createReleaseTag(String message, String tagName) {
         // message is ignored
-        exec(['bzr', 'tag', tagName()], errorMessage: 'Error creating tag', errorPatterns: [ERROR])
+        exec(['bzr', 'tag', tagName], errorMessage: 'Error creating tag', errorPatterns: [ERROR])
     }
 
 
@@ -126,7 +131,7 @@ class BzrAdapter extends BaseScmAdapter {
     }
 
     @Override
-    void revert() {
-        exec(['bzr', 'revert', findPropertiesFile().name], errorMessage: 'Error reverting changes made by the release plugin.', errorPatterns: [ERROR])
+    void revert(File file) {
+        exec(['bzr', 'revert', file.path], errorMessage: 'Error reverting changes made by the release plugin.', errorPatterns: [ERROR])
     }
 }

@@ -10,6 +10,7 @@
 
 package net.researchgate.release
 
+import net.researchgate.release.tasks.UnSnapshotVersion
 import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
@@ -46,7 +47,7 @@ class ReleasePluginTests extends Specification {
         project.release {
             versionPropertyFile = 'version.properties'
         }
-        project.unSnapshotVersion.execute()
+        project.task('task', type: UnSnapshotVersion).execute()
         expect:
         project.version == '1.2'
 

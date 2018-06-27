@@ -10,15 +10,16 @@
 
 package net.researchgate.release
 
+import net.researchgate.release.tasks.CreateReleaseTag
 import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 
-public class PluginHelperTagNameTests extends Specification {
+class TagNameTests extends Specification {
 
     Project project
 
-    PluginHelper helper
+    CreateReleaseTag createReleaseTagTask;
 
     def testDir = new File("build/tmp/test/${getClass().simpleName}")
 
@@ -28,13 +29,12 @@ public class PluginHelperTagNameTests extends Specification {
         project.apply plugin: ReleasePlugin
         project.release.scmAdapters = [TestAdapter]
 
-        helper = new PluginHelper(project: project, extension: project.extensions['release'] as ReleaseExtension)
-
+        createReleaseTagTask = project.task('createReleaseTagTask', type: CreateReleaseTag)
     }
 
     def 'when no includeProjectNameInTag then tag name is version'() {
         expect:
-        helper.tagName() == '1.1'
+        createReleaseTagTask.tagName() == '1.1'
     }
 
     def 'when includeProjectNameInTag then tag name starts from project name'() {
@@ -43,7 +43,7 @@ public class PluginHelperTagNameTests extends Specification {
             includeProjectNameInTag = true
         }
         expect:
-        helper.tagName() == "$project.name-$project.version" as String
+        createReleaseTagTask.tagName() == "$project.name-$project.version" as String
     }
 
     def 'when tagPrefix not blank then it added to tag ignoring project name'() {
@@ -53,7 +53,7 @@ public class PluginHelperTagNameTests extends Specification {
             tagPrefix = 'PREF'
         }
         expect:
-        helper.tagName() == 'PREF-1.1'
+        createReleaseTagTask.tagName() == 'PREF-1.1'
         where:
         includeProjectName << [true, false]
     }
@@ -66,7 +66,7 @@ public class PluginHelperTagNameTests extends Specification {
             includeProjectNameInTag = includeProjectName
         }
         expect:
-        helper.tagName() == '1.1'
+        createReleaseTagTask.tagName() == '1.1'
         where:
         includeProjectName << [true, false]
         tagPrefixSetting << ['PREF', null]
@@ -78,6 +78,6 @@ public class PluginHelperTagNameTests extends Specification {
             tagTemplate = 'PREF-$name-$version'
         }
         expect:
-        helper.tagName() == 'PREF-ReleasePluginTest-1.1'
+        createReleaseTagTask.tagName() == 'PREF-ReleasePluginTest-1.1'
     }
 }

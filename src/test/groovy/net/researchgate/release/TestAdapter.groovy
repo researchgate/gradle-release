@@ -45,7 +45,7 @@ class TestAdapter extends BaseScmAdapter {
     }
 
     @Override
-    void createReleaseTag(String message) {
+    void createReleaseTag(String message, String tagName) {
     }
 
     @Override
@@ -53,10 +53,16 @@ class TestAdapter extends BaseScmAdapter {
     }
 
     @Override
-    void add(File file) {
+    void revert(File file) {
+
     }
 
     @Override
-    void revert() {
+    String getLatestTag(String projectName) {
+        return null
+    }
+
+    @Override
+    void add(File file) {
     }
 }

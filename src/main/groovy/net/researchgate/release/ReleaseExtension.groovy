@@ -30,6 +30,8 @@ class ReleaseExtension {
 
     boolean revertOnFail = true
 
+    boolean useMultipleVersionFiles = false
+
     String preCommitText = ''
 
     String preTagCommitMessage = '[Gradle Release Plugin] - pre tag commit: '
@@ -51,6 +53,11 @@ class ReleaseExtension {
 	
     List ignoredSnapshotDependencies = []
 
+    // Provide an extension point to check if a project's release should be skipped
+    Closure<Boolean> skipProjectRelease = { Project project ->
+        return false
+    }
+
     Map<String, Closure<String>> versionPatterns = [
         // Increments last number: "2.5-SNAPSHOT" => "2.6-SNAPSHOT"
         /(\d+)([^\d]*$)/: { Matcher m, Project p -> m.replaceAll("${(m[0][1] as int) + 1}${m[0][2]}") }
@@ -63,8 +70,12 @@ class ReleaseExtension {
         BzrAdapter
     ];
 
+    BaseScmAdapter scmAdapter;
+    Map<String, Map<String, Object>> projectAttributes = [:] // Specific project attributes used during execution
+
     private Project project
-    private Map<String, Object> attributes
+
+    Map<String, Object> attributes // General plugin attributes
 
     ReleaseExtension(Project project, Map<String, Object> attributes) {
         this.attributes = attributes
@@ -91,6 +102,28 @@ class ReleaseExtension {
         }
 
         metaClass."$name" = result
+    }
+
+    Map<String, Object> getOrCreateProjectAttributes(String projectName) {
+        Map<String, Object> attributes = [:]
+        if (projectAttributes.get(projectName) == null) {
+            projectAttributes.put(projectName, attributes)
+        } else {
+            attributes = projectAttributes.get(projectName)
+        }
+        return attributes
+    }
+
+    boolean skipRelease(Project project) {
+        // Check if we already have an attribute for this
+        Map<String, Object> attributes = getOrCreateProjectAttributes(project.name)
+        def key = "skipRelease"
+        if (attributes.containsKey(key)) {
+            return attributes.get(key)
+        }
+        boolean skipRelease = skipProjectRelease(project)
+        attributes.put(key, skipRelease)
+        return skipRelease
     }
 
     def propertyMissing(String name, value) {

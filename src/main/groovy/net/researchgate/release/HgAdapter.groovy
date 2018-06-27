@@ -10,6 +10,7 @@
 
 package net.researchgate.release
 
+import org.gradle.api.GradleException
 import org.gradle.api.Project
 
 class HgAdapter extends BaseScmAdapter {
@@ -79,8 +80,7 @@ class HgAdapter extends BaseScmAdapter {
     }
 
     @Override
-    void createReleaseTag(String message) {
-        def tagName = tagName()
+    void createReleaseTag(String message, String tagName) {
         exec(['hg', 'tag', "-m", message, tagName], errorMessage: 'Error creating tag', errorPatterns: [ERROR])
     }
 
@@ -96,8 +96,13 @@ class HgAdapter extends BaseScmAdapter {
     }
 
     @Override
-    void revert() {
-        exec(['hg', 'revert', findPropertiesFile().name], errorMessage: 'Error reverting changes made by the release plugin.', errorPatterns: [ERROR])
+    String getLatestTag(String projectName) {
+        throw new GradleException('Querying for the latest tag is not yet supported by this SCM adapter')
+    }
+
+    @Override
+    void revert(File file) {
+        exec(['hg', 'revert', file.path], errorMessage: 'Error reverting changes made by the release plugin.', errorPatterns: [ERROR])
     }
 
     private String hgCurrentBranch() {

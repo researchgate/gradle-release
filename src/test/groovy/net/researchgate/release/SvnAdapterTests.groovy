@@ -32,7 +32,7 @@ class SvnAdapterTests extends Specification {
 
     def "pin externals - default case"() {
         when:
-        svnAdapter.createReleaseTag("my test tag")
+        svnAdapter.createReleaseTag("my test tag", "1.0.0")
 
         then:
         1 * svnAdapter.executor.exec(_, ['svn', 'copy', 'svn://server/repo@123', '/root/tags/1.0.0', '--parents', '-m', 'my test tag'])
@@ -43,7 +43,7 @@ class SvnAdapterTests extends Specification {
         project.release.svn.pinExternals = false
 
         when:
-        svnAdapter.createReleaseTag("my test tag")
+        svnAdapter.createReleaseTag("my test tag", "1.0.0")
 
         then:
         1 * svnAdapter.executor.exec(_, ['svn', 'copy', 'svn://server/repo@123', '/root/tags/1.0.0', '--parents', '-m', 'my test tag'])
@@ -54,7 +54,7 @@ class SvnAdapterTests extends Specification {
         project.release.svn.pinExternals = true
 
         when:
-        svnAdapter.createReleaseTag("my test tag")
+        svnAdapter.createReleaseTag("my test tag", "1.0.0")
 
         then:
         1 * svnAdapter.executor.exec(_, ['svn', 'copy', 'svn://server/repo@123', '/root/tags/1.0.0', '--parents', '-m', 'my test tag', '--pin-externals'])

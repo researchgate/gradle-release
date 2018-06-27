@@ -130,11 +130,10 @@ class SvnAdapter extends BaseScmAdapter {
     }
 
     @Override
-    void createReleaseTag(String message) {
+    void createReleaseTag(String message, String svnTag) {
         String svnUrl = attributes.svnUrl
         String svnRev = attributes.svnRev ?: attributes.initialSvnRev //release set by commit below when needed, no commit => initial
         String svnRoot = attributes.svnRoot
-        String svnTag = tagName()
 
         List<String> commands = ['copy', "${svnUrl}@${svnRev}", "${svnRoot}/tags/${svnTag}", '--parents', '-m', message]
         if (extension.svn.pinExternals) {
@@ -164,8 +163,8 @@ class SvnAdapter extends BaseScmAdapter {
     }
 
     @Override
-    void revert() {
-        svnExec(['revert', findPropertiesFile().name], errorMessage: 'Error reverting changes made by the release plugin.', errorPatterns: [ERROR])
+    void revert(File file) {
+        svnExec(['revert', file.path], errorMessage: 'Error reverting changes made by the release plugin.', errorPatterns: [ERROR])
     }
 
     /**
@@ -211,5 +210,10 @@ class SvnAdapter extends BaseScmAdapter {
         if (!attributes.svnUrl || !attributes.initialSvnRev) {
             throw new GradleException('Could not determine root SVN url or revision.')
         }
+    }
+
+    @Override
+    String getLatestTag(String projectName) {
+        throw new GradleException('Querying for the latest tag is not yet supported by this SCM adapter')
     }
 }

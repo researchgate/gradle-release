@@ -10,11 +10,11 @@
 
 package net.researchgate.release
 
+import net.researchgate.release.tasks.*
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.artifacts.Dependency
 import org.gradle.api.tasks.GradleBuild
 import org.gradle.api.tasks.TaskState
 
@@ -36,103 +36,125 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
         }
 
         // name tasks with an absolute path so subprojects can be released independently
-        String p = project.path
-        p = !p.endsWith(Project.PATH_SEPARATOR) ? p + Project.PATH_SEPARATOR : p
+        String rootPath = getPath(project)
 
         project.task('release', description: 'Verify project, release, and update version to next.', group: RELEASE_GROUP, type: GradleBuild) {
             startParameter = project.getGradle().startParameter.newInstance()
 
+            /**
+             *  We use a separate 'runBuildTasks' GradleBuild process since we only have access to the extension
+             *  properties after the project has been evaluated to decide which tasks to also include in the build.
+             */
             tasks = [
-                "${p}createScmAdapter" as String,
-                "${p}initScmAdapter" as String,
-                "${p}checkCommitNeeded" as String,
-                "${p}checkUpdateNeeded" as String,
-                "${p}unSnapshotVersion" as String,
-                "${p}confirmReleaseVersion" as String,
-                "${p}checkSnapshotDependencies" as String,
-                "${p}runBuildTasks" as String,
-                "${p}preTagCommit" as String,
-                "${p}createReleaseTag" as String,
-                "${p}updateVersion" as String,
-                "${p}commitNewVersion" as String
-            ]
+                    "${rootPath}runBuildTasks" as String,
+            ].flatten()
         }
 
+        project.tasks.create('prepareVersions', PrepareVersions)
+
+        // The SCM adapter is created in the plugin context since its needed to revert changes on task failure
         project.task('createScmAdapter', group: RELEASE_GROUP,
             description: 'Finds the correct SCM plugin') doLast this.&createScmAdapter
-        project.task('initScmAdapter', group: RELEASE_GROUP,
-            description: 'Initializes the SCM plugin') doLast this.&initScmAdapter
-        project.task('checkCommitNeeded', group: RELEASE_GROUP,
-            description: 'Checks to see if there are any added, modified, removed, or un-versioned files.') doLast this.&checkCommitNeeded
-        project.task('checkUpdateNeeded', group: RELEASE_GROUP,
-            description: 'Checks to see if there are any incoming or outgoing changes that haven\'t been applied locally.') doLast this.&checkUpdateNeeded
-        project.task('unSnapshotVersion', group: RELEASE_GROUP,
-            description: 'Removes "-SNAPSHOT" from your project\'s current version.') doLast this.&unSnapshotVersion
-        project.task('confirmReleaseVersion', group: RELEASE_GROUP,
-            description: 'Prompts user for this release version. Allows for alpha or pre releases.') doLast this.&confirmReleaseVersion
-        project.task('checkSnapshotDependencies', group: RELEASE_GROUP,
-            description: 'Checks to see if your project has any SNAPSHOT dependencies.') doLast this.&checkSnapshotDependencies
+
+        project.tasks.create('initScmAdapter', InitScmAdapter)
+        project.tasks.create('checkCommitNeeded', CheckCommitNeeded)
+        project.tasks.create('checkUpdateNeeded', CheckUpdateNeeded)
+
+        conf(project)
+        project.subprojects?.each {
+            conf(it.project)
+        }
 
         project.task('runBuildTasks', group: RELEASE_GROUP,
-            description: 'Runs the build process in a separate gradle run.', type: GradleBuild) {
+                description: 'Runs the build process in a separate gradle run.', type: GradleBuild) {
             startParameter = project.getGradle().startParameter.newInstance()
 
             project.afterEvaluate {
-                tasks = [
-                    "${p}beforeReleaseBuild" as String,
-                    extension.buildTasks.collect { p + it },
-                    "${p}afterReleaseBuild" as String
-                ].flatten()
-            }
-        }
-        project.task('preTagCommit', group: RELEASE_GROUP,
-            description: 'Commits any changes made by the Release plugin - eg. If the unSnapshotVersion task was executed') doLast this.&preTagCommit
-        project.task('createReleaseTag', group: RELEASE_GROUP,
-            description: 'Creates a tag in SCM for the current (un-snapshotted) version.') doLast this.&commitTag
-        project.task('updateVersion', group: RELEASE_GROUP,
-            description: 'Prompts user for the next version. Does it\'s best to supply a smart default.') doLast this.&updateVersion
-        project.task('commitNewVersion', group: RELEASE_GROUP,
-            description: 'Commits the version update to your SCM') doLast this.&commitNewVersion
 
-        Boolean supportsMustRunAfter = project.tasks.initScmAdapter.respondsTo('mustRunAfter')
+                // Tasks should be added to this list in the order that they should be executed
+                List taskList = new ArrayList();
+                taskList.add("${rootPath}createScmAdapter" as String)
+                taskList.add("${rootPath}initScmAdapter" as String)
+                taskList.add("${rootPath}checkCommitNeeded" as String)
+                taskList.add("${rootPath}checkUpdateNeeded" as String)
+                taskList.add("${rootPath}prepareVersions" as String)
 
-        if (supportsMustRunAfter) {
-            project.tasks.initScmAdapter.mustRunAfter(project.tasks.createScmAdapter)
-            project.tasks.checkCommitNeeded.mustRunAfter(project.tasks.initScmAdapter)
-            project.tasks.checkUpdateNeeded.mustRunAfter(project.tasks.checkCommitNeeded)
-            project.tasks.unSnapshotVersion.mustRunAfter(project.tasks.checkUpdateNeeded)
-            project.tasks.confirmReleaseVersion.mustRunAfter(project.tasks.unSnapshotVersion)
-            project.tasks.checkSnapshotDependencies.mustRunAfter(project.tasks.confirmReleaseVersion)
-            project.tasks.runBuildTasks.mustRunAfter(project.tasks.checkSnapshotDependencies)
-            project.tasks.preTagCommit.mustRunAfter(project.tasks.runBuildTasks)
-            project.tasks.createReleaseTag.mustRunAfter(project.tasks.preTagCommit)
-            project.tasks.updateVersion.mustRunAfter(project.tasks.createReleaseTag)
-            project.tasks.commitNewVersion.mustRunAfter(project.tasks.updateVersion)
-        }
+                if (extension.useMultipleVersionFiles) {
 
-        project.task('beforeReleaseBuild', group: RELEASE_GROUP,
-            description: 'Runs immediately before the build when doing a release') {}
-        project.task('afterReleaseBuild', group: RELEASE_GROUP,
-            description: 'Runs immediately after the build when doing a release') {}
+                    project.subprojects?.each {
+                        String subPath = getPath(it.project)
+                        taskList.add("${subPath}unSnapshotVersion" as String)
+                        taskList.add("${subPath}confirmReleaseVersion" as String)
+                    }
 
-        if (supportsMustRunAfter) {
-            project.afterEvaluate {
-                def buildTasks = extension.buildTasks
-                if (!buildTasks.empty) {
-                    project.tasks[buildTasks.first()].mustRunAfter(project.tasks.beforeReleaseBuild)
-                    project.tasks.afterReleaseBuild.mustRunAfter(project.tasks[buildTasks.last()])
+                    taskList.add("${rootPath}checkSnapshotDependencies" as String)
+                    extension.buildTasks?.each {
+                        taskList.add("${rootPath}" + it as String)
+                    }
+
+                    project.subprojects?.each {
+                        String subPath = getPath(it.project)
+                        taskList.add("${subPath}preTagCommit" as String)
+                        taskList.add("${subPath}createReleaseTag" as String)
+                        taskList.add("${subPath}updateVersion" as String)
+                        taskList.add("${subPath}commitNewVersion" as String)
+                    }
+                } else {
+                    taskList.add("${rootPath}unSnapshotVersion" as String)
+                    taskList.add("${rootPath}confirmReleaseVersion" as String)
+                    taskList.add("${rootPath}checkSnapshotDependencies" as String)
+
+                    extension.buildTasks?.each {
+                        taskList.add("${rootPath}" + it as String)
+                    }
+
+                    taskList.add("${rootPath}preTagCommit" as String)
+                    taskList.add("${rootPath}createReleaseTag" as String)
+                    taskList.add("${rootPath}updateVersion" as String)
+                    taskList.add("${rootPath}commitNewVersion" as String)
                 }
+
+                Boolean supportsMustRunAfter = project.tasks.initScmAdapter.respondsTo('mustRunAfter')
+
+                if (supportsMustRunAfter) {
+                    Task previousTask = null
+                    for (def task : taskList) {
+                        Task currentTask = project.task(task)
+                        if (previousTask != null) {
+                            currentTask.mustRunAfter(previousTask)
+                        }
+                        previousTask = currentTask;
+                    }
+                }
+
+                tasks = taskList
             }
         }
+    }
+
+    String getPath(Project project) {
+        return !project.path.endsWith(Project.PATH_SEPARATOR) ? project.path + Project.PATH_SEPARATOR : project.path
+    }
+
+    void conf(Project project) {
+        project.tasks.create('unSnapshotVersion', UnSnapshotVersion)
+        project.tasks.create('confirmReleaseVersion', ConfirmReleaseVersion)
+        project.tasks.create('checkSnapshotDependencies', CheckSnapshotDependencies)
+        project.tasks.create('preTagCommit', PreTagCommit)
+        project.tasks.create('createReleaseTag', CreateReleaseTag)
+        project.tasks.create('updateVersion', UpdateVersion)
+        project.tasks.create('commitNewVersion', CommitNewVersion)
 
         project.gradle.taskGraph.afterTask { Task task, TaskState state ->
             if (state.failure && task.name == "release") {
                 try {
                     createScmAdapter()
                 } catch (Exception ignored) {}
-                if (scmAdapter && extension.revertOnFail && project.file(extension.versionPropertyFile)?.exists()) {
-                    log.error('Release process failed, reverting back any changes made by Release Plugin.')
-                    scmAdapter.revert()
+                if (scmAdapter && extension.revertOnFail) {
+                    if (project.file(extension.versionPropertyFile)?.exists()) {
+                        log.error('Release process failed, reverting back any changes made by Release Plugin to ' + project.name)
+                        scmAdapter.revert(project.file(extension.versionPropertyFile))
+                    }
                 } else {
                     log.error('Release process failed, please remember to revert any uncommitted changes made by the Release Plugin.')
                 }
@@ -142,151 +164,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
     void createScmAdapter() {
         scmAdapter = findScmAdapter()
-    }
-
-    void initScmAdapter() {
-        scmAdapter.init()
-    }
-
-    void checkCommitNeeded() {
-        scmAdapter.checkCommitNeeded()
-    }
-
-    void checkUpdateNeeded() {
-        scmAdapter.checkUpdateNeeded()
-    }
-
-    void checkSnapshotDependencies() {
-        def matcher = { Dependency d -> d.version?.contains('SNAPSHOT') && !extension.ignoredSnapshotDependencies.contains("${d.group ?: ''}:${d.name}".toString()) }
-        def collector = { Dependency d -> "${d.group ?: ''}:${d.name}:${d.version ?: ''}" }
-
-        def message = ""
-
-        project.allprojects.each { project ->
-            def snapshotDependencies = [] as Set
-            project.configurations.each { cfg ->
-                snapshotDependencies += cfg.dependencies?.matching(matcher)?.collect(collector)
-            }
-            project.buildscript.configurations.each { cfg ->
-                snapshotDependencies += cfg.dependencies?.matching(matcher)?.collect(collector)
-            }
-            if (snapshotDependencies.size() > 0) {
-                message += "\n\t${project.name}: ${snapshotDependencies}"
-            }
-        }
-
-        if (message) {
-            message = "Snapshot dependencies detected: ${message}"
-            warnOrThrow(extension.failOnSnapshotDependencies, message)
-        }
-    }
-
-    void commitTag() {
-        def message = extension.tagCommitMessage + " '${tagName()}'."
-        if (extension.preCommitText) {
-            message = "${extension.preCommitText} ${message}"
-        }
-        scmAdapter.createReleaseTag(message)
-    }
-
-    void confirmReleaseVersion() {
-        if (attributes.propertiesFileCreated) {
-            return
-        }
-        updateVersionProperty(getReleaseVersion())
-    }
-
-    void unSnapshotVersion() {
-        checkPropertiesFile()
-        def version = project.version.toString()
-
-        if (version.contains('-SNAPSHOT')) {
-            attributes.usesSnapshot = true
-            version -= '-SNAPSHOT'
-            updateVersionProperty(version)
-        }
-    }
-
-    void preTagCommit() {
-        if (attributes.usesSnapshot || attributes.versionModified || attributes.propertiesFileCreated) {
-            // should only be committed if the project was using a snapshot version.
-            def message = extension.preTagCommitMessage + " '${tagName()}'."
-
-            if (extension.preCommitText) {
-                message = "${extension.preCommitText} ${message}"
-            }
-
-            if (attributes.propertiesFileCreated) {
-                scmAdapter.add(findPropertiesFile());
-            }
-            scmAdapter.commit(message)
-        }
-    }
-
-    void updateVersion() {
-        def version = project.version.toString()
-        Map<String, Closure> patterns = extension.versionPatterns
-
-        for (entry in patterns) {
-
-            String pattern = entry.key
-            Closure handler = entry.value
-            Matcher matcher = version =~ pattern
-
-            if (matcher.find()) {
-                String nextVersion = handler(matcher, project)
-                if (attributes.usesSnapshot) {
-                    nextVersion += '-SNAPSHOT'
-                }
-
-                nextVersion = getNextVersion(nextVersion)
-                updateVersionProperty(nextVersion)
-
-                return
-            }
-        }
-
-        throw new GradleException("Failed to increase version [$version] - unknown pattern")
-    }
-
-    String getNextVersion(String candidateVersion) {
-        String nextVersion = findProperty('release.newVersion', null, 'newVersion')
-
-        if (useAutomaticVersion()) {
-            return nextVersion ?: candidateVersion
-        }
-
-        return readLine("Enter the next version (current one released as [${project.version}]):", nextVersion ?: candidateVersion)
-    }
-
-    def commitNewVersion() {
-        def message = extension.newVersionCommitMessage + " '${tagName()}'."
-        if (extension.preCommitText) {
-            message = "${extension.preCommitText} ${message}"
-        }
-        scmAdapter.commit(message)
-    }
-
-
-    def checkPropertiesFile() {
-        File propertiesFile = findPropertiesFile()
-
-        if (!propertiesFile.canRead() || !propertiesFile.canWrite()) {
-            throw new GradleException("Unable to update version property. Please check file permissions.")
-        }
-
-        Properties properties = new Properties()
-        propertiesFile.withReader { properties.load(it) }
-
-        assert properties.version, "[$propertiesFile.canonicalPath] contains no 'version' property"
-        assert extension.versionPatterns.keySet().any { (properties.version =~ it).find() },
-            "[$propertiesFile.canonicalPath] version [$properties.version] doesn't match any of known version patterns: " +
-                extension.versionPatterns.keySet()
-
-        // set the project version from the properties file if it was not otherwise specified
-        if (!isVersionDefined()) {
-            project.version = properties.version
-        }
+        extension.scmAdapter = scmAdapter
     }
 
     /**

@@ -10,6 +10,8 @@
 
 package net.researchgate.release
 
+import net.researchgate.release.tasks.CreateReleaseTag
+import net.researchgate.release.tasks.UnSnapshotVersion
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
@@ -18,32 +20,32 @@ class GitReleasePluginCreateReleaseTagTests extends GitSpecification {
 
     Project project
 
-    PluginHelper helper
+    CreateReleaseTag createReleaseTagTask;
 
     def setup() {
         project = ProjectBuilder.builder().withName("GitReleasePluginTest").withProjectDir(localGit.repository.workTree).build()
         project.apply plugin: ReleasePlugin
         project.createScmAdapter.execute()
 
-        helper = new PluginHelper(project: project, extension: project.extensions['release'] as ReleaseExtension)
+        createReleaseTagTask = project.task('createReleaseTagTask', type: CreateReleaseTag)
     }
 
     def 'createReleaseTag should create tag and push to remote'() {
         given:
         project.version = '1.1'
         when:
-        project.createReleaseTag.execute()
+        createReleaseTagTask.execute()
         then:
-        localGit.tagList().call()*.name == ["refs/tags/${helper.tagName()}"]
-        remoteGit.tagList().call()*.name == ["refs/tags/${helper.tagName()}"]
+        localGit.tagList().call()*.name == ["refs/tags/${createReleaseTagTask.tagName()}"]
+        remoteGit.tagList().call()*.name == ["refs/tags/${createReleaseTagTask.tagName()}"]
     }
 
     def 'createReleaseTag should throw exception when tag exist'() {
         given:
         project.version = '1.2'
-        localGit.tag().setName(helper.tagName()).call()
+        localGit.tag().setName(createReleaseTagTask.tagName()).call()
         when:
-        project.createReleaseTag.execute()
+        createReleaseTagTask.execute()
         then:
         thrown GradleException
     }
@@ -53,10 +55,10 @@ class GitReleasePluginCreateReleaseTagTests extends GitSpecification {
         project.version = '1.3'
         project.release.git.pushToRemote = null
         when:
-        project.createReleaseTag.execute()
+        createReleaseTagTask.execute()
         then:
-        localGit.tagList().call().findAll { it.name == "refs/tags/${helper.tagName()}" }.size() == 1
-        remoteGit.tagList().call().findAll { it.name == "refs/tags/${helper.tagName()}" }.isEmpty()
+        localGit.tagList().call().findAll { it.name == "refs/tags/${createReleaseTagTask.tagName()}" }.size() == 1
+        remoteGit.tagList().call().findAll { it.name == "refs/tags/${createReleaseTagTask.tagName()}" }.isEmpty()
     }
 
     def 'createReleaseTag with configured but non existent remote should throw exception'() {
@@ -64,7 +66,7 @@ class GitReleasePluginCreateReleaseTagTests extends GitSpecification {
         project.version = '1.4'
         project.release.git.pushToRemote = 'myremote'
         when:
-        project.createReleaseTag.execute()
+        createReleaseTagTask.execute()
         then:
         GradleException ex = thrown()
         ex.cause.message.contains "myremote"
@@ -77,9 +79,9 @@ class GitReleasePluginCreateReleaseTagTests extends GitSpecification {
         localGit.repository.config.setString("remote", "myremote", "url", remoteGit.repository.directory.canonicalPath);
         localGit.repository.config.save();
         when:
-        project.createReleaseTag.execute()
+        createReleaseTagTask.execute()
         then:
-        localGit.tagList().call().findAll { it.name == "refs/tags/${helper.tagName()}" }.size() == 1
-        remoteGit.tagList().call().findAll { it.name == "refs/tags/${helper.tagName()}" }.size() == 1
+        localGit.tagList().call().findAll { it.name == "refs/tags/${createReleaseTagTask.tagName()}" }.size() == 1
+        remoteGit.tagList().call().findAll { it.name == "refs/tags/${createReleaseTagTask.tagName()}" }.size() == 1
     }
 }
