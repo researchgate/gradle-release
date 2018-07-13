@@ -60,6 +60,11 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
         project.tasks.create('checkCommitNeeded', CheckCommitNeeded)
         project.tasks.create('checkUpdateNeeded', CheckUpdateNeeded)
 
+        project.task('beforeReleaseBuild', group: RELEASE_GROUP,
+                description: 'Runs immediately before the build when doing a release') {}
+        project.task('afterReleaseBuild', group: RELEASE_GROUP,
+                description: 'Runs immediately after the build when doing a release') {}
+
         conf(project)
         project.subprojects?.each {
             conf(it.project)
@@ -88,9 +93,11 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
                     }
 
                     taskList.add("${rootPath}checkSnapshotDependencies" as String)
+                    taskList.add("${rootPath}beforeReleaseBuild" as String)
                     extension.buildTasks?.each {
                         taskList.add("${rootPath}" + it as String)
                     }
+                    taskList.add("${rootPath}afterReleaseBuild" as String)
 
                     project.subprojects?.each {
                         String subPath = getPath(it.project)
@@ -104,9 +111,11 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
                     taskList.add("${rootPath}confirmReleaseVersion" as String)
                     taskList.add("${rootPath}checkSnapshotDependencies" as String)
 
+                    taskList.add("${rootPath}beforeReleaseBuild" as String)
                     extension.buildTasks?.each {
                         taskList.add("${rootPath}" + it as String)
                     }
+                    taskList.add("${rootPath}afterReleaseBuild" as String)
 
                     taskList.add("${rootPath}preTagCommit" as String)
                     taskList.add("${rootPath}createReleaseTag" as String)
