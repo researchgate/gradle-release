@@ -28,12 +28,13 @@ class VersionTests extends Specification {
     File testDir = new File("build/tmp/test/${getClass().simpleName}")
 
     def setup() {
+        testDir.mkdirs()
         project = ProjectBuilder.builder().withName("ReleasePluginTest").withProjectDir(testDir).build()
         project.version = '1.1'
         project.apply plugin: ReleasePlugin
         project.release.scmAdapters = [TestAdapter]
 
-        def props = project.file("gradle.properties")
+        def props = new File(project.projectDir, "gradle.properties")
         props.withWriter {it << "version=${project.version}"}
 
         prepareVersionsTask = project.task('prepareVersionsTask', type: PrepareVersions)

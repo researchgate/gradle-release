@@ -27,13 +27,14 @@ class SubprojectVersionTests extends Specification {
     File testDir = new File("build/tmp/test/${getClass().simpleName}")
 
     def setup() {
+        testDir.mkdirs()
         project = ProjectBuilder.builder().withName("ReleasePluginTest").withProjectDir(testDir).build()
 
         File subProject1Dir = new File(project.getRootDir(), "subproject1")
         subProject1Dir.mkdir()
         subproject1 = ProjectBuilder.builder().withName("subproject1").withProjectDir(subProject1Dir).withParent(project).build()
         subproject1.version = '1.0'
-        subproject1.file("gradle.properties").withWriter {
+        new File(subproject1.projectDir, "gradle.properties").withWriter {
             it << "version=1.0\n"
         }
 
@@ -41,14 +42,14 @@ class SubprojectVersionTests extends Specification {
         subProject2Dir.mkdir()
         subproject2 = ProjectBuilder.builder().withName("subproject2").withProjectDir(subProject2Dir).withParent(project).build()
         subproject2.version = '2.0'
-        subproject2.file("gradle.properties").withWriter {
+        new File(subproject2.projectDir, "gradle.properties").withWriter {
             it << "version=2.0\n"
         }
 
         project.apply plugin: ReleasePlugin
         project.release.scmAdapters = [TestAdapter]
 
-        updateVersionTask = project.task('updateVersionTask', type: UpdateVersion)
+        updateVersionTask = project.task('updateVersionTask', type: UpdateVersion) as UpdateVersion
     }
 
     def cleanup() {
@@ -58,9 +59,9 @@ class SubprojectVersionTests extends Specification {
     def 'Subproject versioning should work with automatic versioning'() {
         when:
         project.release {
-            useAutomaticVersion = true
             useMultipleVersionFiles = true
         }
+        project.ext.set('Prelease.useAutomaticVersion', true)
 
         subproject1.task('subProjectVersionTask1', type: UpdateVersion).execute()
         def subProject1VersionLines = subproject1.file("gradle.properties").readLines()
@@ -78,9 +79,9 @@ class SubprojectVersionTests extends Specification {
             skipProjectRelease = { Project project ->
                 project == subproject1
             }
-            useAutomaticVersion = true
             useMultipleVersionFiles = true
         }
+        project.ext.set('Prelease.useAutomaticVersion', true)
         when:
         subproject1.task('subProjectVersionTask1', type: UpdateVersion).execute()
         def subProject1VersionLines = subproject1.file("gradle.properties").readLines()
@@ -95,11 +96,10 @@ class SubprojectVersionTests extends Specification {
     def 'Explicit release version should be used for a subproject'() {
         given:
         project.release {
-
-            useAutomaticVersion = true
             useMultipleVersionFiles = true
         }
         project.ext.set('release.subproject1.newVersion', '4.0')
+        project.ext.set('Prelease.useAutomaticVersion', true)
         when:
         subproject1.task('subProjectVersionTask1', type: UpdateVersion).execute()
         def subProject1VersionLines = subproject1.file("gradle.properties").readLines()

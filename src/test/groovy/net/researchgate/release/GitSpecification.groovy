@@ -45,7 +45,7 @@ abstract class GitSpecification extends Specification {
     }
 
     def createDefaultVersionFile() {
-        return true;
+        return true
     }
 
     def setupSpec() {
