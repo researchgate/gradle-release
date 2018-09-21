@@ -12,10 +12,10 @@ class PrepareVersions extends BaseReleaseTask {
     }
 
     @TaskAction
-    def performTask() {
+    def prepareVersions() {
         Project rootProject = getRootProject()
-        def versionPropertyFile = extension.versionPropertyFile
-        File rootVersionFile = rootProject.file(versionPropertyFile)
+        String versionPropertyFilepath = extension.versionPropertyFile
+        File rootVersionFile = rootProject.file(versionPropertyFilepath)
         if (rootVersionFile.file) {
             if (isMultiVersionProject()) {
                 throw new GradleException("[$rootVersionFile.canonicalPath] was found but the 'useMultipleVersionFiles' config is set to true")
@@ -24,37 +24,35 @@ class PrepareVersions extends BaseReleaseTask {
         }
 
         if (isMultiVersionProject()) {
-            def subProjectsWithoutVersions = rootProject.subprojects.findAll {
-                !it.project.file(versionPropertyFile).file
+            Set<Project> subProjectsWithoutVersions = project.subprojects.findAll { Project subProject ->
+                !subProject.file(versionPropertyFilepath).file
             }
-            if (subProjectsWithoutVersions) {
-                checkSnapshotUse()
-            }
-            subProjectsWithoutVersions.each {
-                File subProjectVersionFile = it.project.file(versionPropertyFile)
-                createPropertiesFile(it.project, subProjectVersionFile)
+            subProjectsWithoutVersions.each { Project subProject ->
+                checkSnapshotUse(subProject.name)
+                File subProjectVersionFile = subProject.file(versionPropertyFilepath)
+                createPropertiesFile(subProject, subProjectVersionFile)
             }
         } else {
-            checkSnapshotUse()
-            createPropertiesFile(getProject(), rootVersionFile)
+            checkSnapshotUse(project.name)
+            createPropertiesFile(project, rootVersionFile)
         }
     }
 
-    void checkSnapshotUse() {
-        if (!useAutomaticVersion() && promptYesOrNo('Do you want to use SNAPSHOT versions in between releases')) {
-            extension.attributes.usesSnapshot = true
+    void checkSnapshotUse(String projectName) {
+        if (!useAutomaticVersion() && promptYesOrNo("For project '${projectName}' do you want to use SNAPSHOT versions in between releases")) {
+            extension.getOrCreateProjectAttributes(projectName).usesSnapshot = true
         }
     }
 
     void createPropertiesFile(Project project, File propertiesFile) {
-        log.debug("Creating version file '" + propertiesFile.canonicalPath + "' for project '" + project.name + "'")
+        log.info("Creating version file '" + propertiesFile.canonicalPath + "' for project '" + project.name + "'")
         if (!isVersionDefined()) {
-            project.version = getReleaseVersion('1.0.0')
+            project.version = getReleaseVersion(project, '1.0.0')
         }
 
         if (useAutomaticVersion() || promptYesOrNo("[$propertiesFile.canonicalPath] not found, create it with version = ${project.version}")) {
             writeVersion(propertiesFile, 'version', project.version)
-            extension.getOrCreateProjectAttributes(getProject().name).propertiesFileCreated = true
+            extension.getOrCreateProjectAttributes(project.name).propertiesFileCreated = true
         } else {
             log.debug "[$propertiesFile.canonicalPath] was not found, and user opted out of it being created. Throwing exception."
             throw new GradleException("[$propertiesFile.canonicalPath] not found and you opted out of it being created,\n please create it manually and specify the version property.")

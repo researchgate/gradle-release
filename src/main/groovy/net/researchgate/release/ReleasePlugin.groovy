@@ -38,6 +38,9 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
         // name tasks with an absolute path so subprojects can be released independently
         String rootPath = getPath(project)
 
+        String p = project.path
+        p = !p.endsWith(Project.PATH_SEPARATOR) ? p + Project.PATH_SEPARATOR : p
+
         project.task('release', description: 'Verify project, release, and update version to next.', group: RELEASE_GROUP, type: GradleBuild) {
             startParameter = project.getGradle().startParameter.newInstance()
 
@@ -46,113 +49,85 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
              *  properties after the project has been evaluated to decide which tasks to also include in the build.
              */
             tasks = [
+                    "${rootPath}createScmAdapter" as String,
+                    "${rootPath}initScmAdapter" as String,
+                    "${rootPath}checkReleaseNeeded" as String,
+                    "${rootPath}checkCommitNeeded" as String,
+                    "${rootPath}checkUpdateNeeded" as String,
+                    "${rootPath}prepareVersions" as String,
+                    "${rootPath}unSnapshotVersion" as String,
+                    "${rootPath}confirmReleaseVersion" as String,
+                    "${rootPath}checkSnapshotDependencies" as String,
                     "${rootPath}runBuildTasks" as String,
-            ].flatten()
+                    "${rootPath}preTagCommit" as String,
+                    "${rootPath}createReleaseTag" as String,
+                    "${rootPath}updateVersion" as String,
+                    "${rootPath}commitNewVersion" as String
+            ]
         }
-
-        project.tasks.create('prepareVersions', PrepareVersions)
 
         // The SCM adapter is created in the plugin context since its needed to revert changes on task failure
-        project.task('createScmAdapter', group: RELEASE_GROUP,
-            description: 'Finds the correct SCM plugin') doLast this.&createScmAdapter
 
         project.tasks.create('initScmAdapter', InitScmAdapter)
+        project.task('createScmAdapter', group: RELEASE_GROUP,
+                description: 'Finds the correct SCM plugin') doLast this.&createScmAdapter
+        project.tasks.create('checkReleaseNeeded', CheckReleaseNeeded)
         project.tasks.create('checkCommitNeeded', CheckCommitNeeded)
         project.tasks.create('checkUpdateNeeded', CheckUpdateNeeded)
-
-        project.task('beforeReleaseBuild', group: RELEASE_GROUP,
-                description: 'Runs immediately before the build when doing a release') {}
-        project.task('afterReleaseBuild', group: RELEASE_GROUP,
-                description: 'Runs immediately after the build when doing a release') {}
-
-        conf(project)
-        project.subprojects?.each {
-            conf(it.project)
-        }
-
-        project.task('runBuildTasks', group: RELEASE_GROUP,
-                description: 'Runs the build process in a separate gradle run.', type: GradleBuild) {
-            startParameter = project.getGradle().startParameter.newInstance()
-
-            project.afterEvaluate {
-
-                // Tasks should be added to this list in the order that they should be executed
-                List taskList = new ArrayList();
-                taskList.add("${rootPath}createScmAdapter" as String)
-                taskList.add("${rootPath}initScmAdapter" as String)
-                taskList.add("${rootPath}checkCommitNeeded" as String)
-                taskList.add("${rootPath}checkUpdateNeeded" as String)
-                taskList.add("${rootPath}prepareVersions" as String)
-
-                if (extension.useMultipleVersionFiles) {
-
-                    project.subprojects?.each {
-                        String subPath = getPath(it.project)
-                        taskList.add("${subPath}unSnapshotVersion" as String)
-                        taskList.add("${subPath}confirmReleaseVersion" as String)
-                    }
-
-                    taskList.add("${rootPath}checkSnapshotDependencies" as String)
-                    taskList.add("${rootPath}beforeReleaseBuild" as String)
-                    extension.buildTasks?.each {
-                        taskList.add("${rootPath}" + it as String)
-                    }
-                    taskList.add("${rootPath}afterReleaseBuild" as String)
-
-                    project.subprojects?.each {
-                        String subPath = getPath(it.project)
-                        taskList.add("${subPath}preTagCommit" as String)
-                        taskList.add("${subPath}createReleaseTag" as String)
-                        taskList.add("${subPath}updateVersion" as String)
-                        taskList.add("${subPath}commitNewVersion" as String)
-                    }
-                } else {
-                    taskList.add("${rootPath}unSnapshotVersion" as String)
-                    taskList.add("${rootPath}confirmReleaseVersion" as String)
-                    taskList.add("${rootPath}checkSnapshotDependencies" as String)
-
-                    taskList.add("${rootPath}beforeReleaseBuild" as String)
-                    extension.buildTasks?.each {
-                        taskList.add("${rootPath}" + it as String)
-                    }
-                    taskList.add("${rootPath}afterReleaseBuild" as String)
-
-                    taskList.add("${rootPath}preTagCommit" as String)
-                    taskList.add("${rootPath}createReleaseTag" as String)
-                    taskList.add("${rootPath}updateVersion" as String)
-                    taskList.add("${rootPath}commitNewVersion" as String)
-                }
-
-                Boolean supportsMustRunAfter = project.tasks.initScmAdapter.respondsTo('mustRunAfter')
-
-                if (supportsMustRunAfter) {
-                    Task previousTask = null
-                    for (def task : taskList) {
-                        Task currentTask = project.task(task)
-                        if (previousTask != null) {
-                            currentTask.mustRunAfter(previousTask)
-                        }
-                        previousTask = currentTask;
-                    }
-                }
-
-                tasks = taskList
-            }
-        }
-    }
-
-    String getPath(Project project) {
-        return !project.path.endsWith(Project.PATH_SEPARATOR) ? project.path + Project.PATH_SEPARATOR : project.path
-    }
-
-    void conf(Project project) {
+        project.tasks.create('prepareVersions', PrepareVersions)
         project.tasks.create('unSnapshotVersion', UnSnapshotVersion)
         project.tasks.create('confirmReleaseVersion', ConfirmReleaseVersion)
         project.tasks.create('checkSnapshotDependencies', CheckSnapshotDependencies)
+        project.task('beforeReleaseBuild', group: RELEASE_GROUP,
+                description: 'Runs immediately before the build when doing a release') {}
+        project.task('runBuildTasks', group: RELEASE_GROUP,
+                description: 'Runs the build process in a separate gradle run.', type: GradleBuild) {
+            startParameter = project.getGradle().startParameter.newInstance()
+            startParameter.projectProperties.put('release.releasing', "true")
+
+            project.afterEvaluate {
+                tasks = [
+                        "${p}beforeReleaseBuild" as String,
+                        extension.buildTasks.collect { it },
+                        "${p}afterReleaseBuild" as String
+                ].flatten()
+            }
+        }
+        project.task('afterReleaseBuild', group: RELEASE_GROUP,
+                description: 'Runs immediately after the build when doing a release') {}
         project.tasks.create('preTagCommit', PreTagCommit)
         project.tasks.create('createReleaseTag', CreateReleaseTag)
         project.tasks.create('updateVersion', UpdateVersion)
         project.tasks.create('commitNewVersion', CommitNewVersion)
+
+        Boolean supportsMustRunAfter = project.tasks.initScmAdapter.respondsTo('mustRunAfter')
+
+        if (supportsMustRunAfter) {
+            project.tasks.initScmAdapter.mustRunAfter(project.tasks.createScmAdapter)
+            project.tasks.checkReleaseNeeded.mustRunAfter(project.tasks.initScmAdapter)
+            project.tasks.checkCommitNeeded.mustRunAfter(project.tasks.checkReleaseNeeded)
+            project.tasks.checkUpdateNeeded.mustRunAfter(project.tasks.checkCommitNeeded)
+            project.tasks.unSnapshotVersion.mustRunAfter(project.tasks.checkUpdateNeeded)
+            project.tasks.confirmReleaseVersion.mustRunAfter(project.tasks.unSnapshotVersion)
+            project.tasks.checkSnapshotDependencies.mustRunAfter(project.tasks.confirmReleaseVersion)
+            project.tasks.runBuildTasks.mustRunAfter(project.tasks.checkSnapshotDependencies)
+            project.tasks.preTagCommit.mustRunAfter(project.tasks.runBuildTasks)
+            project.tasks.createReleaseTag.mustRunAfter(project.tasks.preTagCommit)
+            project.tasks.updateVersion.mustRunAfter(project.tasks.createReleaseTag)
+            project.tasks.commitNewVersion.mustRunAfter(project.tasks.updateVersion)
+        }
+
+        if (supportsMustRunAfter) {
+            project.afterEvaluate {
+                def buildTasks = extension.buildTasks
+                if (!buildTasks.empty) {
+                    project.tasks[buildTasks.first()].mustRunAfter(project.tasks.beforeReleaseBuild)
+                    buildTasks.each {
+                        project.tasks.afterReleaseBuild.mustRunAfter(it)
+                    }
+                }
+            }
+        }
 
         project.gradle.taskGraph.afterTask { Task task, TaskState state ->
             if (state.failure && task.name == "release") {
@@ -169,6 +144,10 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
                 }
             }
         }
+    }
+
+    String getPath(Project project) {
+        return !project.path.endsWith(Project.PATH_SEPARATOR) ? project.path + Project.PATH_SEPARATOR : project.path
     }
 
     void createScmAdapter() {

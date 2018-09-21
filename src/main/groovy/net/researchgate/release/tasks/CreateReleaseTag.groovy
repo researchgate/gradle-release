@@ -1,5 +1,6 @@
 package net.researchgate.release.tasks
 
+import org.gradle.api.Project
 import org.gradle.api.tasks.TaskAction
 
 class CreateReleaseTag extends BaseReleaseTask {
@@ -10,15 +11,26 @@ class CreateReleaseTag extends BaseReleaseTask {
     }
 
     @TaskAction
-    def performTask() {
-        if (extension.skipRelease(getProject())) {
-            return
+    def createReleaseTag() {
+        if (extension.isUseMultipleVersionFiles()) {
+            project.subprojects.each { Project subProject ->
+                if (extension.skipRelease(subProject)) {
+                    return
+                }
+                createReleaseTagFor(subProject)
+            }
+
+        } else {
+            createReleaseTagFor(getProject())
         }
-        def message = extension.tagCommitMessage + " '${tagName()}'."
+    }
+
+    void createReleaseTagFor(Project project) {
+        def message = extension.tagCommitMessage + " '${tagName(project)}'."
         if (extension.preCommitText) {
             message = "${extension.preCommitText} ${message}"
         }
-        getScmAdapter().createReleaseTag(message, tagName())
+        getScmAdapter().createReleaseTag(message, tagName(project))
     }
 
 }

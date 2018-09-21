@@ -13,14 +13,23 @@ class ConfirmReleaseVersion extends BaseReleaseTask {
     }
 
     @TaskAction
-    def performTask() {
-        if (extension.skipRelease(getProject())) {
-            return
+    def confirmReleaseVersion() {
+        if (extension.isUseMultipleVersionFiles()) {
+            rootProject.subprojects
+                    .findAll { subProject -> !extension.skipRelease(subProject)}
+                    .each { subProject ->
+                        if (extension.getOrCreateProjectAttributes(subProject.name).propertiesFileCreated) {
+                            return
+                        }
+                        updateVersionProperty(subProject, getReleaseVersion(subProject))
+                    }
+        } else {
+            Map<String, Object> projectAttributes = extension.getOrCreateProjectAttributes(project.name)
+            if (projectAttributes.propertiesFileCreated) {
+                return
+            }
+            updateVersionProperty(rootProject, getReleaseVersion(rootProject))
         }
-        if (projectAttributes.propertiesFileCreated) {
-            return
-        }
-        updateVersionProperty(getReleaseVersion())
     }
 
 }

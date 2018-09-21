@@ -2,6 +2,7 @@ package net.researchgate.release.tasks
 
 import net.researchgate.release.BaseScmAdapter
 import net.researchgate.release.ReleaseExtension
+import org.gradle.api.Project
 import org.gradle.api.tasks.TaskAction
 
 import javax.inject.Inject
@@ -15,24 +16,42 @@ class PreTagCommit extends BaseReleaseTask {
     }
 
     @TaskAction
-    def performTask() {
-        if (extension.skipRelease(getProject())) {
-            return
-        }
+    void preTagCommit() {
         BaseScmAdapter scmAdapter = ((ReleaseExtension) getRootProject().extensions.getByName("release")).scmAdapter
-
-        if (projectAttributes.usesSnapshot || projectAttributes.versionModified || projectAttributes.propertiesFileCreated) {
-            // should only be committed if the project was using a snapshot version.
-            def message = extension.preTagCommitMessage + " '${tagName()}'."
-
+        if (extension.isUseMultipleVersionFiles()) {
+            String message = ""
             if (extension.preCommitText) {
-                message = "${extension.preCommitText} ${message}"
+                message = "${extension.preCommitText} "
             }
+            message += extension.preTagCommitMessage
+            project.subprojects.each { Project subProject ->
+                if (extension.skipRelease(subProject)) {
+                    return
+                }
+                Map<String, Object> projectAttributes = extension.getOrCreateProjectAttributes(subProject.name)
+                if (projectAttributes.usesSnapshot || projectAttributes.versionModified || projectAttributes.propertiesFileCreated) {
+                    // should only be committed if the project was using a snapshot version.
+                    message += " '${tagName(subProject)}'"
 
-            if (projectAttributes.propertiesFileCreated) {
-                scmAdapter.add(findPropertiesFile());
+                    if (projectAttributes.propertiesFileCreated) {
+                        scmAdapter.add(findPropertiesFile(subProject))
+                    }
+                }
             }
-            scmAdapter.commit(message)
+            scmAdapter.commit(message + '.')
+        } else {
+            Map<String, Object> projectAttributes = extension.getOrCreateProjectAttributes(project.name)
+            if (projectAttributes.usesSnapshot || projectAttributes.versionModified || projectAttributes.propertiesFileCreated) {
+                // should only be committed if the project was using a snapshot version.
+                String message = extension.preTagCommitMessage + " '${tagName(project)}'."
+                if (extension.preCommitText) {
+                    message = "${extension.preCommitText} ${message}"
+                }
+                if (projectAttributes.propertiesFileCreated) {
+                    scmAdapter.add(findPropertiesFile(project))
+                }
+                scmAdapter.commit(message)
+            }
         }
     }
 

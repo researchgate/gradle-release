@@ -10,7 +10,7 @@ class CheckCommitNeeded extends BaseReleaseTask {
     }
 
     @TaskAction
-    def performTask() {
+    void checkCommitNeeded() {
         getScmAdapter().checkCommitNeeded()
     }
 }

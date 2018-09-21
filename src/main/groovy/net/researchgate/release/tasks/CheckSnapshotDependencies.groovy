@@ -14,7 +14,7 @@ class CheckSnapshotDependencies extends BaseReleaseTask {
     }
 
     @TaskAction
-    def performTask() {
+    void checkSnapshotDependencies() {
         def matcher = { Dependency d -> d.version?.contains('SNAPSHOT') && !extension.ignoredSnapshotDependencies.contains("${d.group ?: ''}:${d.name}".toString()) }
         def collector = { Dependency d -> "${d.group ?: ''}:${d.name}:${d.version ?: ''}" }
 

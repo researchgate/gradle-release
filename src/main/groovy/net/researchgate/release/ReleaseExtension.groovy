@@ -40,10 +40,7 @@ class ReleaseExtension {
 
     String newVersionCommitMessage = '[Gradle Release Plugin] - new version commit: '
 
-    /**
-     * as of 3.0 set this to "$version" by default
-     */
-    String tagTemplate
+    String tagTemplate = '$version'
 
     String versionPropertyFile = 'gradle.properties'
 
@@ -68,9 +65,9 @@ class ReleaseExtension {
         SvnAdapter,
         HgAdapter,
         BzrAdapter
-    ];
+    ]
 
-    BaseScmAdapter scmAdapter;
+    BaseScmAdapter scmAdapter
     Map<String, Map<String, Object>> projectAttributes = [:] // Specific project attributes used during execution
 
     private Project project
@@ -162,7 +159,7 @@ class ReleaseExtension {
         scmAdapters.find {
             assert BaseScmAdapter.isAssignableFrom(it)
 
-            Pattern pattern = Pattern.compile("^${name}", Pattern.CASE_INSENSITIVE);
+            Pattern pattern = Pattern.compile("^${name}", Pattern.CASE_INSENSITIVE)
             if (!pattern.matcher(it.simpleName).find()) {
                 return false
             }

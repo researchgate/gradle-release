@@ -2,6 +2,7 @@ package net.researchgate.release.tasks
 
 import groovy.text.SimpleTemplateEngine
 import org.gradle.api.GradleException
+import org.gradle.api.Project
 import org.gradle.api.tasks.TaskAction
 
 class UnSnapshotVersion extends BaseReleaseTask {
@@ -13,11 +14,21 @@ class UnSnapshotVersion extends BaseReleaseTask {
 
     @TaskAction
     def performTask() {
-        if (extension.skipRelease(getProject())) {
+        if (extension.isUseMultipleVersionFiles()) {
+            rootProject.subprojects { Project subProject ->
+                unSnapshotVersion(subProject)
+            }
+        } else {
+            unSnapshotVersion(getProject())
+        }
+    }
+
+    void unSnapshotVersion(Project projectToUnSnapshot) {
+        if (extension.skipRelease(projectToUnSnapshot)) {
             // Replace the version with the latest released version
-            String latestTag = scmAdapter.getLatestTag(getProject().name)
+            String latestTag = scmAdapter.getLatestTag(projectToUnSnapshot.name)
             if (latestTag == null) {
-                throw new GradleException("The latest tag of '" + getProject().name + "' is not available")
+                throw new GradleException("The latest tag of '" + projectToUnSnapshot.name + "' is not available")
             }
 
             if (!extension.tagTemplate) {
@@ -28,27 +39,28 @@ class UnSnapshotVersion extends BaseReleaseTask {
             def engine = new SimpleTemplateEngine()
             def binding = [
                     "version": "",
-                    "name"   : project.name
+                    "name"   : projectToUnSnapshot.name
             ]
             String tagNamePart = engine.createTemplate(extension.tagTemplate).make(binding).toString()
             String version = latestTag.replaceAll(tagNamePart, "")
 
-            log.debug("Using version " + version + " for " + getProject().name + " dependencies")
-            project.version = version
+            log.debug("Using version " + version + " for " + projectToUnSnapshot.name + " dependencies")
+            projectToUnSnapshot.version = version
             return
         }
-        checkPropertiesFile()
-        def version = project.version.toString()
+        checkPropertiesFile(projectToUnSnapshot)
+        def version = projectToUnSnapshot.version.toString()
 
         if (version.contains('-SNAPSHOT')) {
+            Map<String, Object> projectAttributes = extension.getOrCreateProjectAttributes(projectToUnSnapshot.name)
             projectAttributes.usesSnapshot = true
             version -= '-SNAPSHOT'
-            updateVersionProperty(version)
+            updateVersionProperty(projectToUnSnapshot, version)
         }
     }
 
-    def checkPropertiesFile() {
-        File propertiesFile = findPropertiesFile()
+    def checkPropertiesFile(Project project) {
+        File propertiesFile = findPropertiesFile(project)
 
         if (!propertiesFile.canRead() || !propertiesFile.canWrite()) {
             throw new GradleException("Unable to update version property. Please check file permissions.")

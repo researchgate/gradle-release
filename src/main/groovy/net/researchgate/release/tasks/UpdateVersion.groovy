@@ -14,12 +14,20 @@ class UpdateVersion extends BaseReleaseTask {
     }
 
     @TaskAction
-    def performTask() {
-        if (extension.skipRelease(getProject())) {
-            return
+    def updateVersion() {
+        if (extension.isUseMultipleVersionFiles()) {
+            project.subprojects { Project subProject ->
+                if (!extension.skipRelease(subProject)) {
+                    setSnapshotVersion(subProject)
+                }
+            }
+        } else {
+            setSnapshotVersion(getProject())
         }
-        Project project = getProject();
-        def version = project.version.toString()
+    }
+
+    void setSnapshotVersion(Project projectToSnapshot) {
+        def version = projectToSnapshot.version.toString()
         Map<String, Closure> patterns = extension.versionPatterns
 
         for (entry in patterns) {
@@ -29,13 +37,14 @@ class UpdateVersion extends BaseReleaseTask {
             Matcher matcher = version =~ pattern
 
             if (matcher.find()) {
-                String nextVersion = handler(matcher, project)
+                String nextVersion = handler(matcher, projectToSnapshot)
+                Map<String, Object> projectAttributes = extension.getOrCreateProjectAttributes(projectToSnapshot.name)
                 if (projectAttributes.usesSnapshot) {
                     nextVersion += '-SNAPSHOT'
                 }
 
-                nextVersion = getNextVersion(nextVersion)
-                updateVersionProperty(nextVersion)
+                nextVersion = getNextVersion(projectToSnapshot, nextVersion)
+                updateVersionProperty(projectToSnapshot, nextVersion)
 
                 return
             }
@@ -44,15 +53,15 @@ class UpdateVersion extends BaseReleaseTask {
         throw new GradleException("Failed to increase version [$version] - unknown pattern")
     }
 
-    String getNextVersion(String candidateVersion) {
-        String key = isMultiVersionProject() ? "release.${project.name}.newVersion" : "release.newVersion"
+    String getNextVersion(Project projectToGetVersionFrom, String candidateVersion) {
+        String key = isMultiVersionProject() ? "release.${projectToGetVersionFrom.name}.newVersion" : "release.newVersion"
         String nextVersion = findProperty(key, null, 'newVersion')
 
         if (useAutomaticVersion()) {
             return nextVersion ?: candidateVersion
         }
 
-        return readLine("Enter the next version for " + getProject().name + " (current one released as [${project.version}]):", nextVersion ?: candidateVersion)
+        return readLine("Enter the next version for " + projectToGetVersionFrom.name + " (current one released as [${projectToGetVersionFrom.version}]):", nextVersion ?: candidateVersion)
     }
 
 }

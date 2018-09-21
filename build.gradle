@@ -4,15 +4,14 @@ buildscript {
     }
     dependencies {
         classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.3.0'
-        classpath 'nu.studer:gradle-plugindev-plugin:1.0.4'
-        classpath 'org.codehaus.groovy:groovy-backports-compat23:2.4.6'
         classpath 'net.researchgate:gradle-release:2.7.0'
     }
 }
 
 plugins {
-    id 'java-gradle-plugin'
+    id 'org.gradle.java-gradle-plugin'
     id 'org.gradle.groovy'
+    id 'org.gradle.maven'
     id 'net.researchgate.release' version '2.7.0'
     id "com.jfrog.bintray" version "1.8.4"
 }

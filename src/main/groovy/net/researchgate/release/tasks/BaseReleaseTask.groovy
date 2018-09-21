@@ -18,22 +18,20 @@ class BaseReleaseTask extends DefaultTask {
     private static final String PROMPT = "${LINE_SEP}??>"
 
     ReleaseExtension extension
-    Map<String, Object> projectAttributes // The attributes for the current project the task is being executed for
     Map<String, Object> pluginAttributes
 
     Project getRootProject() {
         def project = getProject()
         if (project.getParent() != null) {
-            return project.getParent();
+            return project.getParent()
         }
-        return project;
+        return project
     }
 
     BaseReleaseTask() {
         group = RELEASE_GROUP
-        extension = getRootProject().extensions.getByName('release')
+        extension = getRootProject().extensions.getByName('release') as ReleaseExtension
         pluginAttributes = extension.attributes
-        projectAttributes = extension.getOrCreateProjectAttributes(getProject().name)
     }
 
     BaseScmAdapter getScmAdapter() {
@@ -54,12 +52,12 @@ class BaseReleaseTask extends DefaultTask {
         findProperty('release.useAutomaticVersion', null, 'gradle.release.useAutomaticVersion') == 'true'
     }
 
-    File findPropertiesFile() {
-        Project project = getProject()
+    File findPropertiesFile(Project project) {
         File propertiesFile = project.file(extension.versionPropertyFile)
+        Map<String, Object> projectAttributes = extension.getOrCreateProjectAttributes(project.name)
         if (!propertiesFile.file) {
             if (!isVersionDefined()) {
-                project.version = getReleaseVersion('1.0.0')
+                project.version = getReleaseVersion(project, '1.0.0')
             }
 
             if (!useAutomaticVersion() && promptYesOrNo('Do you want to use SNAPSHOT versions in between releases')) {
@@ -105,7 +103,7 @@ class BaseReleaseTask extends DefaultTask {
         }
     }
 
-    String tagName() {
+    String tagName(Project project) {
         def tagName
         if (extension.tagTemplate) {
             def engine = new SimpleTemplateEngine()
@@ -123,7 +121,7 @@ class BaseReleaseTask extends DefaultTask {
     }
 
     String findProperty(String key, Object defaultVal = null, String deprecatedKey = null) {
-        Project project = getRootProject();
+        Project project = getRootProject()
         def property = System.getProperty(key) ?: project.hasProperty(key) ? project.property(key) : null
 
         if (!property && deprecatedKey) {
@@ -140,9 +138,12 @@ class BaseReleaseTask extends DefaultTask {
         return extension.useMultipleVersionFiles
     }
 
-    String getReleaseVersion(String candidateVersion = "${project.version}") {
+    String getReleaseVersion(Project project, String candidateVersion = null) {
+        if (candidateVersion == null) {
+            candidateVersion = "${project.version}"
+        }
 
-        String key = isMultiVersionProject() ? "release." + getProject().name + ".releaseVersion" :  "release.releaseVersion"
+        String key = isMultiVersionProject() ? "release." + project.name + ".releaseVersion" :  "release.releaseVersion"
         String releaseVersion = findProperty(key, null, 'releaseVersion')
 
         if (useAutomaticVersion()) {
@@ -158,21 +159,20 @@ class BaseReleaseTask extends DefaultTask {
      *
      * @param newVersion new version to store in the file
      */
-    void updateVersionProperty(String newVersion) {
-        Project project = getProject();
+    void updateVersionProperty(Project project, String newVersion) {
         String oldVersion = project.version as String
         if (oldVersion != newVersion) {
             project.version = newVersion
+            Map<String, Object> projectAttributes = extension.getOrCreateProjectAttributes(project.name)
             projectAttributes.versionModified = true
 
             if (!isMultiVersionProject()) {
                 project.subprojects?.each { it.version = newVersion }
             }
             List<String> versionProperties = extension.versionProperties + 'version'
-            versionProperties.each { writeVersion(findPropertiesFile(), it, project.version) }
+            versionProperties.each { writeVersion(findPropertiesFile(project), it, project.version) }
         }
     }
-
 
     /**
      * Reads user input from the console.
@@ -192,7 +192,7 @@ class BaseReleaseTask extends DefaultTask {
     }
 
     private static boolean promptYesOrNo(String message, boolean defaultValue = false) {
-        String defaultStr = defaultValue ? 'Y' : 'n'
+        String defaultStr = defaultValue ? 'y' : 'n'
         String consoleVal = readLine("${message} (Y|n)", defaultStr)
         if (consoleVal) {
             return consoleVal.toLowerCase().startsWith('y')
