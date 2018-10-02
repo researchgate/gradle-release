@@ -50,6 +50,8 @@ class ReleaseExtension {
     List versionProperties = []
 
     List buildTasks = ['build']
+	
+    List ignoredSnapshotDependencies = []
 
     Map<String, Closure<String>> versionPatterns = [
         // Increments last number: "2.5-SNAPSHOT" => "2.6-SNAPSHOT"

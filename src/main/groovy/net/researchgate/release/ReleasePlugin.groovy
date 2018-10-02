@@ -195,7 +195,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
     }
 
     void checkSnapshotDependencies() {
-        def matcher = { Dependency d -> d.version?.contains('SNAPSHOT') }
+        def matcher = { Dependency d -> d.version?.contains('SNAPSHOT') && !extension.ignoredSnapshotDependencies.contains("${d.group ?: ''}:${d.name}".toString()) }
         def collector = { Dependency d -> "${d.group ?: ''}:${d.name}:${d.version ?: ''}" }
 
         def message = ""
@@ -203,6 +203,9 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
         project.allprojects.each { project ->
             def snapshotDependencies = [] as Set
             project.configurations.each { cfg ->
+                snapshotDependencies += cfg.dependencies?.matching(matcher)?.collect(collector)
+            }
+            project.buildscript.configurations.each { cfg ->
                 snapshotDependencies += cfg.dependencies?.matching(matcher)?.collect(collector)
             }
             if (snapshotDependencies.size() > 0) {
