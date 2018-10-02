@@ -172,7 +172,7 @@ class GitAdapter extends BaseScmAdapter {
     private checkoutMerge(String fromBranch, String toBranch) {
         exec(['git', 'fetch'], directory: workingDirectory, errorPatterns: ['error: ', 'fatal: '])
         exec(['git', 'checkout', toBranch], directory: workingDirectory, errorPatterns: ['error: ', 'fatal: '])
-        exec(['git', 'merge', '--no-ff', '--no-commit', '--strategy=recursive', '-Xtheirs', fromBranch], directory: workingDirectory, errorPatterns: ['error: ', 'fatal: '])
+        exec(['git', 'merge', '--no-ff', '--no-commit', fromBranch], directory: workingDirectory, errorPatterns: ['error: ', 'fatal: ', 'CONFLICT'])
     }
 
     private boolean shouldPush() {
