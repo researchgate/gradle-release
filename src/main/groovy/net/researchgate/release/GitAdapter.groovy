@@ -24,8 +24,8 @@ class GitAdapter extends BaseScmAdapter {
     private static final String AHEAD = 'ahead'
     private static final String BEHIND = 'behind'
 
-    private final String workingBranch;
-    private final String releaseBranch;
+    private final String workingBranch
+    private final String releaseBranch
 
     private File workingDirectory
 
