@@ -10,7 +10,7 @@
 
 package net.researchgate.release
 
-import net.researchgate.release.tasks.CreateReleaseTag
+
 import net.researchgate.release.tasks.InitScmAdapter
 import net.researchgate.release.tasks.PrepareVersions
 import net.researchgate.release.tasks.UpdateVersion
@@ -37,8 +37,8 @@ class VersionTests extends Specification {
         def props = new File(project.projectDir, "gradle.properties")
         props.withWriter {it << "version=${project.version}"}
 
-        prepareVersionsTask = project.task('prepareVersionsTask', type: PrepareVersions)
-        updateVersionTask = project.task('updateVersionTask', type: UpdateVersion)
+        prepareVersionsTask = project.task('prepareVersionsTask', type: PrepareVersions) as PrepareVersions
+        updateVersionTask = project.task('updateVersionTask', type: UpdateVersion) as UpdateVersion
     }
 
     def cleanup() {
@@ -49,7 +49,7 @@ class VersionTests extends Specification {
         given:
         prepareVersionsTask.execute()
         expect:
-        prepareVersionsTask.findPropertiesFile().name == 'gradle.properties'
+        prepareVersionsTask.findPropertiesFile(project).name == 'gradle.properties'
     }
 
     def 'should find properties from convention'() {
@@ -61,7 +61,7 @@ class VersionTests extends Specification {
         }
         prepareVersionsTask.execute()
         expect:
-        prepareVersionsTask.findPropertiesFile().name == 'custom.properties'
+        prepareVersionsTask.findPropertiesFile(project).name == 'custom.properties'
     }
 
     def 'by default should update `version` property from props file'() {

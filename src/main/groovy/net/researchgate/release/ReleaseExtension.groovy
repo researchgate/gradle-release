@@ -46,7 +46,7 @@ class ReleaseExtension {
 
     List versionProperties = []
 
-    List buildTasks = ['build']
+    List buildTasks = []
 	
     List ignoredSnapshotDependencies = []
 
@@ -83,14 +83,6 @@ class ReleaseExtension {
     }
 
     def propertyMissing(String name) {
-        if (isDeprecatedOption(name)) {
-            def value = null
-            if (name == 'includeProjectNameInTag') {
-                value = false
-            }
-
-            return metaClass."$name" = value
-        }
         BaseScmAdapter adapter = getAdapterForName(name)
         Object result = adapter?.createNewConfig()
 
@@ -118,18 +110,22 @@ class ReleaseExtension {
         if (attributes.containsKey(key)) {
             return attributes.get(key)
         }
+        String forceRelease = project.findProperty("release.${project.name}.force")
+        if (forceRelease != null && forceRelease.equals('true')) {
+            attributes.put(key, false)
+            return false
+        }
+        String skipReleaseProperty = project.findProperty("release.${project.name}.skipRelease")
+        if (skipReleaseProperty != null && skipReleaseProperty.equals('true')) {
+            attributes.put(key, true)
+            return true
+        }
         boolean skipRelease = skipProjectRelease(project)
         attributes.put(key, skipRelease)
         return skipRelease
     }
 
     def propertyMissing(String name, value) {
-        if (isDeprecatedOption(name)) {
-            project.logger?.warn("You are setting the deprecated option '${name}'. The deprecated option will be removed in 3.0")
-            project.logger?.warn("Please upgrade your configuration to use 'tagTemplate'. See https://github.com/researchgate/gradle-release/blob/master/UPGRADE.md#migrate-to-new-tagtemplate-configuration")
-
-            return metaClass."$name" = value
-        }
         BaseScmAdapter adapter = getAdapterForName(name)
 
         if (!adapter) {
@@ -148,10 +144,6 @@ class ReleaseExtension {
         } catch (MissingPropertyException ignored) {
             throw new MissingMethodException(name, this.class, args)
         }
-    }
-
-    private boolean isDeprecatedOption(String name) {
-        name == 'includeProjectNameInTag' || name == 'tagPrefix'
     }
 
     private BaseScmAdapter getAdapterForName(String name) {

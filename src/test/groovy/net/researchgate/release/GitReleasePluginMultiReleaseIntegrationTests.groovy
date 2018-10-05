@@ -23,8 +23,6 @@ class GitReleasePluginMultiReleaseIntegrationTests extends GitSpecification {
     private File subProject1Dir
 
     def setup() {
-        println(testDir.absolutePath)
-        println(testDir.exists())
         projectDir = localGit.repository.getWorkTree()
 
         gitAddAndCommit(localGit, "settings.gradle") { it << """
@@ -47,6 +45,7 @@ class GitReleasePluginMultiReleaseIntegrationTests extends GitSpecification {
             
             project.release {
                 useMultipleVersionFiles = true
+                buildTasks = [':subproject1:build',':subproject2:build']
             }
             
             project('subproject1') {
@@ -87,6 +86,7 @@ class GitReleasePluginMultiReleaseIntegrationTests extends GitSpecification {
                 .withProjectDir(projectDir)
                 .withArguments('release', '-Prelease.useAutomaticVersion = true')
                 .withPluginClasspath()
+                .withGradleVersion('4.10.2')
                 .build()
         println result.output
         Status st = localGit.status().call()

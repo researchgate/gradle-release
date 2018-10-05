@@ -63,9 +63,8 @@ class SubprojectVersionTests extends Specification {
         }
         project.ext.set('Prelease.useAutomaticVersion', true)
 
-        subproject1.task('subProjectVersionTask1', type: UpdateVersion).execute()
+        updateVersionTask.execute()
         def subProject1VersionLines = subproject1.file("gradle.properties").readLines()
-        subproject2.task('subProjectVersionTask2', type: UpdateVersion).execute()
         def subProject2VersionLines = subproject2.file("gradle.properties").readLines()
         then:
         noExceptionThrown()
@@ -83,9 +82,25 @@ class SubprojectVersionTests extends Specification {
         }
         project.ext.set('Prelease.useAutomaticVersion', true)
         when:
-        subproject1.task('subProjectVersionTask1', type: UpdateVersion).execute()
+        updateVersionTask.execute()
         def subProject1VersionLines = subproject1.file("gradle.properties").readLines()
-        subproject2.task('subProjectVersionTask2', type: UpdateVersion).execute()
+        def subProject2VersionLines = subproject2.file("gradle.properties").readLines()
+        then:
+        noExceptionThrown()
+        subProject1VersionLines[0] == 'version=1.0'
+        subProject2VersionLines[0] == 'version=2.1'
+    }
+
+    def 'A subproject set as skipped should not have its version updated'() {
+        given:
+        project.release {
+            useMultipleVersionFiles = true
+        }
+        project.ext.set('Prelease.useAutomaticVersion', true)
+        project.ext.set('Prelease.subproject1.skipRelease', true)
+        when:
+        updateVersionTask.execute()
+        def subProject1VersionLines = subproject1.file("gradle.properties").readLines()
         def subProject2VersionLines = subproject2.file("gradle.properties").readLines()
         then:
         noExceptionThrown()
@@ -101,13 +116,31 @@ class SubprojectVersionTests extends Specification {
         project.ext.set('release.subproject1.newVersion', '4.0')
         project.ext.set('Prelease.useAutomaticVersion', true)
         when:
-        subproject1.task('subProjectVersionTask1', type: UpdateVersion).execute()
+        updateVersionTask.execute()
         def subProject1VersionLines = subproject1.file("gradle.properties").readLines()
-        subproject2.task('subProjectVersionTask2', type: UpdateVersion).execute()
         def subProject2VersionLines = subproject2.file("gradle.properties").readLines()
         then:
         noExceptionThrown()
         subProject1VersionLines[0] == 'version=4.0'
+        subProject2VersionLines[0] == 'version=2.1'
+    }
+
+    def 'A forced project release should have its version updated'() {
+        given:
+        project.release {
+            skipProjectRelease = { Project project ->
+                project == subproject1
+            }
+            useMultipleVersionFiles = true
+        }
+        project.ext.set('Prelease.useAutomaticVersion', true)
+        when:
+        updateVersionTask.execute()
+        def subProject1VersionLines = subproject1.file("gradle.properties").readLines()
+        def subProject2VersionLines = subproject2.file("gradle.properties").readLines()
+        then:
+        noExceptionThrown()
+        subProject1VersionLines[0] == 'version=1.0'
         subProject2VersionLines[0] == 'version=2.1'
     }
 }

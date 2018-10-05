@@ -11,7 +11,7 @@ buildscript {
 plugins {
     id 'org.gradle.java-gradle-plugin'
     id 'org.gradle.groovy'
-    id 'org.gradle.maven'
+    id 'maven-publish'
     id 'net.researchgate.release' version '2.7.0'
     id "com.jfrog.bintray" version "1.8.4"
 }
@@ -63,11 +63,15 @@ release {
 bintray {
     user = project.hasProperty('bintrayUser') ? bintrayUser : ''
     key = project.hasProperty('bintrayApiKey') ? bintrayApiKey : ''
+    publications = ['gradleReleasePublication']
     pkg {
+        name = project.name
         repo = 'gradle-plugins'
         userOrg = 'researchgate'
         licenses = ['MIT']
         version {
+            name = "${project.version}"
+            vcsTag = "${project.version}"
             gpg {
                 sign = false
             }

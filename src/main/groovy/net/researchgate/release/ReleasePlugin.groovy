@@ -43,6 +43,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
         project.task('release', description: 'Verify project, release, and update version to next.', group: RELEASE_GROUP, type: GradleBuild) {
             startParameter = project.getGradle().startParameter.newInstance()
+            startParameter.projectProperties.put('release.releasing', "true")
 
             /**
              *  We use a separate 'runBuildTasks' GradleBuild process since we only have access to the extension
@@ -121,9 +122,9 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
             project.afterEvaluate {
                 def buildTasks = extension.buildTasks
                 if (!buildTasks.empty) {
-                    project.tasks[buildTasks.first()].mustRunAfter(project.tasks.beforeReleaseBuild)
                     buildTasks.each {
-                        project.tasks.afterReleaseBuild.mustRunAfter(it)
+                        project.tasks.getByPath(it).mustRunAfter(project.tasks.beforeReleaseBuild)
+                        project.tasks.afterReleaseBuild.mustRunAfter(project.tasks.getByPath(it))
                     }
                 }
             }

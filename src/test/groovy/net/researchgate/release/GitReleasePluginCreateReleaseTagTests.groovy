@@ -36,14 +36,14 @@ class GitReleasePluginCreateReleaseTagTests extends GitSpecification {
         when:
         createReleaseTagTask.execute()
         then:
-        localGit.tagList().call()*.name == ["refs/tags/${createReleaseTagTask.tagName()}"]
-        remoteGit.tagList().call()*.name == ["refs/tags/${createReleaseTagTask.tagName()}"]
+        localGit.tagList().call()*.name == ["refs/tags/${createReleaseTagTask.tagName(project)}"]
+        remoteGit.tagList().call()*.name == ["refs/tags/${createReleaseTagTask.tagName(project)}"]
     }
 
     def 'createReleaseTag should throw exception when tag exist'() {
         given:
         project.version = '1.2'
-        localGit.tag().setName(createReleaseTagTask.tagName()).call()
+        localGit.tag().setName(createReleaseTagTask.tagName(project)).call()
         when:
         createReleaseTagTask.execute()
         then:
@@ -57,8 +57,8 @@ class GitReleasePluginCreateReleaseTagTests extends GitSpecification {
         when:
         createReleaseTagTask.execute()
         then:
-        localGit.tagList().call().findAll { it.name == "refs/tags/${createReleaseTagTask.tagName()}" }.size() == 1
-        remoteGit.tagList().call().findAll { it.name == "refs/tags/${createReleaseTagTask.tagName()}" }.isEmpty()
+        localGit.tagList().call().findAll { it.name == "refs/tags/${createReleaseTagTask.tagName(project)}" }.size() == 1
+        remoteGit.tagList().call().findAll { it.name == "refs/tags/${createReleaseTagTask.tagName(project)}" }.isEmpty()
     }
 
     def 'createReleaseTag with configured but non existent remote should throw exception'() {
@@ -81,7 +81,7 @@ class GitReleasePluginCreateReleaseTagTests extends GitSpecification {
         when:
         createReleaseTagTask.execute()
         then:
-        localGit.tagList().call().findAll { it.name == "refs/tags/${createReleaseTagTask.tagName()}" }.size() == 1
-        remoteGit.tagList().call().findAll { it.name == "refs/tags/${createReleaseTagTask.tagName()}" }.size() == 1
+        localGit.tagList().call().findAll { it.name == "refs/tags/${createReleaseTagTask.tagName(project)}" }.size() == 1
+        remoteGit.tagList().call().findAll { it.name == "refs/tags/${createReleaseTagTask.tagName(project)}" }.size() == 1
     }
 }

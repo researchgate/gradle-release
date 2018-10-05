@@ -7,7 +7,7 @@ class CreateReleaseTag extends BaseReleaseTask {
 
     CreateReleaseTag() {
         super()
-        description = 'Checks to see if your project has any SNAPSHOT dependencies.'
+        description = 'Creates a tag for the release.'
     }
 
     @TaskAction
