@@ -120,6 +120,10 @@ class ReleaseExtension {
             attributes.put(key, true)
             return true
         }
+        if (project.hasProperty("release.${project.name}.releaseVersion")) {
+            attributes.put(key, false)
+            return false
+        }
         boolean skipRelease = skipProjectRelease(project)
         attributes.put(key, skipRelease)
         return skipRelease

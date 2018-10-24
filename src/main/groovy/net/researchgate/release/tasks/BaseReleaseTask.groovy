@@ -49,7 +49,7 @@ class BaseReleaseTask extends DefaultTask {
     Logger getLog() { getProject()?.logger ?: LoggerFactory.getLogger(this.class) }
 
     boolean useAutomaticVersion() {
-        findProperty('release.useAutomaticVersion', null, 'gradle.release.useAutomaticVersion') == 'true'
+        findProperty('release.useAutomaticVersion') == 'true'
     }
 
     File findPropertiesFile(Project project) {
@@ -146,8 +146,10 @@ class BaseReleaseTask extends DefaultTask {
         String key = isMultiVersionProject() ? "release." + project.name + ".releaseVersion" :  "release.releaseVersion"
         String releaseVersion = findProperty(key, null, 'releaseVersion')
 
-        if (useAutomaticVersion()) {
-            return releaseVersion ?: candidateVersion
+        if (releaseVersion != null) {
+            return releaseVersion
+        } else if (useAutomaticVersion()) {
+            return candidateVersion
         }
 
         return readLine("This release version for " + project.name + ":", releaseVersion ?: candidateVersion)
