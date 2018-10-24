@@ -151,10 +151,6 @@ class GitAdapter extends BaseScmAdapter {
 
     @Override
     void revert() {
-        // Try to go back to the requireBranch (workingBranch is irrelevant here, a new GitAdapter instance has been created specifically during revert)
-        if (extension.git.requireBranch) {
-            exec(['git', 'checkout', extension.git.requireBranch], directory: workingDirectory, errorMessage: 'Error reverting changes made by the release plugin.')
-        }
         // Revert changes on gradle.properties
         exec(['git', 'checkout', findPropertiesFile().name], directory: workingDirectory, errorMessage: 'Error reverting changes made by the release plugin.')
     }
