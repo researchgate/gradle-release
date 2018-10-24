@@ -61,7 +61,7 @@ class SubprojectVersionTests extends Specification {
         project.release {
             useMultipleVersionFiles = true
         }
-        project.ext.set('Prelease.useAutomaticVersion', true)
+        project.ext.'release.useAutomaticVersion' = true
 
         updateVersionTask.execute()
         def subProject1VersionLines = subproject1.file("gradle.properties").readLines()
@@ -80,7 +80,7 @@ class SubprojectVersionTests extends Specification {
             }
             useMultipleVersionFiles = true
         }
-        project.ext.set('Prelease.useAutomaticVersion', true)
+        project.ext.'release.useAutomaticVersion' = true
         when:
         updateVersionTask.execute()
         def subProject1VersionLines = subproject1.file("gradle.properties").readLines()
@@ -96,8 +96,8 @@ class SubprojectVersionTests extends Specification {
         project.release {
             useMultipleVersionFiles = true
         }
-        project.ext.set('Prelease.useAutomaticVersion', true)
-        project.ext.set('Prelease.subproject1.skipRelease', true)
+        project.ext.'release.useAutomaticVersion' = true
+        project.ext.'release.subproject1.skipRelease' = 'true'
         when:
         updateVersionTask.execute()
         def subProject1VersionLines = subproject1.file("gradle.properties").readLines()
@@ -113,8 +113,8 @@ class SubprojectVersionTests extends Specification {
         project.release {
             useMultipleVersionFiles = true
         }
-        project.ext.set('release.subproject1.newVersion', '4.0')
-        project.ext.set('Prelease.useAutomaticVersion', true)
+        project.ext.'release.subproject1.newVersion' = '4.0'
+        project.ext.'release.useAutomaticVersion' = true
         when:
         updateVersionTask.execute()
         def subProject1VersionLines = subproject1.file("gradle.properties").readLines()
@@ -133,7 +133,7 @@ class SubprojectVersionTests extends Specification {
             }
             useMultipleVersionFiles = true
         }
-        project.ext.set('Prelease.useAutomaticVersion', true)
+        project.ext.'release.useAutomaticVersion' = true
         when:
         updateVersionTask.execute()
         def subProject1VersionLines = subproject1.file("gradle.properties").readLines()
