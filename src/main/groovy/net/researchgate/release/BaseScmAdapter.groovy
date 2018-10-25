@@ -10,6 +10,7 @@
 
 package net.researchgate.release
 
+import org.gradle.api.GradleException
 import org.gradle.api.Project
 
 abstract class BaseScmAdapter extends PluginHelper {
@@ -37,4 +38,12 @@ abstract class BaseScmAdapter extends PluginHelper {
     abstract void commit(String message)
 
     abstract void revert()
+
+    void checkoutMergeToReleaseBranch() {
+        throw new GradleException("Checkout and merge is supported only for GIT projects")
+    }
+
+    void checkoutMergeFromReleaseBranch() {
+        throw new GradleException("Checkout and merge is supported only for GIT projects")
+    }
 }

@@ -13,12 +13,14 @@ The `gradle release` task defines the following as the default release process:
 
 * The plugin checks for any un-committed files (Added, modified, removed, or un-versioned).
 * Checks for any incoming or outgoing changes.
+* Checkout to the release branch and merge from the working branch (optional, for GIT only, with `pushReleaseVersionBranch`)
 * Removes the SNAPSHOT flag on your project's version (If used)
 * Prompts you for the release version.
 * Checks if your project is using any SNAPSHOT dependencies
 * Will `build` your project.
 * Commits the project if SNAPSHOT was being used.
 * Creates a release tag with the current version.
+* Checkout to the working branch (optional, for GIT only, with `pushReleaseVersionBranch`)
 * Prompts you for the next version.
 * Commits the project with the new version.
 
@@ -102,6 +104,11 @@ Below are some properties of the Release Plugin Convention that can be used to m
 		<td>revertOnFail</td>
 		<td>true</td>
 		<td>When a failure occurs should the plugin revert it's changes to gradle.properties?</td>
+	</tr>
+	<tr>
+		<td>pushReleaseVersionBranch</td>
+		<td>false</td>
+		<td>(GIT only) If set to the name of a branch, the `release` task will commit the release on this branch, and the next version on the working branch.</td>
 	</tr>
 </table>
 
@@ -201,6 +208,7 @@ release {
     versionPatterns = [
         /(\d+)([^\d]*$)/: { Matcher m, Project p -> m.replaceAll("${(m[0][1] as int) + 1}${m[0][2]}") }
     ]
+	pushReleaseVersionBranch = false
     scmAdapters = [
         net.researchgate.release.GitAdapter,
         net.researchgate.release.SvnAdapter,

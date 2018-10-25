@@ -24,6 +24,9 @@ class GitAdapter extends BaseScmAdapter {
     private static final String AHEAD = 'ahead'
     private static final String BEHIND = 'behind'
 
+    private final String workingBranch
+    private final String releaseBranch
+
     private File workingDirectory
 
     class GitConfig {
@@ -49,6 +52,9 @@ class GitAdapter extends BaseScmAdapter {
 
     GitAdapter(Project project, Map<String, Object> attributes) {
         super(project, attributes)
+
+        workingBranch = gitCurrentBranch()
+        releaseBranch = extension.pushReleaseVersionBranch ? extension.pushReleaseVersionBranch : workingBranch
     }
 
     @Override
@@ -69,9 +75,8 @@ class GitAdapter extends BaseScmAdapter {
     @Override
     void init() {
         if (extension.git.requireBranch) {
-            def branch = gitCurrentBranch()
-            if (!(branch ==~ extension.git.requireBranch)) {
-                throw new GradleException("Current Git branch is \"$branch\" and not \"${ extension.git.requireBranch }\".")
+            if (!(workingBranch ==~ extension.git.requireBranch)) {
+                throw new GradleException("Current Git branch is \"$workingBranch\" and not \"${ extension.git.requireBranch }\".")
             }
         }
     }
@@ -146,7 +151,24 @@ class GitAdapter extends BaseScmAdapter {
 
     @Override
     void revert() {
+        // Revert changes on gradle.properties
         exec(['git', 'checkout', findPropertiesFile().name], directory: workingDirectory, errorMessage: 'Error reverting changes made by the release plugin.')
+    }
+
+    @Override
+    void checkoutMergeToReleaseBranch() {
+        checkoutMerge(workingBranch, releaseBranch)
+    }
+
+    @Override
+    void checkoutMergeFromReleaseBranch() {
+        checkoutMerge(releaseBranch, workingBranch)
+    }
+
+    private checkoutMerge(String fromBranch, String toBranch) {
+        exec(['git', 'fetch'], directory: workingDirectory, errorPatterns: ['error: ', 'fatal: '])
+        exec(['git', 'checkout', toBranch], directory: workingDirectory, errorPatterns: ['error: ', 'fatal: '])
+        exec(['git', 'merge', '--no-ff', '--no-commit', fromBranch], directory: workingDirectory, errorPatterns: ['error: ', 'fatal: ', 'CONFLICT'])
     }
 
     private boolean shouldPush() {
@@ -168,7 +190,11 @@ class GitAdapter extends BaseScmAdapter {
 
     private String gitCurrentBranch() {
         def matches = exec(['git', 'branch', '--no-color'], directory: workingDirectory).readLines().grep(~/\s*\*.*/)
-        matches[0].trim() - (~/^\*\s+/)
+		if (!matches.isEmpty()) {
+			matches[0].trim() - (~/^\*\s+/)
+		} else {
+			throw new GradleException('Error, this repository is empty.')
+		}
     }
 
     private Map<String, List<String>> gitStatus() {
