@@ -208,7 +208,7 @@ release {
     versionPatterns = [
         /(\d+)([^\d]*$)/: { Matcher m, Project p -> m.replaceAll("${(m[0][1] as int) + 1}${m[0][2]}") }
     ]
-	pushReleaseVersionBranch = false
+    pushReleaseVersionBranch = false
     scmAdapters = [
         net.researchgate.release.GitAdapter,
         net.researchgate.release.SvnAdapter,
