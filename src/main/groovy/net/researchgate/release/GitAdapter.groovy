@@ -118,7 +118,7 @@ class GitAdapter extends BaseScmAdapter {
         if (extension.git.signTag) {
             params.add('-s')
         }
-        exec(params, directory: workingDirectory, errorMessage: "Duplicate tag [$tagName]", errorPatterns: ['already exists'])
+        exec(params, directory: workingDirectory, errorMessage: "Duplicate tag [$tagName] or signing error", errorPatterns: ['already exists', 'failed to sign'])
         if (shouldPush()) {
             exec(['git', 'push', '--porcelain', extension.git.pushToRemote, tagName] + extension.git.pushOptions, directory: workingDirectory, errorMessage: "Failed to push tag [$tagName] to remote", errorPatterns: ['[rejected]', 'error: ', 'fatal: '])
         }
