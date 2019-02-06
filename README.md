@@ -234,7 +234,8 @@ release {
 
 ### Custom release steps
 
-To add a step to the release process is very easy. Gradle provides a very nice mechanism for [manipulating existing tasks](http://gradle.org/docs/current/userguide/tutorial_using_tasks.html#N102B2)
+To add a step to the release process is very easy. Gradle provides a very nice mechanism for [manipulating existing tasks](http://gradle.org/docs/current/userguide/tutorial_using_tasks.html#N102B2). There are two available hooks provided: `beforeReleaseBuild` which runs before build and `afterReleaseBuild` which runs afterwards.
+
 For example, if we wanted to make sure `uploadArchives` is called and succeeds after the build with the release version has finished, we would just add the `uploadArchives` task as a dependency of the `afterReleaseBuild` task:
 
     afterReleaseBuild.dependsOn uploadArchives
