@@ -50,7 +50,7 @@ class ReleaseExtension {
     List versionProperties = []
 
     List buildTasks = ['build']
-	
+
     List ignoredSnapshotDependencies = []
 
     Map<String, Closure<String>> versionPatterns = [

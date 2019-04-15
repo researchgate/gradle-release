@@ -4,8 +4,6 @@
 [![Download](https://api.bintray.com/packages/researchgate/gradle-plugins/gradle-release/images/download.svg)](https://bintray.com/researchgate/gradle-plugins/gradle-release/_latestVersion)
 [![Gitter](https://img.shields.io/badge/chat-online-brightgreen.svg?style=flat)](https://gitter.im/researchgate/gradle-release)
 
-
-
 ## Introduction
 
 The gradle-release plugin is designed to work similar to the Maven release plugin.
@@ -176,15 +174,19 @@ Below are some properties of the Release Plugin Convention that are specific to 
 
 To set any of these properties to false, add a "release" configuration to your project's ```build.gradle``` file. Eg. To ignore un-versioned files, you would add the following to your ```build.gradle``` file:
 
-    release {
-      failOnUnversionedFiles = false
-    }
+```
+release {
+  failOnUnversionedFiles = false
+}
+```
 
 Eg. To ignore upstream changes, change 'failOnUpdateNeeded' to false:
 
-    release {
-      failOnUpdateNeeded = false
-    }
+```
+release {
+  failOnUpdateNeeded = false
+}
+```
 
 This are all possible configuration options and its default values:
 
@@ -238,7 +240,9 @@ To add a step to the release process is very easy. Gradle provides a very nice m
 
 For example, if we wanted to make sure `uploadArchives` is called and succeeds after the build with the release version has finished, we would just add the `uploadArchives` task as a dependency of the `afterReleaseBuild` task:
 
-    afterReleaseBuild.dependsOn uploadArchives
+```groovy
+afterReleaseBuild.dependsOn uploadArchives
+```
 
 ### Multi-Project Builds
 
@@ -246,9 +250,10 @@ Support for [multi-project builds](http://gradle.org/docs/current/userguide/mult
 
 Apply the plugin separately to each subproject that you wish to release. Release using a qualified task name, e.g.:
 
-    ./gradlew :sub:release # release a subproject named "sub"
-    ./gradlew :release # release the root project
-
+```bash
+./gradlew :sub:release # release a subproject named "sub"
+./gradlew :release # release the root project
+```
 
 ### Working in Continuous Integration
 
@@ -257,15 +262,14 @@ In a continuous integration environment like Jenkins or Hudson, you don't want t
 You can do this by setting the `release.useAutomaticVersion` property on the command line, or in Jenkins when you execute gradle. The version to release and the next version can be optionally defined using the properties `release.releaseVersion` and `release.newVersion`.
 
 ```bash
-$ gradle release -Prelease.useAutomaticVersion=true -Prelease.releaseVersion=1.0.0 -Prelease.newVersion=1.1.0-SNAPSHOT
+gradle release -Prelease.useAutomaticVersion=true -Prelease.releaseVersion=1.0.0 -Prelease.newVersion=1.1.0-SNAPSHOT
 ```
-
 
 ## Getting Help
 
 To ask questions please use stackoverflow or github issues.
 
-* Github Issues: [https://github.com/researchgate/gradle-release/issues/new](https://github.com/researchgate/gradle-release/issues/new)
+* GitHub Issues: [https://github.com/researchgate/gradle-release/issues/new](https://github.com/researchgate/gradle-release/issues/new)
 * Stack Overflow: [http://stackoverflow.com/questions/tagged/gradle-release-plugin](http://stackoverflow.com/questions/tagged/gradle-release-plugin)
 
 To report bugs, please use the GitHub project.
