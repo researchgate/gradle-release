@@ -34,7 +34,7 @@ class GitAdapter extends BaseScmAdapter {
         def pushToRemote = 'origin' // needs to be def as can be boolean or string
         def pushOptions = []
         boolean signTag = false
-        
+
         /** @deprecated Remove in version 3.0 */
         @Deprecated
         boolean pushToCurrentBranch = false
@@ -190,11 +190,11 @@ class GitAdapter extends BaseScmAdapter {
 
     private String gitCurrentBranch() {
         def matches = exec(['git', 'branch', '--no-color'], directory: workingDirectory).readLines().grep(~/\s*\*.*/)
-		if (!matches.isEmpty()) {
-			matches[0].trim() - (~/^\*\s+/)
-		} else {
-			throw new GradleException('Error, this repository is empty.')
-		}
+        if (!matches.isEmpty()) {
+            matches[0].trim() - (~/^\*\s+/)
+        } else {
+            throw new GradleException('Error, this repository is empty.')
+        }
     }
 
     private Map<String, List<String>> gitStatus() {

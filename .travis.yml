@@ -7,4 +7,3 @@ jdk:
   - oraclejdk8
 notifications:
     webhooks: https://www.travisbuddy.com/
-
