@@ -142,6 +142,11 @@ Below are some properties of the Release Plugin Convention that can be used to c
 		<td>[Gradle Release Plugin] - new version commit:</td>
 		<td>The commit message used when committing the next version</td>
 	</tr>
+	<tr>
+		<td>snapshotSuffix</td>
+		<td>-SNAPSHOT</td>
+		<td>The version suffix used by the project's version (If used)</td>
+	</tr>
 </table>
 
 Below are some properties of the Release Plugin Convention that are specific to version control.<br>
@@ -205,6 +210,7 @@ release {
     tagTemplate = '${version}'
     versionPropertyFile = 'gradle.properties'
     versionProperties = []
+    snapshotSuffix = '-SNAPSHOT'
     buildTasks = ['build']
     ignoredSnapshotDependencies = []
     versionPatterns = [
