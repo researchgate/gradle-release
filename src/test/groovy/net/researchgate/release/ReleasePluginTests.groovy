@@ -49,7 +49,33 @@ class ReleasePluginTests extends Specification {
         project.unSnapshotVersion.execute()
         expect:
         project.version == '1.2'
+    }
 
+    def 'version is properly unsnapshot when using default snapshot tag'() {
+        given:
+        def testVersionPropertyFile = project.file('gradle.properties')
+        testVersionPropertyFile.withWriter { w ->
+            w.writeLine 'version=1.3-SNAPSHOT'
+        }
+        when:
+        project.unSnapshotVersion.execute()
+        then:
+        project.version == '1.3'
+    }
+
+    def 'version is properly unsnapshot when using custom snapshot tag'() {
+        given:
+        def testVersionPropertyFile = project.file('gradle.properties')
+        testVersionPropertyFile.withWriter { w ->
+            w.writeLine 'version=1.4-dev'
+        }
+        project.release {
+            snapshotSuffix = '-dev'
+        }
+        when:
+        project.unSnapshotVersion.execute()
+        then:
+        project.version == '1.4'
     }
 
     def 'subproject tasks are named with qualified paths'() {

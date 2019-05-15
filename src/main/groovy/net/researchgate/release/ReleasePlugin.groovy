@@ -76,7 +76,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
             }
         }
         project.task('unSnapshotVersion', group: RELEASE_GROUP,
-            description: 'Removes "-SNAPSHOT" from your project\'s current version.') doLast this.&unSnapshotVersion
+            description: 'Removes the snapshot suffix (eg. "-SNAPSHOT") from your project\'s current version.') doLast this.&unSnapshotVersion
         project.task('confirmReleaseVersion', group: RELEASE_GROUP,
             description: 'Prompts user for this release version. Allows for alpha or pre releases.') doLast this.&confirmReleaseVersion
         project.task('checkSnapshotDependencies', group: RELEASE_GROUP,
@@ -238,9 +238,9 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
         checkPropertiesFile()
         def version = project.version.toString()
 
-        if (version.contains('-SNAPSHOT')) {
+        if (version.contains(extension.snapshotSuffix)) {
             attributes.usesSnapshot = true
-            version -= '-SNAPSHOT'
+            version -= extension.snapshotSuffix
             updateVersionProperty(version)
         }
     }
@@ -274,7 +274,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
             if (matcher.find()) {
                 String nextVersion = handler(matcher, project)
                 if (attributes.usesSnapshot) {
-                    nextVersion += '-SNAPSHOT'
+                    nextVersion += extension.snapshotSuffix
                 }
 
                 nextVersion = getNextVersion(nextVersion)
