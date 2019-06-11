@@ -51,7 +51,7 @@ class ReleasePluginTests extends Specification {
         project.version == '1.2'
     }
 
-    def 'version is properly unsnapshot when using default snapshot tag'() {
+    def 'version is properly unsnapshot when using default snapshot suffix'() {
         given:
         def testVersionPropertyFile = project.file('gradle.properties')
         testVersionPropertyFile.withWriter { w ->
@@ -63,7 +63,7 @@ class ReleasePluginTests extends Specification {
         project.version == '1.3'
     }
 
-    def 'version is properly unsnapshot when using custom snapshot tag'() {
+    def 'version is properly unsnapshot when using custom snapshot suffix'() {
         given:
         def testVersionPropertyFile = project.file('gradle.properties')
         testVersionPropertyFile.withWriter { w ->
@@ -76,6 +76,69 @@ class ReleasePluginTests extends Specification {
         project.unSnapshotVersion.execute()
         then:
         project.version == '1.4'
+    }
+
+    def 'version cannot be unsnapshot when using invalid snapshot suffix'() {
+        given:
+        def testVersionPropertyFile = project.file('gradle.properties')
+        testVersionPropertyFile.withWriter { w ->
+            w.writeLine 'version=1.4-dev'
+        }
+        project.release {
+            snapshotSuffix = '-SNAPSHOT'
+        }
+        when:
+        project.unSnapshotVersion.execute()
+        then:
+        project.version == '1.4-dev'
+    }
+
+    def 'snapshot version should be updated to new snapshot version with default snapshot suffix'() {
+        given:
+        def testVersionPropertyFile = project.file('gradle.properties')
+        testVersionPropertyFile.withWriter { w ->
+            w.writeLine 'version=1.4-SNAPSHOT'
+        }
+        project.release {
+            useAutomaticVersion = true
+        }
+        when:
+        project.updateVersion.execute()
+        then:
+        project.version == '1.5-SNAPSHOT'
+    }
+
+    def 'snapshot version should be updated to new snapshot version with custom snapshot suffix'() {
+        given:
+        def testVersionPropertyFile = project.file('gradle.properties')
+        testVersionPropertyFile.withWriter { w ->
+            w.writeLine 'version=1.4-dev'
+        }
+        project.release {
+            snapshotSuffix = '-dev'
+            useAutomaticVersion = true
+        }
+        when:
+        project.updateVersion.execute()
+        then:
+        project.version == '1.5-dev'
+    }
+
+    def 'snapshot version should be updated to new release version'() {
+        given:
+        def testVersionPropertyFile = project.file('gradle.properties')
+        testVersionPropertyFile.withWriter { w ->
+            w.writeLine 'version=1.4-dev'
+        }
+        project.release {
+            snapshotSuffix = '-dev'
+            useAutomaticVersion = true
+        }
+        when:
+        project.unSnapshotVersion.execute()
+        project.updateVersion.execute()
+        then:
+        project.version == '1.5-dev'
     }
 
     def 'subproject tasks are named with qualified paths'() {
