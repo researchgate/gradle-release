@@ -262,6 +262,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
     }
 
     void updateVersion() {
+        checkPropertiesFile()
         def version = project.version.toString()
         Map<String, Closure> patterns = extension.versionPatterns
 
