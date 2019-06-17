@@ -24,8 +24,8 @@ class GitAdapter extends BaseScmAdapter {
     private static final String AHEAD = 'ahead'
     private static final String BEHIND = 'behind'
 
-    private final String workingBranch
-    private final String releaseBranch
+    private String workingBranch
+    private String releaseBranch
 
     private File workingDirectory
 
@@ -52,9 +52,6 @@ class GitAdapter extends BaseScmAdapter {
 
     GitAdapter(Project project, Map<String, Object> attributes) {
         super(project, attributes)
-
-        workingBranch = gitCurrentBranch()
-        releaseBranch = extension.pushReleaseVersionBranch ? extension.pushReleaseVersionBranch : workingBranch
     }
 
     @Override
@@ -74,6 +71,12 @@ class GitAdapter extends BaseScmAdapter {
 
     @Override
     void init() {
+        workingBranch = gitCurrentBranch()
+        if (extension.pushReleaseVersionBranch) {
+            releaseBranch = extension.pushReleaseVersionBranch
+        } else {
+            releaseBranch = workingBranch
+        }
         if (extension.git.requireBranch) {
             if (!(workingBranch ==~ extension.git.requireBranch)) {
                 throw new GradleException("Current Git branch is \"$workingBranch\" and not \"${ extension.git.requireBranch }\".")
