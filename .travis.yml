@@ -6,7 +6,6 @@ cache:
 language: groovy
 jdk:
   - oraclejdk8
-  - oraclejdk9
   - openjdk8
 notifications:
     webhooks: https://www.travisbuddy.com/
