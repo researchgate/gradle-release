@@ -10,6 +10,8 @@
 
 package net.researchgate.release
 
+import java.util.regex.Matcher
+
 import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
@@ -159,7 +161,7 @@ class ReleasePluginTests extends Specification {
             "1.4-SNAPSHOT+rel-201908"   | "1.4+rel-201908"
     }
 
-    def 'version should be updated to new version'() {
+    def 'version should be updated to new version with default versionPatterns'() {
         given:
             def testVersionPropertyFile = project.file('gradle.properties')
             testVersionPropertyFile.withWriter { w ->
@@ -167,6 +169,31 @@ class ReleasePluginTests extends Specification {
             }
             project.release {
                 useAutomaticVersion = true
+            }
+        when:
+            project.updateVersion.execute()
+        then:
+            project.version == expectedNewVersion
+        where:
+            currentVersion              | expectedNewVersion
+            "1.4-SNAPSHOT"              | "1.5-SNAPSHOT"
+            "1.4-SNAPSHOT+meta"         | "1.5-SNAPSHOT+meta"
+            "1.4+meta"                  | "1.5+meta"
+            "1.4"                       | "1.5"
+            "1.4.2"                     | "1.4.3"
+    }
+
+    def 'version should be updated to new version with semver based versionPatterns'() {
+        given:
+            def testVersionPropertyFile = project.file('gradle.properties')
+            testVersionPropertyFile.withWriter { w ->
+                w.writeLine 'version=' + currentVersion
+            }
+            project.release {
+                useAutomaticVersion = true
+                versionPatterns = [
+                    /(\d+)([^\d]*|[-\+].*)$/: { Matcher m, Project p -> m.replaceAll("${(m[0][1] as int) + 1}${m[0][2]}") }
+                ]
             }
         when:
             project.updateVersion.execute()
