@@ -1,3 +1,4 @@
+dist: trusty
 sudo: false
 cache:
   directories:
@@ -5,5 +6,6 @@ cache:
 language: groovy
 jdk:
   - oraclejdk8
+  - openjdk8
 notifications:
     webhooks: https://www.travisbuddy.com/
