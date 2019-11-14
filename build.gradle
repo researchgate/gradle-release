@@ -85,3 +85,14 @@ artifactory {
 afterReleaseBuild.dependsOn bintrayUpload
 
 wrapper.gradleVersion = '1.12'
+
+updateVersion.doFirst {
+    def file = file('README.md')
+    def content = file.text
+    def versionPattern = /\d+(?:\.\d+)+/
+    content = content.replaceAll("id 'net.researchgate.release' version '${versionPattern}'",
+            "id 'net.researchgate.release' version '${version}'")
+    content = content.replaceAll("net.researchgate:gradle-release:${versionPattern}",
+            "net.researchgate:gradle-release:${version}")
+    file.text = content
+}
