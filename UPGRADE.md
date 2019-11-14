@@ -79,5 +79,3 @@ release {
     tagTemplate = '$name-$version'
 }
 ```
-
-

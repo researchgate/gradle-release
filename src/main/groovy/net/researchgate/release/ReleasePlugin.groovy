@@ -47,12 +47,14 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
                 "${p}initScmAdapter" as String,
                 "${p}checkCommitNeeded" as String,
                 "${p}checkUpdateNeeded" as String,
+                "${p}checkoutMergeToReleaseBranch" as String,
                 "${p}unSnapshotVersion" as String,
                 "${p}confirmReleaseVersion" as String,
                 "${p}checkSnapshotDependencies" as String,
                 "${p}runBuildTasks" as String,
                 "${p}preTagCommit" as String,
                 "${p}createReleaseTag" as String,
+                "${p}checkoutMergeFromReleaseBranch" as String,
                 "${p}updateVersion" as String,
                 "${p}commitNewVersion" as String
             ]
@@ -66,8 +68,15 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
             description: 'Checks to see if there are any added, modified, removed, or un-versioned files.') doLast this.&checkCommitNeeded
         project.task('checkUpdateNeeded', group: RELEASE_GROUP,
             description: 'Checks to see if there are any incoming or outgoing changes that haven\'t been applied locally.') doLast this.&checkUpdateNeeded
+        project.task('checkoutMergeToReleaseBranch', group: RELEASE_GROUP,
+            description: 'Checkout to the release branch, and merge modifications from the main branch in working tree.') {
+            doLast this.&checkoutAndMergeToReleaseBranch
+            onlyIf {
+                extension.pushReleaseVersionBranch
+            }
+        }
         project.task('unSnapshotVersion', group: RELEASE_GROUP,
-            description: 'Removes "-SNAPSHOT" from your project\'s current version.') doLast this.&unSnapshotVersion
+            description: 'Removes the snapshot suffix (eg. "-SNAPSHOT") from your project\'s current version.') doLast this.&unSnapshotVersion
         project.task('confirmReleaseVersion', group: RELEASE_GROUP,
             description: 'Prompts user for this release version. Allows for alpha or pre releases.') doLast this.&confirmReleaseVersion
         project.task('checkSnapshotDependencies', group: RELEASE_GROUP,
@@ -89,6 +98,13 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
             description: 'Commits any changes made by the Release plugin - eg. If the unSnapshotVersion task was executed') doLast this.&preTagCommit
         project.task('createReleaseTag', group: RELEASE_GROUP,
             description: 'Creates a tag in SCM for the current (un-snapshotted) version.') doLast this.&commitTag
+        project.task('checkoutMergeFromReleaseBranch', group: RELEASE_GROUP,
+            description: 'Checkout to the main branch, and merge modifications from the release branch in working tree.') {
+            doLast this.&checkoutAndMergeFromReleaseBranch
+            onlyIf {
+                extension.pushReleaseVersionBranch
+            }
+        }
         project.task('updateVersion', group: RELEASE_GROUP,
             description: 'Prompts user for the next version. Does it\'s best to supply a smart default.') doLast this.&updateVersion
         project.task('commitNewVersion', group: RELEASE_GROUP,
@@ -100,13 +116,15 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
             project.tasks.initScmAdapter.mustRunAfter(project.tasks.createScmAdapter)
             project.tasks.checkCommitNeeded.mustRunAfter(project.tasks.initScmAdapter)
             project.tasks.checkUpdateNeeded.mustRunAfter(project.tasks.checkCommitNeeded)
-            project.tasks.unSnapshotVersion.mustRunAfter(project.tasks.checkUpdateNeeded)
+            project.tasks.checkoutMergeToReleaseBranch.mustRunAfter(project.tasks.checkUpdateNeeded)
+            project.tasks.unSnapshotVersion.mustRunAfter(project.tasks.checkoutMergeToReleaseBranch)
             project.tasks.confirmReleaseVersion.mustRunAfter(project.tasks.unSnapshotVersion)
             project.tasks.checkSnapshotDependencies.mustRunAfter(project.tasks.confirmReleaseVersion)
             project.tasks.runBuildTasks.mustRunAfter(project.tasks.checkSnapshotDependencies)
             project.tasks.preTagCommit.mustRunAfter(project.tasks.runBuildTasks)
             project.tasks.createReleaseTag.mustRunAfter(project.tasks.preTagCommit)
-            project.tasks.updateVersion.mustRunAfter(project.tasks.createReleaseTag)
+            project.tasks.checkoutMergeFromReleaseBranch.mustRunAfter(project.tasks.createReleaseTag)
+            project.tasks.updateVersion.mustRunAfter(project.tasks.checkoutMergeFromReleaseBranch)
             project.tasks.commitNewVersion.mustRunAfter(project.tasks.updateVersion)
         }
 
@@ -156,8 +174,28 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
         scmAdapter.checkUpdateNeeded()
     }
 
+    void checkoutAndMergeToReleaseBranch() {
+        if (extension.pushReleaseVersionBranch && !extension.failOnCommitNeeded) {
+            log.warn('/!\\Warning/!\\')
+            log.warn('It is strongly discouraged to set failOnCommitNeeded to false with pushReleaseVersionBranch is enabled.')
+            log.warn('Merging with an uncleaned working directory will lead to unexpected results.')
+        }
+
+        scmAdapter.checkoutMergeToReleaseBranch()
+    }
+
+    void checkoutAndMergeFromReleaseBranch() {
+        if (extension.pushReleaseVersionBranch && !extension.failOnCommitNeeded) {
+            log.warn('/!\\Warning/!\\')
+            log.warn('It is strongly discouraged to set failOnCommitNeeded to false with pushReleaseVersionBranch is enabled.')
+            log.warn('Merging with an uncleaned working directory will lead to unexpected results.')
+        }
+
+        scmAdapter.checkoutMergeFromReleaseBranch()
+    }
+
     void checkSnapshotDependencies() {
-        def matcher = { Dependency d -> d.version?.contains('SNAPSHOT') }
+        def matcher = { Dependency d -> d.version?.contains('SNAPSHOT') && !extension.ignoredSnapshotDependencies.contains("${d.group ?: ''}:${d.name}".toString()) }
         def collector = { Dependency d -> "${d.group ?: ''}:${d.name}:${d.version ?: ''}" }
 
         def message = ""
@@ -165,6 +203,9 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
         project.allprojects.each { project ->
             def snapshotDependencies = [] as Set
             project.configurations.each { cfg ->
+                snapshotDependencies += cfg.dependencies?.matching(matcher)?.collect(collector)
+            }
+            project.buildscript.configurations.each { cfg ->
                 snapshotDependencies += cfg.dependencies?.matching(matcher)?.collect(collector)
             }
             if (snapshotDependencies.size() > 0) {
@@ -197,9 +238,9 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
         checkPropertiesFile()
         def version = project.version.toString()
 
-        if (version.contains('-SNAPSHOT')) {
+        if (version.contains(extension.snapshotSuffix)) {
             attributes.usesSnapshot = true
-            version -= '-SNAPSHOT'
+            version -= extension.snapshotSuffix
             updateVersionProperty(version)
         }
     }
@@ -221,6 +262,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
     }
 
     void updateVersion() {
+        checkPropertiesFile()
         def version = project.version.toString()
         Map<String, Closure> patterns = extension.versionPatterns
 
@@ -233,7 +275,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
             if (matcher.find()) {
                 String nextVersion = handler(matcher, project)
                 if (attributes.usesSnapshot) {
-                    nextVersion += '-SNAPSHOT'
+                    nextVersion += extension.snapshotSuffix
                 }
 
                 nextVersion = getNextVersion(nextVersion)

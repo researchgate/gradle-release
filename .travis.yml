@@ -1,3 +1,4 @@
+dist: trusty
 sudo: false
 cache:
   directories:
@@ -5,8 +6,6 @@ cache:
 language: groovy
 jdk:
   - oraclejdk8
-  - openjdk7
-before_install:
-  - chmod +x .travis/before_install.sh
-  - .travis/before_install.sh
-
+  - openjdk8
+notifications:
+    webhooks: https://www.travisbuddy.com/

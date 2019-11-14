@@ -38,6 +38,10 @@ class ReleaseExtension {
 
     String newVersionCommitMessage = '[Gradle Release Plugin] - new version commit: '
 
+    String snapshotSuffix = '-SNAPSHOT'
+
+    def pushReleaseVersionBranch = false
+
     /**
      * as of 3.0 set this to "$version" by default
      */
@@ -48,6 +52,8 @@ class ReleaseExtension {
     List versionProperties = []
 
     List buildTasks = ['build']
+
+    List ignoredSnapshotDependencies = []
 
     Map<String, Closure<String>> versionPatterns = [
         // Increments last number: "2.5-SNAPSHOT" => "2.6-SNAPSHOT"

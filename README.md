@@ -4,8 +4,6 @@
 [![Download](https://api.bintray.com/packages/researchgate/gradle-plugins/gradle-release/images/download.svg)](https://bintray.com/researchgate/gradle-plugins/gradle-release/_latestVersion)
 [![Gitter](https://img.shields.io/badge/chat-online-brightgreen.svg?style=flat)](https://gitter.im/researchgate/gradle-release)
 
-
-
 ## Introduction
 
 The gradle-release plugin is designed to work similar to the Maven release plugin.
@@ -13,12 +11,14 @@ The `gradle release` task defines the following as the default release process:
 
 * The plugin checks for any un-committed files (Added, modified, removed, or un-versioned).
 * Checks for any incoming or outgoing changes.
+* Checkout to the release branch and merge from the working branch (optional, for GIT only, with `pushReleaseVersionBranch`)
 * Removes the SNAPSHOT flag on your project's version (If used)
 * Prompts you for the release version.
 * Checks if your project is using any SNAPSHOT dependencies
 * Will `build` your project.
 * Commits the project if SNAPSHOT was being used.
 * Creates a release tag with the current version.
+* Checkout to the working branch (optional, for GIT only, with `pushReleaseVersionBranch`)
 * Prompts you for the next version.
 * Commits the project with the new version.
 
@@ -86,7 +86,7 @@ Below are some properties of the Release Plugin Convention that can be used to m
 	<tr>
 		<td>failOnSnapshotDependencies</td>
 		<td>true</td>
-		<td>Fail when the project has dependencies on SNAPSHOT versions</td>
+		<td>Fail when the project has dependencies on SNAPSHOT versions unless those SNAPSHOT dependencies have been defined as <i>'ignoredSnapshotDependencies'</i> using the syntax '$group:$name'</td>
 	</tr>
 	<tr>
 		<td>failOnUnversionedFiles</td>
@@ -102,6 +102,11 @@ Below are some properties of the Release Plugin Convention that can be used to m
 		<td>revertOnFail</td>
 		<td>true</td>
 		<td>When a failure occurs should the plugin revert it's changes to gradle.properties?</td>
+	</tr>
+	<tr>
+		<td>pushReleaseVersionBranch</td>
+		<td>false</td>
+		<td>(GIT only) If set to the name of a branch, the `release` task will commit the release on this branch, and the next version on the working branch.</td>
 	</tr>
 </table>
 
@@ -137,6 +142,11 @@ Below are some properties of the Release Plugin Convention that can be used to c
 		<td>[Gradle Release Plugin] - new version commit:</td>
 		<td>The commit message used when committing the next version</td>
 	</tr>
+	<tr>
+		<td>snapshotSuffix</td>
+		<td>-SNAPSHOT</td>
+		<td>The version suffix used by the project's version (If used)</td>
+	</tr>
 </table>
 
 Below are some properties of the Release Plugin Convention that are specific to version control.<br>
@@ -169,15 +179,19 @@ Below are some properties of the Release Plugin Convention that are specific to 
 
 To set any of these properties to false, add a "release" configuration to your project's ```build.gradle``` file. Eg. To ignore un-versioned files, you would add the following to your ```build.gradle``` file:
 
-    release {
-      failOnUnversionedFiles = false
-    }
+```
+release {
+  failOnUnversionedFiles = false
+}
+```
 
 Eg. To ignore upstream changes, change 'failOnUpdateNeeded' to false:
 
-    release {
-      failOnUpdateNeeded = false
-    }
+```
+release {
+  failOnUpdateNeeded = false
+}
+```
 
 This are all possible configuration options and its default values:
 
@@ -196,10 +210,13 @@ release {
     tagTemplate = '${version}'
     versionPropertyFile = 'gradle.properties'
     versionProperties = []
+    snapshotSuffix = '-SNAPSHOT'
     buildTasks = ['build']
+    ignoredSnapshotDependencies = []
     versionPatterns = [
         /(\d+)([^\d]*$)/: { Matcher m, Project p -> m.replaceAll("${(m[0][1] as int) + 1}${m[0][2]}") }
     ]
+    pushReleaseVersionBranch = false
     scmAdapters = [
         net.researchgate.release.GitAdapter,
         net.researchgate.release.SvnAdapter,
@@ -225,10 +242,13 @@ release {
 
 ### Custom release steps
 
-To add a step to the release process is very easy. Gradle provides a very nice mechanism for [manipulating existing tasks](http://gradle.org/docs/current/userguide/tutorial_using_tasks.html#N102B2)
+To add a step to the release process is very easy. Gradle provides a very nice mechanism for [manipulating existing tasks](http://gradle.org/docs/current/userguide/tutorial_using_tasks.html#N102B2). There are two available hooks provided: `beforeReleaseBuild` which runs before build and `afterReleaseBuild` which runs afterwards.
+
 For example, if we wanted to make sure `uploadArchives` is called and succeeds after the build with the release version has finished, we would just add the `uploadArchives` task as a dependency of the `afterReleaseBuild` task:
 
-    afterReleaseBuild.dependsOn uploadArchives
+```groovy
+afterReleaseBuild.dependsOn uploadArchives
+```
 
 ### Multi-Project Builds
 
@@ -236,9 +256,10 @@ Support for [multi-project builds](http://gradle.org/docs/current/userguide/mult
 
 Apply the plugin separately to each subproject that you wish to release. Release using a qualified task name, e.g.:
 
-    ./gradlew :sub:release # release a subproject named "sub"
-    ./gradlew :release # release the root project
-
+```bash
+./gradlew :sub:release # release a subproject named "sub"
+./gradlew :release # release the root project
+```
 
 ### Working in Continuous Integration
 
@@ -247,15 +268,14 @@ In a continuous integration environment like Jenkins or Hudson, you don't want t
 You can do this by setting the `release.useAutomaticVersion` property on the command line, or in Jenkins when you execute gradle. The version to release and the next version can be optionally defined using the properties `release.releaseVersion` and `release.newVersion`.
 
 ```bash
-$ gradle release -Prelease.useAutomaticVersion=true -Prelease.releaseVersion=1.0.0 -Prelease.newVersion=1.1.0-SNAPSHOT
+gradle release -Prelease.useAutomaticVersion=true -Prelease.releaseVersion=1.0.0 -Prelease.newVersion=1.1.0-SNAPSHOT
 ```
-
 
 ## Getting Help
 
-To ask questions please use stackoverflow or gitter.
+To ask questions please use stackoverflow or github issues.
 
-* Chat/Gitter: [https://gitter.im/researchgate/gradle-release](https://gitter.im/researchgate/gradle-release)
+* GitHub Issues: [https://github.com/researchgate/gradle-release/issues/new](https://github.com/researchgate/gradle-release/issues/new)
 * Stack Overflow: [http://stackoverflow.com/questions/tagged/gradle-release-plugin](http://stackoverflow.com/questions/tagged/gradle-release-plugin)
 
 To report bugs, please use the GitHub project.
