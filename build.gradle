@@ -1,6 +1,8 @@
 buildscript {
     repositories {
-        jcenter()
+        jcenter {
+            url "https://jcenter.bintray.com"
+        }
     }
     dependencies {
         classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.3.0'
