@@ -71,8 +71,8 @@ class GitReleasePluginCommitNewVersionTests extends GitSpecification {
 
     def 'should push new version to remote tracking branch with custom commit message as prefix for project version'() {
         given:
-        project.file('gradle.properties').withWriter { it << "version=${project.version}" }
         project.version = "1.2-SNAPSHOT"
+        project.file('gradle.properties').withWriter { it << "version=${project.version}" }
         project.release.newVersionCommitMessage = "New snapshot version:"
         when:
         project.commitNewVersion.execute()
@@ -84,8 +84,8 @@ class GitReleasePluginCommitNewVersionTests extends GitSpecification {
 
     def 'it is project.version that is present in commit message, and not tagTemplate'() {
         given:
+        project.version = "1.3-SNAPSHOT"
         project.file('gradle.properties').withWriter { it << "version=${project.version}" }
-        project.version = "1.2-SNAPSHOT"
         project.release.newVersionCommitMessage = "New snapshot version:"
         project.release.tagTemplate = 'foo-$version-bar'
         when:
@@ -93,6 +93,6 @@ class GitReleasePluginCommitNewVersionTests extends GitSpecification {
         gitHardReset(remoteGit)
         then: 'a commit is pushed with specified commit message prefix + project.version'
         RevCommit revCommit = new RevWalk(remoteGit.repository).parseCommit(remoteGit.repository.resolve(Constants.HEAD))
-        revCommit.getShortMessage().equals("New snapshot version: '1.2-SNAPSHOT'.")
+        revCommit.getShortMessage().equals("New snapshot version: '1.3-SNAPSHOT'.")
     }
 }
