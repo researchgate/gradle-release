@@ -11,6 +11,8 @@
 package net.researchgate.release
 
 import org.eclipse.jgit.lib.Constants
+import org.eclipse.jgit.revwalk.RevCommit
+import org.eclipse.jgit.revwalk.RevWalk
 import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
 
@@ -65,5 +67,30 @@ class GitReleasePluginCommitNewVersionTests extends GitSpecification {
         then: 'remote repo does not get the .gitignore update'
         remoteGit.repository.workTree.listFiles().any { it.name == 'gradle.properties' && it.text.contains("version=$project.version") }
         ! remoteGit.repository.workTree.listFiles().any { it.name == 'test.txt' && it.text.contains('testTarget') }
+    }
+
+    def 'should push new version to remote tracking branch with custom commit message as prefix for project version'() {
+        given:
+        project.file('gradle.properties').withWriter { it << "version=${project.version}" }
+        project.release.newVersionCommitMessage = "New snapshot version:"
+        when:
+        project.commitNewVersion.execute()
+        gitHardReset(remoteGit)
+        then: 'a commit is pushed with specified commit message prefix of project.version'
+        RevCommit revCommit = new RevWalk(remoteGit.repository).parseCommit(remoteGit.repository.resolve(Constants.HEAD))
+        revCommit.getShortMessage().equals("New snapshot version: '1.1'.")
+    }
+
+    def 'it is project.version that is present in commit message, and not tagTemplate'() {
+        given:
+        project.file('gradle.properties').withWriter { it << "version=${project.version}" }
+        project.release.newVersionCommitMessage = "New snapshot version:"
+        project.release.tagTemplate = 'foo-$version-bar'
+        when:
+        project.commitNewVersion.execute()
+        gitHardReset(remoteGit)
+        then: 'a commit is pushed with specified commit message prefix of project.version'
+        RevCommit revCommit = new RevWalk(remoteGit.repository).parseCommit(remoteGit.repository.resolve(Constants.HEAD))
+        revCommit.getShortMessage().equals("New snapshot version: '1.1'.")
     }
 }

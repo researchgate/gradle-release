@@ -248,7 +248,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
     void preTagCommit() {
         if (attributes.usesSnapshot || attributes.versionModified || attributes.propertiesFileCreated) {
             // should only be committed if the project was using a snapshot version.
-            def message = extension.preTagCommitMessage + " '${tagName()}'."
+            def message = extension.preTagCommitMessage + " '" + project.version.toString() + "'."
 
             if (extension.preCommitText) {
                 message = "${extension.preCommitText} ${message}"
@@ -299,7 +299,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
     }
 
     def commitNewVersion() {
-        def message = extension.newVersionCommitMessage + " '${tagName()}'."
+        def message = extension.newVersionCommitMessage + " '" + project.version.toString() + "'."
         if (extension.preCommitText) {
             message = "${extension.preCommitText} ${message}"
         }
