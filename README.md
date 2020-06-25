@@ -76,7 +76,7 @@ Below are some properties of the Release Plugin Convention that can be used to m
 	<tr>
 		<td>failOnCommitNeeded</td>
 		<td>true</td>
-		<td>Fail the release process when there un-committed changes</td>
+		<td>Fail the release process when there are un-committed changes. Will commit files automatically if set to false.</td>
 	</tr>
 	<tr>
 		<td>failOnPublishNeeded</td>
