@@ -42,8 +42,13 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
         p = !p.endsWith(Project.PATH_SEPARATOR) ? p + Project.PATH_SEPARATOR : p
 
         project.task('release', description: 'Verify project, release, and update version to next.', group: RELEASE_GROUP, type: GradleBuild) {
-            startParameter = project.getGradle().startParameter.newInstance()
+            doFirst { println "Run Release 2" }
+            startParameter = project.getGradle().startParameter.newBuild()
             startParameter.projectProperties.put('release.releasing', "true")
+            startParameter.projectDir = project.projectDir
+            startParameter.settingsFile = project.getGradle().startParameter.settingsFile
+            startParameter.gradleUserHomeDir = project.getGradle().startParameter.gradleUserHomeDir
+            buildName = project.name
 
             /**
              *  We use a separate 'runBuildTasks' GradleBuild process since we only have access to the extension
@@ -85,6 +90,10 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
                 description: 'Runs the build process in a separate gradle run.', type: GradleBuild) {
             startParameter = project.getGradle().startParameter.newInstance()
             startParameter.projectProperties.put('release.releasing', "true")
+            startParameter.projectDir = project.projectDir
+            startParameter.settingsFile = project.getGradle().startParameter.settingsFile
+            startParameter.gradleUserHomeDir = project.getGradle().startParameter.gradleUserHomeDir
+            buildName = project.name
 
             project.afterEvaluate {
                 tasks = [

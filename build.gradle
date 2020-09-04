@@ -87,4 +87,4 @@ bintray {
 
 afterReleaseBuild.dependsOn bintrayUpload
 
-wrapper.gradleVersion = '4.10'
+wrapper.gradleVersion = '6.6.1'
