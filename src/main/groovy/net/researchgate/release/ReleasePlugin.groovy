@@ -42,7 +42,6 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
         p = !p.endsWith(Project.PATH_SEPARATOR) ? p + Project.PATH_SEPARATOR : p
 
         project.task('release', description: 'Verify project, release, and update version to next.', group: RELEASE_GROUP, type: GradleBuild) {
-            doFirst { println "Run Release 2" }
             startParameter = project.getGradle().startParameter.newBuild()
             startParameter.projectProperties.putAll(project.getGradle().startParameter.projectProperties)
             startParameter.projectProperties.put('release.releasing', "true")
