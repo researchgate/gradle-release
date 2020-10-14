@@ -23,6 +23,7 @@ class GitAdapter extends BaseScmAdapter {
     private static final String UNVERSIONED = 'unversioned'
     private static final String AHEAD = 'ahead'
     private static final String BEHIND = 'behind'
+    private static final String GONE = 'gone'
 
     private File workingDirectory
 
@@ -104,6 +105,11 @@ class GitAdapter extends BaseScmAdapter {
         if (status[BEHIND]) {
             warnOrThrow(extension.failOnUpdateNeeded, "You have ${status[BEHIND]} remote change(s) to pull.")
         }
+
+        if (status[GONE]) {
+            def branch = gitCurrentBranch()
+            warnOrThrow(extension.failOnUpdateNeeded, "Your remote does not have $branch branch, please push your changes")
+        }
     }
 
     @Override
@@ -167,7 +173,7 @@ class GitAdapter extends BaseScmAdapter {
     }
 
     private String gitCurrentBranch() {
-        def matches = exec(['git', 'branch', '--no-color'], directory: workingDirectory).readLines().grep(~/\s*\*.*/)
+        def matches = exec(['git', 'branch', '--show-current'], directory: workingDirectory).readLines()
         matches[0].trim() - (~/^\*\s+/)
     }
 
@@ -190,6 +196,7 @@ class GitAdapter extends BaseScmAdapter {
         def branchStatus = exec(['git', 'status', '--porcelain', '-b'], directory: workingDirectory).readLines()[0]
         def aheadMatcher = branchStatus =~ /.*ahead (\d+).*/
         def behindMatcher = branchStatus =~ /.*behind (\d+).*/
+        def goneMatcher = branchStatus =~ /.*\[gone\].*/
 
         def remoteStatus = [:]
 
@@ -198,6 +205,9 @@ class GitAdapter extends BaseScmAdapter {
         }
         if (behindMatcher.matches()) {
             remoteStatus[BEHIND] = behindMatcher[0][1]
+        }
+        if (goneMatcher.matches()) {
+            remoteStatus[GONE] = true
         }
         remoteStatus
     }
