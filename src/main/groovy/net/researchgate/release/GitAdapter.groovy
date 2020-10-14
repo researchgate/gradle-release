@@ -108,7 +108,7 @@ class GitAdapter extends BaseScmAdapter {
 
         if (status[GONE]) {
             def branch = gitCurrentBranch()
-            warnOrThrow(extension.failOnUpdateNeeded, "You remote does not have $branch branch, please push your changes")
+            warnOrThrow(extension.failOnUpdateNeeded, "Your remote does not have $branch branch, please push your changes")
         }
     }
 
@@ -196,7 +196,7 @@ class GitAdapter extends BaseScmAdapter {
         def branchStatus = exec(['git', 'status', '--porcelain', '-b'], directory: workingDirectory).readLines()[0]
         def aheadMatcher = branchStatus =~ /.*ahead (\d+).*/
         def behindMatcher = branchStatus =~ /.*behind (\d+).*/
-        def goneMatcher = branchStatus =~ /.*gone.*/
+        def goneMatcher = branchStatus =~ /.*\[gone\].*/
 
         def remoteStatus = [:]
 
