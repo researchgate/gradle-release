@@ -17,7 +17,7 @@ import spock.lang.Specification
 
 import static org.eclipse.jgit.api.ResetCommand.ResetType.HARD
 import static org.eclipse.jgit.lib.Constants.HEAD
-import static org.eclipse.jgit.lib.Constants.MASTER
+import static org.eclipse.jgit.lib.Constants.MAIN
 
 abstract class GitSpecification extends Specification {
 
@@ -40,7 +40,7 @@ abstract class GitSpecification extends Specification {
         git.reset().setMode(HARD).setRef(HEAD).call()
     }
 
-    static void gitCheckoutBranch(Git git, String branchName = MASTER, boolean createBranch = false) {
+    static void gitCheckoutBranch(Git git, String branchName = MAIN, boolean createBranch = false) {
         git.checkout().setName(branchName).setCreateBranch(createBranch).setForce(true).call()
     }
 

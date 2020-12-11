@@ -160,8 +160,8 @@ Below are some properties of the Release Plugin Convention that are specific to 
 	<tr>
 		<td>Git</td>
 		<td>requireBranch</td>
-		<td>master</td>
-		<td>Defines the branch which releases must be done off of. Eg. set to `release` to require releases are done on the `release` branch (or use a regular expression to allow releases from multiple branches, e.g. `/release|master/`). Set to '' to ignore.</td>
+		<td>main</td>
+		<td>Defines the branch which releases must be done off of. Eg. set to `release` to require releases are done on the `release` branch (or use a regular expression to allow releases from multiple branches, e.g. `/release|main/`). Set to '' to ignore.</td>
 	</tr>
 	<tr>
 		<td>Git</td>
@@ -225,7 +225,7 @@ release {
     ]
 
     git {
-        requireBranch = 'master'
+        requireBranch = 'main'
         pushToRemote = 'origin'
         pushToBranchPrefix = ''
         commitVersionFileOnly = false

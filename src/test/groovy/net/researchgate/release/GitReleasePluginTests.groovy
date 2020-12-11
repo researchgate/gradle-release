@@ -68,12 +68,12 @@ class GitReleasePluginTests extends Specification {
         (new GitAdapter(project, [:])).init()
         then:
         GradleException ex = thrown()
-        ex.message == 'Current Git branch is "master" and not "myBranch".'
+        ex.message == 'Current Git branch is "main" and not "myBranch".'
     }
 
     def 'when requireBranch is configured using a regex that matches current branch then don\'t throw exception'() {
         given:
-        project.release.git.requireBranch = /myBranch|master/
+        project.release.git.requireBranch = /myBranch|main/
         when:
         (new GitAdapter(project, [:])).init()
         then:
