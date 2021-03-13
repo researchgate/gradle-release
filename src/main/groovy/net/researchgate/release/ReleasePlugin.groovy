@@ -58,6 +58,9 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
                 "${p}updateVersion" as String,
                 "${p}commitNewVersion" as String
             ]
+            
+            // Gradle 6 workaround (https://github.com/gradle/gradle/issues/12872)
+            buildName = project.name + "-release"
         }
 
         project.task('createScmAdapter', group: RELEASE_GROUP,
@@ -93,6 +96,9 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
                     "${p}afterReleaseBuild" as String
                 ].flatten()
             }
+            
+            // Gradle 6 workaround (https://github.com/gradle/gradle/issues/12872)
+            buildName = project.name + "-release"
         }
         project.task('preTagCommit', group: RELEASE_GROUP,
             description: 'Commits any changes made by the Release plugin - eg. If the unSnapshotVersion task was executed') doLast this.&preTagCommit
