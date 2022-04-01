@@ -1,12 +1,14 @@
 buildscript {
     repositories {
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
         jcenter {
             url "https://jcenter.bintray.com"
         }
     }
     dependencies {
-        classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.3.0'
-        classpath 'nu.studer:gradle-plugindev-plugin:1.0.4'
+        classpath 'nu.studer:gradle-plugindev-plugin:4.1'
         classpath 'org.codehaus.groovy:groovy-backports-compat23:2.4.6'
         classpath 'net.researchgate:gradle-release:2.6.0'
     }
@@ -15,7 +17,6 @@ buildscript {
 apply plugin: 'groovy'
 apply plugin: 'idea'
 apply plugin: 'nu.studer.plugindev'
-apply plugin: 'com.jfrog.artifactory'
 apply plugin: 'net.researchgate.release'
 
 group='net.researchgate'
@@ -27,18 +28,18 @@ dependencies {
     testCompile "cglib:cglib-nodep:$cglibVersion"
 }
 
-plugindev {
-    pluginImplementationClass 'net.researchgate.release.ReleasePlugin'
-    pluginDescription 'gradle-release is a plugin for providing a Maven-like release process to project using Gradle.'
-    pluginLicenses 'MIT'
-    pluginTags 'gradle', 'plugin', 'release'
-    authorId 'hillkorn'
-    authorName 'Dennis Schumann'
-    authorEmail 'dennis.schumann@researchgate.net'
-    projectUrl 'https://github.com/researchgate/gradle-release'
-    projectInceptionYear '2011'
-    done() // do not omit this
-}
+//plugindev {
+//    pluginImplementationClass 'net.researchgate.release.ReleasePlugin'
+//    pluginDescription 'gradle-release is a plugin for providing a Maven-like release process to project using Gradle.'
+//    pluginLicenses 'MIT'
+//    pluginTags 'gradle', 'plugin', 'release'
+//    authorId 'hillkorn'
+//    authorName 'Dennis Schumann'
+//    authorEmail 'dennis.schumann@researchgate.net'
+//    projectUrl 'https://github.com/researchgate/gradle-release'
+//    projectInceptionYear '2011'
+//    done() // do not omit this
+//}
 
 release {
     git {
@@ -46,47 +47,7 @@ release {
     }
 }
 
-bintray {
-    user = project.hasProperty('bintrayUser') ? bintrayUser : ''
-    key = project.hasProperty('bintrayApiKey') ? bintrayApiKey : ''
-    pkg {
-        repo = 'gradle-plugins'
-        userOrg = 'researchgate'
-        version {
-            gpg {
-                sign = false
-            }
-            mavenCentralSync {
-                sync = false
-                user = project.hasProperty('sonatypeUser') ? sonatypeUser : ''
-                password = project.hasProperty('sonatypePassword') ? sonatypePassword : ''
-            }
-        }
-    }
-    publish = false
-}
-
-artifactory {
-    contextUrl = 'https://oss.jfrog.org'
-    publish {
-        repository {
-            repoKey = 'oss-snapshot-local' //The Artifactory repository key to publish to
-            username = project.hasProperty('bintrayUser') ? bintrayUser : ''
-            password = project.hasProperty('bintrayApiKey') ? bintrayApiKey : ''
-        }
-        defaults {
-            publications 'plugin' // That is how it is named in plugindev plugin
-            properties = ['bintray.repo': 'gradle-plugins', 'bintray.package': 'gradle-release', 'bintray.version': version.toString()]
-        }
-    }
-    resolve {
-        repoKey = 'jcenter'
-    }
-}
-
-afterReleaseBuild.dependsOn bintrayUpload
-
-wrapper.gradleVersion = '1.12'
+wrapper.gradleVersion = '6.9.2'
 
 updateVersion.doFirst {
     def file = file('README.md')
