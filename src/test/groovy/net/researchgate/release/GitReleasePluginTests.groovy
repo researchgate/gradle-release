@@ -11,8 +11,10 @@
 package net.researchgate.release
 
 import net.researchgate.release.cli.Executor
+import net.researchgate.release.tasks.CommitNewVersion
 import org.gradle.api.GradleException
 import org.gradle.api.Project
+import org.gradle.api.plugins.BasePlugin
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 
@@ -44,13 +46,14 @@ class GitReleasePluginTests extends Specification {
 
         project = ProjectBuilder.builder().withName("GitReleasePluginTest").withProjectDir(localRepo).build()
         project.version = "1.1"
-        project.apply plugin: ReleasePlugin
+        project.plugins.apply(BasePlugin.class)
+        ReleasePlugin releasePlugin = project.plugins.apply(ReleasePlugin.class)
 
         project.file("somename.txt").withWriter {it << "test"}
         this.executor.exec(['git', 'add', 'somename.txt'], failOnStderr: true, directory: localRepo, env: [:])
         this.executor.exec(['git', 'commit', "-m", "test", 'somename.txt'], failOnStderr: true, directory: localRepo, env: [:])
 
-        project.createScmAdapter.execute()
+        releasePlugin.createScmAdapter()
 
         def props = project.file("gradle.properties")
         props.withWriter { it << "version=${project.version}" }
@@ -94,7 +97,7 @@ class GitReleasePluginTests extends Specification {
 
     def 'should push new version to remote tracking branch by default'() {
         when:
-        project.commitNewVersion.execute()
+        (project.tasks.commitNewVersion as CommitNewVersion).commitNewVersion()
         executor.exec(['git', 'reset', '--hard', 'HEAD'], failOnStderr: true, directory: remoteRepo, env: [:])
         then:
         remoteRepo.list().any { it == 'gradle.properties' }
@@ -105,7 +108,7 @@ class GitReleasePluginTests extends Specification {
         project.release.git.pushToCurrentBranch = true
         executor.exec(['git', 'checkout', '-B', 'myBranch'], failOnStderr: false, directory: localRepo, env: [:])
         when:
-        project.commitNewVersion.execute()
+        (project.tasks.commitNewVersion as CommitNewVersion).commitNewVersion()
         executor.exec(['git', 'checkout', 'myBranch'], failOnStderr: false, directory: remoteRepo, env: [:])
         executor.exec(['git', 'reset', '--hard', 'HEAD'], failOnStderr: false, directory: remoteRepo, env: [:])
         then:

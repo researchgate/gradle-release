@@ -48,7 +48,7 @@ class HgAdapter extends BaseScmAdapter {
             }
         }
         if (modifications['?']) {
-            warnOrThrow(extension.failOnUnversionedFiles, "You have ${modifications['?'].size()} un-versioned files.")
+            warnOrThrow(extension.failOnUnversionedFiles.get(), "You have ${modifications['?'].size()} un-versioned files.")
         }
         if (modifications.count { k, v -> v }) {
             def c = { count, label ->
@@ -71,10 +71,10 @@ class HgAdapter extends BaseScmAdapter {
             modifications['out'] << line
         }
         if (modifications['in']) {
-            warnOrThrow(extension.failOnUpdateNeeded, "You have ${modifications['in'].size()} incoming changes")
+            warnOrThrow(extension.failOnUpdateNeeded.get(), "You have ${modifications['in'].size()} incoming changes")
         }
         if (modifications['out']) {
-            warnOrThrow(extension.failOnPublishNeeded, "You have ${modifications['out'].size()} outgoing changes")
+            warnOrThrow(extension.failOnPublishNeeded.get(), "You have ${modifications['out'].size()} outgoing changes")
         }
     }
 

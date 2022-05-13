@@ -10,7 +10,9 @@
 
 package net.researchgate.release
 
+import net.researchgate.release.tasks.InitScmAdapter
 import org.gradle.api.Project
+import org.gradle.api.plugins.BasePlugin
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 
@@ -25,8 +27,10 @@ public class PluginHelperVersionPropertyFileTests extends Specification {
     def setup() {
         project = ProjectBuilder.builder().withName("ReleasePluginTest").withProjectDir(testDir).build()
         project.version = '1.1'
-        project.apply plugin: ReleasePlugin
-        project.release.scmAdapters = [TestAdapter]
+        project.plugins.apply(BasePlugin.class)
+        ReleasePlugin releasePlugin = project.plugins.apply(ReleasePlugin.class)
+        project.extensions.release.scmAdapters = [TestAdapter]
+        releasePlugin.createScmAdapter()
 
         helper = new PluginHelper(project: project, extension: project.extensions['release'] as ReleaseExtension)
 
@@ -47,8 +51,8 @@ public class PluginHelperVersionPropertyFileTests extends Specification {
         given:
         def props = project.file("custom.properties")
         props.withWriter {it << '@@@@'}
-        project.release {
-            versionPropertyFile = 'custom.properties'
+        (project.extensions.release as ReleaseExtension).with {
+            versionPropertyFile.set('custom.properties')
         }
         expect:
         helper.findPropertiesFile().name == 'custom.properties'
@@ -67,9 +71,9 @@ public class PluginHelperVersionPropertyFileTests extends Specification {
         props.withWriter {
             it << "version=${project.version}\nversion1=${project.version}\nversion2=${project.version}\n"
         }
-        project.release {
-            versionPropertyFile = 'custom.properties'
-            versionProperties = ['version1']
+        (project.extensions.release as ReleaseExtension).with {
+            versionPropertyFile.set('custom.properties')
+            versionProperties.set(['version1'])
         }
         when:
         helper.updateVersionProperty("2.2")
@@ -103,12 +107,11 @@ public class PluginHelperVersionPropertyFileTests extends Specification {
             it << "version1 : ${project.version}\n"
             it << "version2   ${project.version}\n"
         }
-        project.release {
-            versionProperties = ['version1', 'version2']
+        (project.extensions.release as ReleaseExtension).with {
+            versionProperties.set(['version1', 'version2'])
         }
-        project.createScmAdapter.execute()
         when:
-        project.initScmAdapter.execute()
+        (project.tasks.initScmAdapter as InitScmAdapter).initScmAdapter()
         helper.updateVersionProperty('2.6')
         def lines = project.file("gradle.properties").readLines()
         then:
@@ -127,9 +130,8 @@ public class PluginHelperVersionPropertyFileTests extends Specification {
             it << "something=http://www.gradle.org/test\n"
             it << "  another.prop.version =  1.1\n"
         }
-        project.createScmAdapter.execute()
         when:
-        project.initScmAdapter.execute()
+        (project.tasks.initScmAdapter as InitScmAdapter).initScmAdapter()
         helper.updateVersionProperty('3.1')
         def lines = project.file("gradle.properties").readLines()
         then:
@@ -148,8 +150,8 @@ public class PluginHelperVersionPropertyFileTests extends Specification {
             it << "version1=${project.version}\n"
             it << "version2 ${project.version}\n"
         }
-        project.release {
-            versionProperties = ['version1', 'version2']
+        (project.extensions.release as ReleaseExtension).with {
+            versionProperties.set(['version1', 'version2'])
         }
         when:
         helper.updateVersionProperty('3.3')

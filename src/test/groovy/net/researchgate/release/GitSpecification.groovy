@@ -17,7 +17,6 @@ import spock.lang.Specification
 
 import static org.eclipse.jgit.api.ResetCommand.ResetType.HARD
 import static org.eclipse.jgit.lib.Constants.HEAD
-import static org.eclipse.jgit.lib.Constants.MASTER
 
 abstract class GitSpecification extends Specification {
 
@@ -40,7 +39,7 @@ abstract class GitSpecification extends Specification {
         git.reset().setMode(HARD).setRef(HEAD).call()
     }
 
-    static void gitCheckoutBranch(Git git, String branchName = MASTER, boolean createBranch = false) {
+    static void gitCheckoutBranch(Git git, String branchName = 'master', boolean createBranch = false) {
         git.checkout().setName(branchName).setCreateBranch(createBranch).setForce(true).call()
     }
 
@@ -70,5 +69,17 @@ abstract class GitSpecification extends Specification {
         localGit.repository.lockDirCache().unlock()
         localGit.repository.close()
         if (testDir.exists()) testDir.deleteDir()
+    }
+
+    private void writeFile(File destination, String content) throws IOException {
+        BufferedWriter output = null;
+        try {
+            output = new BufferedWriter(new FileWriter(destination));
+            output.write(content);
+        } finally {
+            if (output != null) {
+                output.close();
+            }
+        }
     }
 }

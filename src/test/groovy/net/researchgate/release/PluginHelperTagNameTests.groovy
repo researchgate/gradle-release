@@ -11,6 +11,7 @@
 package net.researchgate.release
 
 import org.gradle.api.Project
+import org.gradle.api.plugins.BasePlugin
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 
@@ -25,58 +26,23 @@ public class PluginHelperTagNameTests extends Specification {
     def setup() {
         project = ProjectBuilder.builder().withName("ReleasePluginTest").withProjectDir(testDir).build()
         project.version = '1.1'
-        project.apply plugin: ReleasePlugin
-        project.release.scmAdapters = [TestAdapter]
+        project.plugins.apply(BasePlugin.class)
+        ReleasePlugin releasePlugin = project.plugins.apply(ReleasePlugin.class)
+        project.extensions.release.scmAdapters = [TestAdapter]
+
+        releasePlugin.createScmAdapter()
 
         helper = new PluginHelper(project: project, extension: project.extensions['release'] as ReleaseExtension)
-
     }
 
-    def 'when no includeProjectNameInTag then tag name is version'() {
+    def 'by default the tag name is version'() {
         expect:
         helper.tagName() == '1.1'
     }
 
-    def 'when includeProjectNameInTag then tag name starts from project name'() {
+    def 'when tagTemplate contains name and version then it is processed in the tag name'() {
         given:
-        project.release {
-            includeProjectNameInTag = true
-        }
-        expect:
-        helper.tagName() == "$project.name-$project.version" as String
-    }
-
-    def 'when tagPrefix not blank then it added to tag ignoring project name'() {
-        given:
-        project.release {
-            includeProjectNameInTag = includeProjectName
-            tagPrefix = 'PREF'
-        }
-        expect:
-        helper.tagName() == 'PREF-1.1'
-        where:
-        includeProjectName << [true, false]
-    }
-
-    def 'when tagTemplate not blank then it is used as tag name and all other options are ignored'() {
-        given:
-        project.release {
-            tagTemplate = '$version'
-            tagPrefix = tagPrefixSetting
-            includeProjectNameInTag = includeProjectName
-        }
-        expect:
-        helper.tagName() == '1.1'
-        where:
-        includeProjectName << [true, false]
-        tagPrefixSetting << ['PREF', null]
-    }
-
-    def 'when tagTemplate not blank then it is used as tag name'() {
-        given:
-        project.release {
-            tagTemplate = 'PREF-$name-$version'
-        }
+        (project.extensions.release as ReleaseExtension).tagTemplate.set('PREF-$name-$version')
         expect:
         helper.tagName() == 'PREF-ReleasePluginTest-1.1'
     }

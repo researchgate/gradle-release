@@ -63,13 +63,13 @@ class BzrAdapter extends BaseScmAdapter {
         }
 
         if (unknown) {
-            warnOrThrow(extension.failOnUnversionedFiles, "You have un-versioned files:\n${c('unknown')}")
+            warnOrThrow(extension.failOnUnversionedFiles.get(), "You have un-versioned files:\n${c('unknown')}")
         } else if (added || modified || removed) {
             def message = 'You have un-committed files:\n' +
                     (added ? c('added') : '') +
                     (modified ? c('modified') : '') +
                     (removed ? c('removed') : '')
-            warnOrThrow(extension.failOnCommitNeeded, message)
+            warnOrThrow(extension.failOnCommitNeeded.get(), message)
         }
     }
 
@@ -96,11 +96,11 @@ class BzrAdapter extends BaseScmAdapter {
         }
 
         if (extra > 0) {
-            warnOrThrow(extension.failOnPublishNeeded, c(extra, 'unpublished', 'extra_revisions'))
+            warnOrThrow(extension.failOnPublishNeeded.get(), c(extra, 'unpublished', 'extra_revisions'))
         }
 
         if (missing > 0) {
-            warnOrThrow(extension.failOnUpdateNeeded, c(missing, 'missing', 'missing_revisions'))
+            warnOrThrow(extension.failOnUpdateNeeded.get(), c(missing, 'missing', 'missing_revisions'))
         }
     }
 

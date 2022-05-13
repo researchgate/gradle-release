@@ -89,10 +89,10 @@ class SvnAdapter extends BaseScmAdapter {
             }
         }
         if (changes > 0) {
-            warnOrThrow(extension.failOnCommitNeeded, "You have ${changes} un-commited changes.")
+            warnOrThrow(extension.failOnCommitNeeded.get(), "You have ${changes} un-commited changes.")
         }
         if (unknown > 0) {
-            warnOrThrow(extension.failOnUnversionedFiles, "You have ${unknown} un-versioned files.")
+            warnOrThrow(extension.failOnUnversionedFiles.get(), "You have ${unknown} un-versioned files.")
         }
     }
 
@@ -113,7 +113,7 @@ class SvnAdapter extends BaseScmAdapter {
             }
         }
         if (missing > 0) {
-            warnOrThrow(extension.failOnUpdateNeeded, "You are missing ${missing} changes.")
+            warnOrThrow(extension.failOnUpdateNeeded.get(), "You are missing ${missing} changes.")
         }
 
         out = svnExec(['info', attributes.svnUrl as String])
@@ -125,7 +125,7 @@ class SvnAdapter extends BaseScmAdapter {
         }
         if (svnRev != attributes.remoteSvnRev) {
             // warn that there's a difference in local revision versus remote
-            warnOrThrow(extension.failOnUpdateNeeded, "Local revision (${svnRev}) does not match remote (${attributes.remoteSvnRev}), local revision is used in tag creation.")
+            warnOrThrow(extension.failOnUpdateNeeded.get(), "Local revision (${svnRev}) does not match remote (${attributes.remoteSvnRev}), local revision is used in tag creation.")
         }
     }
 

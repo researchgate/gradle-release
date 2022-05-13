@@ -10,56 +10,101 @@
 
 package net.researchgate.release
 
-import org.gradle.api.GradleException
-import org.gradle.api.Project
+
 import org.gradle.testfixtures.ProjectBuilder
+import org.gradle.testkit.runner.BuildResult
+import org.gradle.testkit.runner.GradleRunner
+import org.gradle.testkit.runner.TaskOutcome
 
 class GitReleasePluginCheckCommitNeededTests extends GitSpecification {
 
-    Project project
+    File settingsFile
+    File buildFile
+    File propertiesFile
+    File localDir
 
     def setup() {
-        project = ProjectBuilder.builder().withName("GitReleasePluginTest").withProjectDir(localGit.repository.getWorkTree()).build()
-        project.apply plugin: ReleasePlugin
-        project.createScmAdapter.execute()
+        localDir = localGit.getRepository().getWorkTree()
+        settingsFile = new File(localDir, "settings.gradle");
+        buildFile = new File(localDir, "build.gradle");
+        propertiesFile = new File(localDir, "gradle.properties");
+        gitAdd(localGit, '.gitignore') {
+            it << '.gradle/'
+        }
+        gitAdd(localGit, 'settings.gradle') {
+            it << "rootProject.name = 'release-test'"
+        }
+        gitAddAndCommit(localGit, 'build.gradle') {
+            it << """
+            plugins {
+                id 'base'
+                id 'net.researchgate.release'
+            }
+            release {
+                git {
+                    requireBranch = 'master'
+                }
+            }
+        """
+        }
     }
 
     def cleanup() {
-        project.fileTree('.').matching { include: '*.txt' }.each { it.delete() }
+        new ProjectBuilder().withProjectDir(localDir).build().fileTree('.').matching { include: '*.txt' }.each { it.delete() }
     }
 
     def '`checkCommitNeeded` should detect untracked files'() {
         given:
-        project.file('untracked.txt').withWriter { it << "untracked" }
+        new File(localDir, 'untracked.txt').withWriter { it << "untracked" }
+
         when:
-        project.checkCommitNeeded.execute()
+        BuildResult result = GradleRunner.create()
+            .withProjectDir(localDir)
+            .withGradleVersion('6.9.2')
+            .withArguments('checkCommitNeeded')
+            .withPluginClasspath()
+            .buildAndFail()
+
         then:
-        GradleException ex = thrown()
-        ex.cause.message.contains "You have unversioned files"
-        ex.cause.message.contains "untracked.txt"
+        result.task(':initScmAdapter').outcome == TaskOutcome.SUCCESS
+        result.task(':checkCommitNeeded').outcome == TaskOutcome.FAILED
+        result.output.contains "You have unversioned files"
+        result.output.contains "untracked.txt"
     }
 
     def '`checkCommitNeeded` should detect added files'() {
         given:
         gitAdd(localGit, 'added.txt') { it << 'added' }
         when:
-        project.checkCommitNeeded.execute()
+        BuildResult result = GradleRunner.create()
+                .withProjectDir(localDir)
+                .withGradleVersion('6.9.2')
+                .withArguments('checkCommitNeeded')
+                .withPluginClasspath()
+                .buildAndFail()
         then:
-        GradleException ex = thrown()
-        ex.cause.message.contains "You have uncommitted files"
-        ex.cause.message.contains "added.txt"
+        result.task(':initScmAdapter').outcome == TaskOutcome.SUCCESS
+        result.task(':checkCommitNeeded').outcome == TaskOutcome.FAILED
+        result.output.contains "You have uncommitted files"
+        result.output.contains "added.txt"
     }
 
     def '`checkCommitNeeded` should detect changed files'() {
         given:
         gitAddAndCommit(localGit, 'changed.txt') { it << 'changed1' }
-        project.file("changed.txt").withWriter { it << "changed2" }
+        new File(localDir, "changed.txt").withWriter { it << "changed2" }
         when:
-        project.checkCommitNeeded.execute()
+        BuildResult result = GradleRunner.create()
+                .withProjectDir(localDir)
+                .withGradleVersion('6.9.2')
+                .withArguments('checkCommitNeeded')
+                .withPluginClasspath()
+                .buildAndFail()
         then:
-        GradleException ex = thrown()
-        ex.cause.message.contains "You have uncommitted files"
-        ex.cause.message.contains "changed.txt"
+        result.task(':initScmAdapter').outcome == TaskOutcome.SUCCESS
+        result.task(':checkCommitNeeded').outcome == TaskOutcome.FAILED
+        result.output.contains "You have uncommitted files"
+        result.output.contains "changed.txt"
     }
 
     def '`checkCommitNeeded` should detect modified files'() {
@@ -67,10 +112,16 @@ class GitReleasePluginCheckCommitNeededTests extends GitSpecification {
         gitAddAndCommit(localGit, 'modified.txt') { it << 'modified1' }
         gitAdd(localGit, 'modified.txt') { it << 'modified2' }
         when:
-        project.checkCommitNeeded.execute()
+        BuildResult result = GradleRunner.create()
+                .withProjectDir(localDir)
+                .withGradleVersion('6.9.2')
+                .withArguments('checkCommitNeeded')
+                .withPluginClasspath()
+                .buildAndFail()
         then:
-        GradleException ex = thrown()
-        ex.cause.message.contains "You have uncommitted files"
-        ex.cause.message.contains "modified.txt"
+        result.task(':initScmAdapter').outcome == TaskOutcome.SUCCESS
+        result.task(':checkCommitNeeded').outcome == TaskOutcome.FAILED
+        result.output.contains "You have uncommitted files"
+        result.output.contains "modified.txt"
     }
 }

@@ -30,7 +30,7 @@ class GitAdapter extends BaseScmAdapter {
     private File workingDirectory
 
     class GitConfig {
-        String requireBranch = 'master'
+        String requireBranch = 'main'
         def pushToRemote = 'origin' // needs to be def as can be boolean or string
         def pushOptions = []
         boolean signTag = false
@@ -72,8 +72,8 @@ class GitAdapter extends BaseScmAdapter {
     @Override
     void init() {
         workingBranch = gitCurrentBranch()
-        if (extension.pushReleaseVersionBranch) {
-            releaseBranch = extension.pushReleaseVersionBranch
+        if (extension.pushReleaseVersionBranch.isPresent()) {
+            releaseBranch = extension.pushReleaseVersionBranch.get()
         } else {
             releaseBranch = workingBranch
         }
@@ -89,12 +89,12 @@ class GitAdapter extends BaseScmAdapter {
         def status = gitStatus()
 
         if (status[UNVERSIONED]) {
-            warnOrThrow(extension.failOnUnversionedFiles,
+            warnOrThrow(extension.failOnUnversionedFiles.get(),
                     (['You have unversioned files:', LINE, * status[UNVERSIONED], LINE] as String[]).join('\n'))
         }
 
         if (status[UNCOMMITTED]) {
-            warnOrThrow(extension.failOnCommitNeeded,
+            warnOrThrow(extension.failOnCommitNeeded.get(),
                     (['You have uncommitted files:', LINE, * status[UNCOMMITTED], LINE] as String[]).join('\n'))
         }
     }
@@ -106,11 +106,11 @@ class GitAdapter extends BaseScmAdapter {
         def status = gitRemoteStatus()
 
         if (status[AHEAD]) {
-            warnOrThrow(extension.failOnPublishNeeded, "You have ${status[AHEAD]} local change(s) to push.")
+            warnOrThrow(extension.failOnPublishNeeded.get(), "You have ${status[AHEAD]} local change(s) to push.")
         }
 
         if (status[BEHIND]) {
-            warnOrThrow(extension.failOnUpdateNeeded, "You have ${status[BEHIND]} remote change(s) to pull.")
+            warnOrThrow(extension.failOnUpdateNeeded.get(), "You have ${status[BEHIND]} remote change(s) to pull.")
         }
     }
 
@@ -131,7 +131,7 @@ class GitAdapter extends BaseScmAdapter {
     void commit(String message) {
         List<String> command = ['git', 'commit', '-m', message]
         if (extension.git.commitVersionFileOnly) {
-            command << project.file(extension.versionPropertyFile)
+            command << project.file(extension.versionPropertyFile.get())
         } else {
             command << '-a'
         }

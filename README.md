@@ -1,6 +1,6 @@
 # gradle-release plugin
 
-[![Build Status](https://travis-ci.org/researchgate/gradle-release.svg?branch=master)](https://travis-ci.org/researchgate/gradle-release)
+[![Build Status](https://travis-ci.org/researchgate/gradle-release.svg?branch=main)](https://travis-ci.org/researchgate/gradle-release)
 [![Download](https://api.bintray.com/packages/researchgate/gradle-plugins/gradle-release/images/download.svg)](https://bintray.com/researchgate/gradle-plugins/gradle-release/_latestVersion)
 [![Gitter](https://img.shields.io/badge/chat-online-brightgreen.svg?style=flat)](https://gitter.im/researchgate/gradle-release)
 
@@ -26,9 +26,9 @@ Current SCM support: [Bazaar](http://bazaar.canonical.com/en/), [Git](http://git
 
 ## Installation
 
-The gradle-release plugin will work with Gradle 1.0M3 and beyond
+The gradle-release plugin will work with Gradle 6.0 and beyond
 
-### Gradle 1.x and 2.0
+### Legacy plugin application
 
 ```groovy
 buildscript {
@@ -38,18 +38,18 @@ buildscript {
     }
   }
   dependencies {
-    classpath 'net.researchgate:gradle-release:2.8.1'
+    classpath 'net.researchgate:gradle-release:3.0.0'
   }
 }
 
 apply plugin: 'net.researchgate.release'
 ```
 
-### Gradle 2.1 and higher
+### Plugin DSL
 
 ```groovy
 plugins {
-  id 'net.researchgate.release' version '2.8.1'
+  id 'net.researchgate.release' version '3.0.0'
 }
 ```
 
@@ -160,8 +160,8 @@ Below are some properties of the Release Plugin Convention that are specific to 
 	<tr>
 		<td>Git</td>
 		<td>requireBranch</td>
-		<td>master</td>
-		<td>Defines the branch which releases must be done off of. Eg. set to `release` to require releases are done on the `release` branch (or use a regular expression to allow releases from multiple branches, e.g. `/release|master/`). Set to '' to ignore.</td>
+		<td>main</td>
+		<td>Defines the branch which releases must be done off of. Eg. set to `release` to require releases are done on the `release` branch (or use a regular expression to allow releases from multiple branches, e.g. `/release|main/`). Set to '' to ignore.</td>
 	</tr>
 	<tr>
 		<td>Git</td>
@@ -225,7 +225,7 @@ release {
     ]
 
     git {
-        requireBranch = 'master'
+        requireBranch = 'main'
         pushToRemote = 'origin'
         pushToBranchPrefix = ''
         commitVersionFileOnly = false
