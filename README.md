@@ -195,7 +195,7 @@ release {
 
 This are all possible configuration options and its default values:
 
-```
+``` build.gradle
 release {
     failOnCommitNeeded = true
     failOnPublishNeeded = true
@@ -216,7 +216,7 @@ release {
     versionPatterns = [
         /(\d+)([^\d]*$)/: { Matcher m, Project p -> m.replaceAll("${(m[0][1] as int) + 1}${m[0][2]}") }
     ]
-    pushReleaseVersionBranch = false
+    pushReleaseVersionBranch = null
     scmAdapters = [
         net.researchgate.release.GitAdapter,
         net.researchgate.release.SvnAdapter,
@@ -236,6 +236,30 @@ release {
         username = null
         password = null
         pinExternals = false   // allows to pin the externals when tagging, requires subversion client >= 1.9.0
+    }
+}
+```
+
+### Kotlin DSL Example
+
+``` build.gradle.kts
+import net.researchgate.release.ReleaseExtension
+repositories {
+    maven {
+      url 'https://plugins.gradle.org/m2/'
+    }
+  }
+  dependencies {
+    classpath 'net.researchgate:gradle-release:3.0.0'
+  }
+
+apply(plugin = "base")
+apply(plugin = "net.researchgate.release")
+
+configure<ReleaseExtension> {
+    ignoredSnapshotDependencies.set(listOf("net.researchgate:gradle-release"))
+    with(git) {
+        requireBranch = "master"
     }
 }
 ```

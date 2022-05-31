@@ -1,24 +1,15 @@
-/*
- * This file is part of the gradle-release plugin.
- *
- * (c) Eric Berry
- * (c) ResearchGate GmbH
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 package net.researchgate.release
 
 import net.researchgate.release.cli.Executor
 import org.eclipse.jgit.api.ResetCommand
+import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
 
 import static org.eclipse.jgit.lib.Repository.shortenRefName
 
-class GitReleasePluginIntegrationTests extends GitSpecification {
+class KotlinDSLTest extends GitSpecification {
 
     File settingsFile
     File buildFile
@@ -33,35 +24,34 @@ class GitReleasePluginIntegrationTests extends GitSpecification {
         gitAdd(localGit, '.gitignore') {
             it << '.gradle/'
         }
-        gitAdd(localGit, 'settings.gradle') {
-            it << """
-            rootProject.name = 'release-test'
-            """
+        gitAdd(localGit, 'settings.gradle.kts') {
+            it << "rootProject.name = \"test\"\n"
         }
-        String jarVersion = System.properties.get('currentVersion')
-        gitAddAndCommit(localGit, 'build.gradle') {
+        gitAddAndCommit(localGit, 'build.gradle.kts') {
             it << """
-            buildscript{
-                repositories{
+            import net.researchgate.release.ReleaseExtension
+            buildscript {
+                repositories {
                     flatDir {
-                        dirs '../../../../libs'     }
-                    }
-                    dependencies {
-                        classpath('net.researchgate:gradle-release:$jarVersion')
+                        dirs("../../../../libs")
                     }
                 }
-
-                apply plugin: 'base'
-                apply plugin: 'net.researchgate.release'
-                release {
-                    ignoredSnapshotDependencies.set(['net.researchgate:gradle-release'])
-                    git {
-                        requireBranch = 'master'
-                    }
+                dependencies {
+                    classpath("net.researchgate:gradle-release:3.0.0-SNAPSHOT")
                 }
+            }
+            
+            apply(plugin = "base")
+            apply(plugin = "net.researchgate.release")
+            
+            configure<ReleaseExtension> {
+                ignoredSnapshotDependencies.set(listOf("net.researchgate:gradle-release"))
+                with(git) {
+                    requireBranch = "master"
+                }
+            }
         """
         }
-
     }
 
     def cleanup() {

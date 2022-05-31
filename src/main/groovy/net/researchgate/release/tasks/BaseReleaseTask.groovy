@@ -7,6 +7,9 @@ import org.apache.tools.ant.BuildException
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.Project
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Nested
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -17,9 +20,13 @@ class BaseReleaseTask extends DefaultTask {
     private static final String LINE_SEP = System.getProperty('line.separator')
     private static final String PROMPT = "${LINE_SEP}??>"
 
+    @Nested
     ReleaseExtension extension
+
+    @Internal
     Map<String, Object> pluginAttributes
 
+    @Internal
     Project getRootProject() {
         def project = getProject()
         if (project.getParent() != null) {
@@ -34,6 +41,7 @@ class BaseReleaseTask extends DefaultTask {
         pluginAttributes = extension.attributes
     }
 
+    @Internal
     BaseScmAdapter getScmAdapter() {
         return extension.scmAdapter
     }
@@ -46,6 +54,7 @@ class BaseReleaseTask extends DefaultTask {
      *
      * @return SLF4J {@link org.slf4j.Logger} instance
      */
+    @Internal
     Logger getLog() { getProject()?.logger ?: LoggerFactory.getLogger(this.class) }
 
     boolean useAutomaticVersion() {
@@ -91,6 +100,7 @@ class BaseReleaseTask extends DefaultTask {
         }
     }
 
+    @Internal
     boolean isVersionDefined() {
         getProject().version && Project.DEFAULT_VERSION != getProject().version
     }

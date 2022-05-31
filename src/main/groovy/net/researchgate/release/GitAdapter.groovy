@@ -35,28 +35,12 @@ class GitAdapter extends BaseScmAdapter {
         def pushOptions = []
         boolean signTag = false
 
-        /** @deprecated Remove in version 3.0 */
-        @Deprecated
-        boolean pushToCurrentBranch = false
         String pushToBranchPrefix
         boolean commitVersionFileOnly = false
-
-        void setProperty(String name, Object value) {
-            if (name == 'pushToCurrentBranch') {
-                project.logger?.warn("You are setting the deprecated and unused option '${name}'. You can safely remove it. The deprecated option will be removed in 3.0")
-            }
-
-            metaClass.setProperty(this, name, value)
-        }
     }
 
     GitAdapter(Project project, Map<String, Object> attributes) {
         super(project, attributes)
-    }
-
-    @Override
-    Object createNewConfig() {
-        return new GitConfig()
     }
 
     @Override

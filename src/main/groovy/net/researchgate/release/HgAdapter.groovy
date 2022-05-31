@@ -21,11 +21,6 @@ class HgAdapter extends BaseScmAdapter {
     }
 
     @Override
-    Object createNewConfig() {
-        return null
-    }
-
-    @Override
     boolean isSupported(File directory) {
         if (!directory.list().grep('.hg')) {
             return directory.parentFile? isSupported(directory.parentFile) : false

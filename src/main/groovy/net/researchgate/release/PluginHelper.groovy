@@ -74,7 +74,7 @@ class PluginHelper {
                 project.version = getReleaseVersion('1.0.0')
             }
 
-            if (!useAutomaticVersion() && promptYesOrNo('Do you want to use SNAPSHOT versions inbetween releases')) {
+            if (!useAutomaticVersion() && promptYesOrNo('Do you want to use SNAPSHOT versions in between releases')) {
                 attributes.usesSnapshot = true
             }
 

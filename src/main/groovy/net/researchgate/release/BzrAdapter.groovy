@@ -23,11 +23,6 @@ class BzrAdapter extends BaseScmAdapter {
     }
 
     @Override
-    Object createNewConfig() {
-        return null
-    }
-
-    @Override
     boolean isSupported(File directory) {
         if (!directory.list().grep('.bzr')) {
             return directory.parentFile? isSupported(directory.parentFile) : false

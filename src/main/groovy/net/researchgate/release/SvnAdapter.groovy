@@ -38,11 +38,6 @@ class SvnAdapter extends BaseScmAdapter {
     }
 
     @Override
-    Object createNewConfig() {
-        return new SvnConfig();
-    }
-
-    @Override
     boolean isSupported(File directory) {
         if (!directory.list().grep('.svn')) {
             return directory.parentFile? isSupported(directory.parentFile) : false
