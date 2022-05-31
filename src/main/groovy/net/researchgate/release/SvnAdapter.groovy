@@ -31,7 +31,7 @@ class SvnAdapter extends BaseScmAdapter {
         super(project, attributes)
     }
 
-    class SvnConfig {
+    static class SvnConfig {
         String username
         String password
         boolean pinExternals = false

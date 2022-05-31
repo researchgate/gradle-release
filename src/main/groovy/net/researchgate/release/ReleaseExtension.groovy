@@ -17,8 +17,10 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
+import org.gradle.internal.impldep.org.eclipse.jgit.api.Git
 import org.gradle.util.ConfigureUtil
 
+import javax.swing.Action
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
@@ -107,31 +109,21 @@ class ReleaseExtension {
     ReleaseExtension(Project project, Map<String, Object> attributes) {
         this.attributes = attributes
         this.project = project
-        ExpandoMetaClass mc = new ExpandoMetaClass(ReleaseExtension, false, true)
-        mc.initialize()
-        metaClass = mc
     }
 
-    private BaseScmAdapter getAdapterForName(String name) {
-        BaseScmAdapter adapter = null
-        scmAdapters.find {
-            assert BaseScmAdapter.isAssignableFrom(it)
+    void git(Closure<GitAdapter.GitConfig> closure) {
+        project.configure(git, closure)
+    }
 
-            Pattern pattern = Pattern.compile("^${name}", Pattern.CASE_INSENSITIVE)
+    void git(org.gradle.api.Action<? super SvnAdapter.SvnConfig> config) {
+        project.configure([git], config)
+    }
 
+    void svn(Closure<SvnAdapter.SvnConfig> closure) {
+        project.configure(svn, closure)
+    }
 
-
-            if (!pattern.matcher(it.simpleName).find()) {
-                return false
-            }
-
-
-
-            adapter = it.getConstructor(Project.class, Map.class).newInstance(project, attributes)
-
-            return true
-        }
-
-        adapter
+    void svn(org.gradle.api.Action<? super SvnAdapter.SvnConfig> config) {
+        project.configure([svn], config)
     }
 }

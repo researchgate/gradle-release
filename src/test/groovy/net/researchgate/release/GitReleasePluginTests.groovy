@@ -103,9 +103,8 @@ class GitReleasePluginTests extends Specification {
         remoteRepo.list().any { it == 'gradle.properties' }
     }
 
-    def 'when pushToCurrentBranch then push new version to remote branch with same name as working'() {
+    def 'push new version to current branch to remote with same branch name as working'() {
         given:
-        project.release.git.pushToCurrentBranch = true
         executor.exec(['git', 'checkout', '-B', 'myBranch'], failOnStderr: false, directory: localRepo, env: [:])
         when:
         (project.tasks.commitNewVersion as CommitNewVersion).commitNewVersion()

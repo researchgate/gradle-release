@@ -29,13 +29,13 @@ class GitAdapter extends BaseScmAdapter {
 
     private File workingDirectory
 
-    class GitConfig {
+    static class GitConfig {
         String requireBranch = 'main'
         def pushToRemote = 'origin' // needs to be def as can be boolean or string
         def pushOptions = []
         boolean signTag = false
 
-        String pushToBranchPrefix
+        String pushToBranchPrefix = null
         boolean commitVersionFileOnly = false
     }
 

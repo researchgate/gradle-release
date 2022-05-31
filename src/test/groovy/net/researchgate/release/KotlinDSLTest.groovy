@@ -27,6 +27,7 @@ class KotlinDSLTest extends GitSpecification {
         gitAdd(localGit, 'settings.gradle.kts') {
             it << "rootProject.name = \"test\"\n"
         }
+        String jarVersion = System.properties.get('currentVersion')
         gitAddAndCommit(localGit, 'build.gradle.kts') {
             it << """
             import net.researchgate.release.ReleaseExtension
@@ -37,7 +38,7 @@ class KotlinDSLTest extends GitSpecification {
                     }
                 }
                 dependencies {
-                    classpath("net.researchgate:gradle-release:3.0.0-SNAPSHOT")
+                    classpath("net.researchgate:gradle-release:$jarVersion")
                 }
             }
             
