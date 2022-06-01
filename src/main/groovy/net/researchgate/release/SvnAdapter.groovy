@@ -36,15 +36,12 @@ class SvnAdapter extends BaseScmAdapter {
     }
 
     static class SvnConfig {
-        @Optional
         @Internal
-        Property<String> username
-        @Optional
+        final Property<String> username
         @Internal
-        Property<String> password
-        @Optional
+        final Property<String> password
         @Input
-        Property<Boolean> pinExternals
+        final Property<Boolean> pinExternals
 
         SvnConfig(Project project) {
             username = project.objects.property(String.class)
