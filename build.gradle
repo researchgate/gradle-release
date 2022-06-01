@@ -52,7 +52,7 @@ tasks.withType(Test).configureEach {
 
 release {
     git {
-        requireBranch = '(master|\\d+\\.\\d+)'
+        requireBranch = '(main|\\d+\\.\\d+)'
     }
 }
 
