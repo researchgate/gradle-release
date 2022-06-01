@@ -1,8 +1,7 @@
 # gradle-release plugin
 
-[![Build Status](https://travis-ci.org/researchgate/gradle-release.svg?branch=main)](https://travis-ci.org/researchgate/gradle-release)
-[![Download](https://api.bintray.com/packages/researchgate/gradle-plugins/gradle-release/images/download.svg)](https://bintray.com/researchgate/gradle-plugins/gradle-release/_latestVersion)
-[![Gitter](https://img.shields.io/badge/chat-online-brightgreen.svg?style=flat)](https://gitter.im/researchgate/gradle-release)
+[![Build Status](https://github.com/researchgate/gradle-release/actions/workflows/tests.yaml/badge.svg)](https://github.com/researchgate/gradle-release/actions/workflows/tests.yaml)
+[![Download](https://plugins.gradle.org/plugin/net.researchgate.release)
 
 ## Introduction
 
