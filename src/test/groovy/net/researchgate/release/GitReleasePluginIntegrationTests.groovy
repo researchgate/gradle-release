@@ -56,7 +56,7 @@ class GitReleasePluginIntegrationTests extends GitSpecification {
                 release {
                     ignoredSnapshotDependencies.set(['net.researchgate:gradle-release'])
                     git {
-                        requireBranch = 'master'
+                        requireBranch.set('master')
                     }
                 }
         """

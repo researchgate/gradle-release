@@ -46,7 +46,7 @@ class GitReleasePluginMultiProjectTests extends GitSpecification {
             }
             release {
                 git {
-                    requireBranch = 'master'
+                    requireBranch.set('master')
                 }
             }
         """

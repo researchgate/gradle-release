@@ -27,56 +27,56 @@ import java.util.regex.Pattern
 class ReleaseExtension {
 
     @Input
-    Property<Boolean> failOnCommitNeeded = project.objects.property(Boolean.class).convention(true)
+    final Property<Boolean> failOnCommitNeeded = project.objects.property(Boolean.class).convention(true)
 
     @Input
-    Property<Boolean> failOnPublishNeeded = project.objects.property(Boolean.class).convention(true)
+    final Property<Boolean> failOnPublishNeeded = project.objects.property(Boolean.class).convention(true)
 
     @Input
-    Property<Boolean> failOnSnapshotDependencies = project.objects.property(Boolean.class).convention(true)
+    final Property<Boolean> failOnSnapshotDependencies = project.objects.property(Boolean.class).convention(true)
 
     @Input
-    Property<Boolean> failOnUnversionedFiles = project.objects.property(Boolean.class).convention(true)
+    final Property<Boolean> failOnUnversionedFiles = project.objects.property(Boolean.class).convention(true)
 
     @Input
-    Property<Boolean> failOnUpdateNeeded = project.objects.property(Boolean.class).convention(true)
+    final Property<Boolean> failOnUpdateNeeded = project.objects.property(Boolean.class).convention(true)
 
     @Input
-    Property<Boolean> revertOnFail = project.objects.property(Boolean.class).convention(true)
+    final Property<Boolean> revertOnFail = project.objects.property(Boolean.class).convention(true)
 
-    @Input
     @Optional
-    Property<String> pushReleaseVersionBranch = project.objects.property(String.class)
+    @Input
+    final Property<String> pushReleaseVersionBranch = project.objects.property(String.class)
 
     @Input
-    Property<String> preCommitText = project.objects.property(String.class).convention('')
+    final Property<String> preCommitText = project.objects.property(String.class).convention('')
 
     @Input
-    Property<String> preTagCommitMessage = project.objects.property(String.class).convention('[Gradle Release Plugin] - pre tag commit: ')
+    final Property<String> preTagCommitMessage = project.objects.property(String.class).convention('[Gradle Release Plugin] - pre tag commit: ')
 
     @Input
-    Property<String> tagCommitMessage = project.objects.property(String.class).convention('[Gradle Release Plugin] - creating tag: ')
+    final Property<String> tagCommitMessage = project.objects.property(String.class).convention('[Gradle Release Plugin] - creating tag: ')
 
     @Input
-    Property<String> newVersionCommitMessage = project.objects.property(String.class).convention('[Gradle Release Plugin] - new version commit: ')
+    final Property<String> newVersionCommitMessage = project.objects.property(String.class).convention('[Gradle Release Plugin] - new version commit: ')
 
     @Input
-    Property<String> snapshotSuffix = project.objects.property(String.class).convention('-SNAPSHOT')
+    final Property<String> snapshotSuffix = project.objects.property(String.class).convention('-SNAPSHOT')
 
     @Input
-    Property<String> tagTemplate = project.objects.property(String.class).convention('$version')
+    final Property<String> tagTemplate = project.objects.property(String.class).convention('$version')
 
     @Input
-    Property<String> versionPropertyFile = project.objects.property(String.class).convention('gradle.properties')
+    final Property<String> versionPropertyFile = project.objects.property(String.class).convention('gradle.properties')
 
     @Input
-    ListProperty<String> versionProperties = project.objects.listProperty(String.class).convention([])
+    final ListProperty<String> versionProperties = project.objects.listProperty(String.class).convention([])
 
     @Input
-    ListProperty<String> buildTasks = project.objects.listProperty(String.class).convention([])
+    final ListProperty<String> buildTasks = project.objects.listProperty(String.class).convention([])
 
     @Input
-    ListProperty<String> ignoredSnapshotDependencies = project.objects.listProperty(String.class).convention([])
+    final ListProperty<String> ignoredSnapshotDependencies = project.objects.listProperty(String.class).convention([])
 
     @Input
     Map<String, Closure<String>> versionPatterns = [
@@ -85,11 +85,12 @@ class ReleaseExtension {
     ]
 
     @Nested
-    GitAdapter.GitConfig git = new GitAdapter.GitConfig()
+    final GitAdapter.GitConfig git
 
     @Nested
-    SvnAdapter.SvnConfig svn = new SvnAdapter.SvnConfig()
+    final SvnAdapter.SvnConfig svn
 
+    @Internal
     List<Class<? extends BaseScmAdapter>> scmAdapters = [
         GitAdapter,
         SvnAdapter,
@@ -100,7 +101,6 @@ class ReleaseExtension {
     @Internal
     BaseScmAdapter scmAdapter
 
-    @Internal
     private Project project
 
     @Internal
@@ -109,6 +109,8 @@ class ReleaseExtension {
     ReleaseExtension(Project project, Map<String, Object> attributes) {
         this.attributes = attributes
         this.project = project
+        git = new GitAdapter.GitConfig(project)
+        svn = new SvnAdapter.SvnConfig(project)
     }
 
     void git(Closure<GitAdapter.GitConfig> closure) {

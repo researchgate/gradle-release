@@ -7,7 +7,6 @@ import org.apache.tools.ant.BuildException
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.Project
-import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.slf4j.Logger
@@ -66,7 +65,7 @@ class BaseReleaseTask extends DefaultTask {
         Map<String, Object> projectAttributes = extension.attributes
         if (!propertiesFile.file) {
             if (!isVersionDefined()) {
-                project.version = getReleaseVersion('1.0.0')
+                project.version = releaseVersion('1.0.0')
             }
 
             if (!useAutomaticVersion() && promptYesOrNo('Do you want to use SNAPSHOT versions in between releases')) {
@@ -138,7 +137,7 @@ class BaseReleaseTask extends DefaultTask {
         property ?: defaultVal
     }
 
-    String getReleaseVersion(String candidateVersion = null) {
+    String releaseVersion(String candidateVersion = null) {
         if (candidateVersion == null) {
             candidateVersion = "${project.version}"
         }

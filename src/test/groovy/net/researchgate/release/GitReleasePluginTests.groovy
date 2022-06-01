@@ -66,7 +66,7 @@ class GitReleasePluginTests extends Specification {
 
     def 'when requireBranch is configured then throw exception when different branch'() {
         given:
-        project.release.git.requireBranch = 'myBranch'
+        project.release.git.requireBranch.set('myBranch')
         when:
         (new GitAdapter(project, [:])).init()
         then:
@@ -76,7 +76,7 @@ class GitReleasePluginTests extends Specification {
 
     def 'when requireBranch is configured using a regex that matches current branch then don\'t throw exception'() {
         given:
-        project.release.git.requireBranch = /myBranch|master/
+        project.release.git.requireBranch.set(/myBranch|master/)
         when:
         (new GitAdapter(project, [:])).init()
         then:
@@ -87,8 +87,8 @@ class GitReleasePluginTests extends Specification {
         when:
         project.release {
             git {
-                requireBranch = 'myBranch'
-                pushOptions = ['--no-verify', '--verbose']
+                requireBranch.set('myBranch')
+                pushOptions.set(['--no-verify', '--verbose'])
             }
         }
         then:

@@ -11,6 +11,10 @@
 package net.researchgate.release
 
 import org.gradle.api.Project
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Optional
 
 import java.util.regex.Matcher
 import org.gradle.api.GradleException
@@ -32,9 +36,21 @@ class SvnAdapter extends BaseScmAdapter {
     }
 
     static class SvnConfig {
-        String username
-        String password
-        boolean pinExternals = false
+        @Optional
+        @Internal
+        Property<String> username
+        @Optional
+        @Internal
+        Property<String> password
+        @Optional
+        @Input
+        Property<Boolean> pinExternals
+
+        SvnConfig(Project project) {
+            username = project.objects.property(String.class)
+            password = project.objects.property(String.class)
+            pinExternals = project.objects.property(Boolean.class).convention(false)
+        }
     }
 
     @Override
@@ -49,12 +65,12 @@ class SvnAdapter extends BaseScmAdapter {
     void init() {
         String username = findProperty('release.svn.username')
         if (username) {
-            extension.svn.username = username
+            extension.svn.username.set(username)
         }
 
         String password = findProperty('release.svn.password')
         if (password) {
-            extension.svn.password = password
+            extension.svn.password.set(password)
         }
 
         findSvnUrl()
@@ -132,7 +148,7 @@ class SvnAdapter extends BaseScmAdapter {
         String svnTag = tagName()
 
         List<String> commands = ['copy', "${svnUrl}@${svnRev}", "${svnRoot}/tags/${svnTag}", '--parents', '-m', message]
-        if (extension.svn.pinExternals) {
+        if (extension.svn.pinExternals.get()) {
             commands += '--pin-externals'
         }
         svnExec(commands)
@@ -174,11 +190,11 @@ class SvnAdapter extends BaseScmAdapter {
         Map options = [:],
         List<String> commands
     ) {
-        if (extension.svn.username) {
-            if (extension.svn.password) {
-                commands.addAll(0, ['--password', extension.svn.password]);
+        if (extension.svn.username.isPresent()) {
+            if (extension.svn.password.isPresent()) {
+                commands.addAll(0, ['--password', extension.svn.password.get()]);
             }
-            commands.addAll(0, ['--non-interactive', '--no-auth-cache', '--username', extension.svn.username]);
+            commands.addAll(0, ['--non-interactive', '--no-auth-cache', '--username', extension.svn.username.get()]);
         }
         commands.add(0, 'svn');
 

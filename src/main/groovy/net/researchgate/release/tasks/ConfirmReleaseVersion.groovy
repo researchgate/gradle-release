@@ -18,6 +18,6 @@ class ConfirmReleaseVersion extends BaseReleaseTask {
         if (projectAttributes.propertiesFileCreated) {
             return
         }
-        scmAdapter.updateVersionProperty(getReleaseVersion())
+        scmAdapter.updateVersionProperty(releaseVersion())
     }
 }

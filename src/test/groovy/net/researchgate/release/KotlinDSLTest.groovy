@@ -48,7 +48,7 @@ class KotlinDSLTest extends GitSpecification {
             configure<ReleaseExtension> {
                 ignoredSnapshotDependencies.set(listOf("net.researchgate:gradle-release"))
                 with(git) {
-                    requireBranch = "master"
+                    requireBranch.set("master")
                 }
             }
         """

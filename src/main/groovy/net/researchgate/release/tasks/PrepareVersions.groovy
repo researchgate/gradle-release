@@ -33,7 +33,7 @@ class PrepareVersions extends BaseReleaseTask {
     void createPropertiesFile(Project project, File propertiesFile) {
         log.info("Creating version file '" + propertiesFile.canonicalPath + "' for project '" + project.name + "'")
         if (!isVersionDefined()) {
-            project.version = getReleaseVersion('1.0.0')
+            project.version = releaseVersion('1.0.0')
         }
 
         if (useAutomaticVersion() || promptYesOrNo("[$propertiesFile.canonicalPath] not found, create it with version = ${project.version}")) {

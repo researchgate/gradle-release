@@ -44,7 +44,7 @@ class GitReleasePluginCommitNewVersionTests extends GitSpecification {
             }
             release {
                 git {
-                    requireBranch = 'master'
+                    requireBranch.set('master')
                 }
             }
         """
@@ -93,8 +93,8 @@ class GitReleasePluginCommitNewVersionTests extends GitSpecification {
             }
             release {
                 git {
-                    pushToBranchPrefix = 'refs/for/'
-                    requireBranch = 'master'
+                    pushToBranchPrefix.set('refs/for/')
+                    requireBranch.set('master')
                 }
             }
         """
@@ -123,8 +123,8 @@ class GitReleasePluginCommitNewVersionTests extends GitSpecification {
             }
             release {
                 git {
-                    commitVersionFileOnly = true
-                    requireBranch = 'master'
+                    commitVersionFileOnly.set(true)
+                    requireBranch.set('master')
                 }
             }
         """

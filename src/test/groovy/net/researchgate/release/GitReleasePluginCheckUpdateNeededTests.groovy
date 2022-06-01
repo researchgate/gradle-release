@@ -44,7 +44,7 @@ class GitReleasePluginCheckUpdateNeededTests extends GitSpecification {
             }
             release {
                 git {
-                    requireBranch = 'master'
+                    requireBranch.set('master')
                 }
             }
         """

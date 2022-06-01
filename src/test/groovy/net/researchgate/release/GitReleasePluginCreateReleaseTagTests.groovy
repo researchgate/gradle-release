@@ -48,8 +48,8 @@ class GitReleasePluginCreateReleaseTagTests extends GitSpecification {
             }
             release {
                 git {
-                    pushToBranchPrefix = 'refs/for/'
-                    requireBranch = 'master'
+                    pushToBranchPrefix.set('refs/for/')
+                    requireBranch.set('master')
                 }
             }
         """
@@ -111,8 +111,8 @@ class GitReleasePluginCreateReleaseTagTests extends GitSpecification {
             }
             release {
                 git {
-                    pushToRemote = null
-                    requireBranch = 'master'
+                    pushToRemote.set(false)
+                    requireBranch.set('master')
                 }
             }
         """
@@ -145,8 +145,8 @@ class GitReleasePluginCreateReleaseTagTests extends GitSpecification {
             }
             release {
                 git {
-                    pushToRemote = 'myremote'
-                    requireBranch = 'master'
+                    pushToRemote.set('myremote')
+                    requireBranch.set('master')
                 }
             }
         """
@@ -178,8 +178,8 @@ class GitReleasePluginCreateReleaseTagTests extends GitSpecification {
             }
             release {
                 git {
-                    pushToRemote = 'myremote'
-                    requireBranch = 'master'
+                    pushToRemote.set('myremote')
+                    requireBranch.set('master')
                 }
             }
         """
