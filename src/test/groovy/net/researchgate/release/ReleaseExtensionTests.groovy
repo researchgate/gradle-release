@@ -29,27 +29,11 @@ class ReleaseExtensionTests extends Specification {
         extension.scmAdapters = [TestAdapter]
     }
 
-    def 'test dynamic getting property on extension'() {
-        when:
-        def value = extension.test
-        then:
-        value instanceof TestAdapter.TestConfig
-    }
-
     def 'test dynamic getting property on extension fails for non adapter'() {
         when:
         extension.footest
         then:
         thrown(MissingPropertyException)
-    }
-
-    def 'test dynamic setting property on extension'() {
-        when:
-        extension.test = null
-        def value = extension.test
-        then:
-        noExceptionThrown()
-        value == null
     }
 
     def 'test dynamic setting property on extension fails for non adapter'() {
@@ -59,18 +43,6 @@ class ReleaseExtensionTests extends Specification {
         thrown(MissingPropertyException)
     }
 
-    def 'test dynamic setting callback on extension'() {
-        when:
-        extension.test {
-            testOption = '1234'
-        }
-        def value = extension.test
-        then:
-        noExceptionThrown()
-        value instanceof TestAdapter.TestConfig
-        value.testOption == '1234'
-    }
-
     def 'test dynamic setting callback on extension fails for non adapter'() {
         when:
         extension.footest {
@@ -78,6 +50,5 @@ class ReleaseExtensionTests extends Specification {
         }
         then:
         thrown(MissingMethodException)
-
     }
 }

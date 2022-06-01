@@ -21,8 +21,6 @@ abstract class BaseScmAdapter extends PluginHelper {
         extension = project.extensions['release'] as ReleaseExtension
     }
 
-    abstract Object createNewConfig()
-
     abstract boolean isSupported(File directory)
 
     abstract void init()

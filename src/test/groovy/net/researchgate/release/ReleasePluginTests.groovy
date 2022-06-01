@@ -10,6 +10,10 @@
 
 package net.researchgate.release
 
+import net.researchgate.release.tasks.UnSnapshotVersion
+import net.researchgate.release.tasks.UpdateVersion
+import org.gradle.api.plugins.BasePlugin
+
 import java.util.regex.Matcher
 
 import org.gradle.api.Project
@@ -31,10 +35,11 @@ class ReleasePluginTests extends Specification {
         testVersionPropertyFile.withWriter { w ->
             w.writeLine 'version=1.2'
         }
-        project.apply plugin: ReleasePlugin
-        project.release.scmAdapters = [TestAdapter]
+        project.plugins.apply(BasePlugin.class)
+        ReleasePlugin releasePlugin = project.plugins.apply(ReleasePlugin.class)
+        project.extensions.release.scmAdapters = [TestAdapter]
 
-        project.createScmAdapter.execute()
+        releasePlugin.createScmAdapter()
     }
 
     def 'plugin is successfully applied'() {
@@ -45,12 +50,13 @@ class ReleasePluginTests extends Specification {
 
     def 'when a custom properties file is used to specify the version'() {
         given:
-        project.release {
-            versionPropertyFile = 'version.properties'
+        (project.extensions.release as ReleaseExtension).with {
+            versionPropertyFile.set('version.properties')
         }
-        project.unSnapshotVersion.execute()
+        (project.tasks.unSnapshotVersion as UnSnapshotVersion).unSnapshotVersion()
         expect:
         project.version == '1.2'
+        project.file('version.properties').text == 'version=1.2\n'
     }
 
     def 'version is properly unsnapshot when using default snapshot suffix'() {
@@ -60,7 +66,7 @@ class ReleasePluginTests extends Specification {
             w.writeLine 'version=1.3-SNAPSHOT'
         }
         when:
-        project.unSnapshotVersion.execute()
+        (project.tasks.unSnapshotVersion as UnSnapshotVersion).unSnapshotVersion()
         then:
         project.version == '1.3'
     }
@@ -71,11 +77,12 @@ class ReleasePluginTests extends Specification {
         testVersionPropertyFile.withWriter { w ->
             w.writeLine 'version=1.4-dev'
         }
-        project.release {
-            snapshotSuffix = '-dev'
+        project.version = '1.4-dev'
+        (project.extensions.release as ReleaseExtension).with {
+            snapshotSuffix.set('-dev')
         }
         when:
-        project.unSnapshotVersion.execute()
+        (project.tasks.unSnapshotVersion as UnSnapshotVersion).unSnapshotVersion()
         then:
         project.version == '1.4'
     }
@@ -86,11 +93,12 @@ class ReleasePluginTests extends Specification {
         testVersionPropertyFile.withWriter { w ->
             w.writeLine 'version=1.4-dev'
         }
-        project.release {
-            snapshotSuffix = '-SNAPSHOT'
+        project.version = '1.4-dev'
+        (project.extensions.release as ReleaseExtension).with {
+            snapshotSuffix.set('-SNAPSHOT')
         }
         when:
-        project.unSnapshotVersion.execute()
+        (project.tasks.unSnapshotVersion as UnSnapshotVersion).unSnapshotVersion()
         then:
         project.version == '1.4-dev'
     }
@@ -101,11 +109,10 @@ class ReleasePluginTests extends Specification {
         testVersionPropertyFile.withWriter { w ->
             w.writeLine 'version=1.4-SNAPSHOT'
         }
-        project.release {
-            useAutomaticVersion = true
-        }
+        project.version = '1.4-SNAPSHOT'
+        project.properties.put('release.useAutomaticVersion', true)
         when:
-        project.updateVersion.execute()
+        (project.tasks.updateVersion as UpdateVersion).updateVersion()
         then:
         project.version == '1.5-SNAPSHOT'
     }
@@ -116,12 +123,13 @@ class ReleasePluginTests extends Specification {
         testVersionPropertyFile.withWriter { w ->
             w.writeLine 'version=1.4-dev'
         }
-        project.release {
-            snapshotSuffix = '-dev'
-            useAutomaticVersion = true
+        project.version = '1.4-dev'
+        project.properties.put('release.useAutomaticVersion', true)
+        (project.extensions.release as ReleaseExtension).with {
+            snapshotSuffix.set('-dev')
         }
         when:
-        project.updateVersion.execute()
+        (project.tasks.updateVersion as UpdateVersion).updateVersion()
         then:
         project.version == '1.5-dev'
     }
@@ -132,13 +140,14 @@ class ReleasePluginTests extends Specification {
         testVersionPropertyFile.withWriter { w ->
             w.writeLine 'version=1.4-dev'
         }
-        project.release {
-            snapshotSuffix = '-dev'
-            useAutomaticVersion = true
+        project.version = '1.4-dev'
+        project.properties.put('release.useAutomaticVersion', true)
+        (project.extensions.release as ReleaseExtension).with {
+            snapshotSuffix.set('-dev')
         }
         when:
-        project.unSnapshotVersion.execute()
-        project.updateVersion.execute()
+        (project.tasks.unSnapshotVersion as UnSnapshotVersion).unSnapshotVersion()
+        (project.tasks.updateVersion as UpdateVersion).updateVersion()
         then:
         project.version == '1.5-dev'
     }
@@ -149,8 +158,9 @@ class ReleasePluginTests extends Specification {
             testVersionPropertyFile.withWriter { w ->
                 w.writeLine 'version=' + currentVersion
             }
+            project.version = currentVersion
         when:
-            project.unSnapshotVersion.execute()
+            (project.tasks.unSnapshotVersion as UnSnapshotVersion).unSnapshotVersion()
         then:
             project.version == expectedNewVersion
         where:
@@ -167,11 +177,10 @@ class ReleasePluginTests extends Specification {
             testVersionPropertyFile.withWriter { w ->
                 w.writeLine 'version=' + currentVersion
             }
-            project.release {
-                useAutomaticVersion = true
-            }
+            project.version = currentVersion
+            project.properties.put('release.useAutomaticVersion', true)
         when:
-            project.updateVersion.execute()
+            (project.tasks.updateVersion as UpdateVersion).updateVersion()
         then:
             project.version == expectedNewVersion
         where:
@@ -189,14 +198,15 @@ class ReleasePluginTests extends Specification {
             testVersionPropertyFile.withWriter { w ->
                 w.writeLine 'version=' + currentVersion
             }
-            project.release {
-                useAutomaticVersion = true
+            project.version = currentVersion
+            project.properties.put('release.useAutomaticVersion', true)
+            (project.extensions.release as ReleaseExtension).with {
                 versionPatterns = [
                     /(\d+)([^\d]*|[-\+].*)$/: { Matcher m, Project p -> m.replaceAll("${(m[0][1] as int) + 1}${m[0][2]}") }
                 ]
             }
         when:
-            project.updateVersion.execute()
+            (project.tasks.updateVersion as UpdateVersion).updateVersion()
         then:
             project.version == expectedNewVersion
         where:
@@ -215,7 +225,7 @@ class ReleasePluginTests extends Specification {
     def 'subproject tasks are named with qualified paths'() {
         given:
         Project sub = ProjectBuilder.builder().withName('sub').withParent(project).withProjectDir(testDir).build()
-        sub.apply plugin: ReleasePlugin
+        sub.plugins.apply(ReleasePlugin.class)
 
         expect:
         sub.tasks.release.tasks.every { it.startsWith(':sub:') }

@@ -10,35 +10,75 @@
 
 package net.researchgate.release
 
-import org.gradle.api.GradleException
-import org.gradle.api.Project
-import org.gradle.testfixtures.ProjectBuilder
+import org.gradle.testkit.runner.BuildResult
+import org.gradle.testkit.runner.GradleRunner
+import org.gradle.testkit.runner.TaskOutcome
 
 class GitReleasePluginMultiProjectTests extends GitSpecification {
 
-    Project project
+    File settingsFile
+    File buildFile
+    File propertiesFile
+    File localDir
 
     def setup() {
         final subproject = new File(localGit.repository.getWorkTree(), "subproject")
-        project = ProjectBuilder.builder().withName("GitReleasePluginTest").withProjectDir(subproject).build()
-        project.apply plugin: ReleasePlugin
-        project.createScmAdapter.execute()
+        subproject.mkdir()
+
+        localDir = localGit.getRepository().getWorkTree()
+        settingsFile = new File(localDir, "settings.gradle");
+        buildFile = new File(localDir, "build.gradle");
+        propertiesFile = new File(localDir, "gradle.properties");
+        gitAdd(localGit, '.gitignore') {
+            it << '.gradle/'
+        }
+        gitAdd(localGit, 'settings.gradle') {
+            it << """
+                rootProject.name = 'release-test'
+                include 'subproject'
+                """
+        }
+        gitAddAndCommit(localGit, 'build.gradle') {
+            it << """
+            plugins {
+                id 'base'
+                id 'net.researchgate.release'
+            }
+            release {
+                git {
+                    requireBranch.set('master')
+                }
+            }
+        """
+        }
+        localGit.push().setForce(true).call()
     }
 
     def "subproject should work with git beeing in parentProject"() {
         when:
-        project.checkUpdateNeeded.execute()
+        BuildResult result = GradleRunner.create()
+                .withProjectDir(localDir)
+                .withGradleVersion('6.9.2')
+                .withArguments('checkUpdateNeeded')
+                .withPluginClasspath()
+                .build()
         then:
         noExceptionThrown()
+        result.task(':checkUpdateNeeded').outcome == TaskOutcome.SUCCESS
     }
 
     def '`checkUpdateNeeded` should detect remote changes to pull in subproject'() {
         given:
         gitAddAndCommit(remoteGit, 'gradle.properties') { it << '222' }
         when:
-        project.checkUpdateNeeded.execute()
+        BuildResult result = GradleRunner.create()
+                .withProjectDir(localDir)
+                .withGradleVersion('6.9.2')
+                .withArguments('checkUpdateNeeded')
+                .withPluginClasspath()
+                .buildAndFail()
         then:
-        GradleException ex = thrown()
-        ex.cause.message.contains "You have 1 remote change(s) to pull."
+        result.output.contains "You have 1 remote change(s) to pull"
+        result.task(':checkUpdateNeeded').outcome == TaskOutcome.FAILED
     }
 }

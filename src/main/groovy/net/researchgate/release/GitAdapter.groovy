@@ -10,8 +10,13 @@
 
 package net.researchgate.release
 
+import com.sun.org.apache.xpath.internal.operations.Bool
 import org.gradle.api.GradleException
 import org.gradle.api.Project
+import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Optional
 
 import java.util.regex.Matcher
 
@@ -29,34 +34,36 @@ class GitAdapter extends BaseScmAdapter {
 
     private File workingDirectory
 
-    class GitConfig {
-        String requireBranch = 'master'
-        def pushToRemote = 'origin' // needs to be def as can be boolean or string
-        def pushOptions = []
-        boolean signTag = false
+    static class GitConfig {
 
-        /** @deprecated Remove in version 3.0 */
-        @Deprecated
-        boolean pushToCurrentBranch = false
-        String pushToBranchPrefix
-        boolean commitVersionFileOnly = false
+        @Input
+        final Property<String> requireBranch
+        @Optional
+        @Input
+        final Property<Object> pushToRemote
+        @Optional
+        @Input
+        ListProperty<String> pushOptions
+        @Input
+        final Property<Boolean> signTag
+        @Optional
+        @Input
+        final Property<String> pushToBranchPrefix
+        @Input
+        final Property<Boolean> commitVersionFileOnly
 
-        void setProperty(String name, Object value) {
-            if (name == 'pushToCurrentBranch') {
-                project.logger?.warn("You are setting the deprecated and unused option '${name}'. You can safely remove it. The deprecated option will be removed in 3.0")
-            }
-
-            metaClass.setProperty(this, name, value)
+        GitConfig(Project project) {
+            requireBranch = project.objects.property(String.class).convention('main')
+            pushToRemote = project.objects.property(Object.class).convention('origin')
+            pushOptions = project.objects.listProperty(String.class).convention([])
+            signTag = project.objects.property(Boolean.class).convention(false)
+            pushToBranchPrefix = project.objects.property(String)
+            commitVersionFileOnly = project.objects.property(Boolean.class).convention(false)
         }
     }
 
     GitAdapter(Project project, Map<String, Object> attributes) {
         super(project, attributes)
-    }
-
-    @Override
-    Object createNewConfig() {
-        return new GitConfig()
     }
 
     @Override
@@ -72,14 +79,14 @@ class GitAdapter extends BaseScmAdapter {
     @Override
     void init() {
         workingBranch = gitCurrentBranch()
-        if (extension.pushReleaseVersionBranch) {
-            releaseBranch = extension.pushReleaseVersionBranch
+        if (extension.pushReleaseVersionBranch.isPresent()) {
+            releaseBranch = extension.pushReleaseVersionBranch.get()
         } else {
             releaseBranch = workingBranch
         }
-        if (extension.git.requireBranch) {
-            if (!(workingBranch ==~ extension.git.requireBranch)) {
-                throw new GradleException("Current Git branch is \"$workingBranch\" and not \"${ extension.git.requireBranch }\".")
+        if (extension.git.requireBranch.isPresent()) {
+            if (!(workingBranch ==~ extension.git.requireBranch.get())) {
+                throw new GradleException("Current Git branch is \"$workingBranch\" and not \"${ extension.git.requireBranch.get() }\".")
             }
         }
     }
@@ -89,12 +96,12 @@ class GitAdapter extends BaseScmAdapter {
         def status = gitStatus()
 
         if (status[UNVERSIONED]) {
-            warnOrThrow(extension.failOnUnversionedFiles,
+            warnOrThrow(extension.failOnUnversionedFiles.get(),
                     (['You have unversioned files:', LINE, * status[UNVERSIONED], LINE] as String[]).join('\n'))
         }
 
         if (status[UNCOMMITTED]) {
-            warnOrThrow(extension.failOnCommitNeeded,
+            warnOrThrow(extension.failOnCommitNeeded.get(),
                     (['You have uncommitted files:', LINE, * status[UNCOMMITTED], LINE] as String[]).join('\n'))
         }
     }
@@ -106,11 +113,11 @@ class GitAdapter extends BaseScmAdapter {
         def status = gitRemoteStatus()
 
         if (status[AHEAD]) {
-            warnOrThrow(extension.failOnPublishNeeded, "You have ${status[AHEAD]} local change(s) to push.")
+            warnOrThrow(extension.failOnPublishNeeded.get(), "You have ${status[AHEAD]} local change(s) to push.")
         }
 
         if (status[BEHIND]) {
-            warnOrThrow(extension.failOnUpdateNeeded, "You have ${status[BEHIND]} remote change(s) to pull.")
+            warnOrThrow(extension.failOnUpdateNeeded.get(), "You have ${status[BEHIND]} remote change(s) to pull.")
         }
     }
 
@@ -118,20 +125,20 @@ class GitAdapter extends BaseScmAdapter {
     void createReleaseTag(String message) {
         def tagName = tagName()
         def params = ['git', 'tag', '-a', tagName, '-m', message]
-        if (extension.git.signTag) {
+        if (extension.git.signTag.get()) {
             params.add('-s')
         }
         exec(params, directory: workingDirectory, errorMessage: "Duplicate tag [$tagName] or signing error", errorPatterns: ['already exists', 'failed to sign'])
         if (shouldPush()) {
-            exec(['git', 'push', '--porcelain', extension.git.pushToRemote, tagName] + extension.git.pushOptions, directory: workingDirectory, errorMessage: "Failed to push tag [$tagName] to remote", errorPatterns: ['[rejected]', 'error: ', 'fatal: '])
+            exec(['git', 'push', '--porcelain', extension.git.pushToRemote.get().toString(), tagName] + extension.git.pushOptions.get(), directory: workingDirectory, errorMessage: "Failed to push tag [$tagName] to remote", errorPatterns: ['[rejected]', 'error: ', 'fatal: '])
         }
     }
 
     @Override
     void commit(String message) {
         List<String> command = ['git', 'commit', '-m', message]
-        if (extension.git.commitVersionFileOnly) {
-            command << project.file(extension.versionPropertyFile)
+        if (extension.git.commitVersionFileOnly.get()) {
+            command << project.file(extension.versionPropertyFile.get())
         } else {
             command << '-a'
         }
@@ -140,10 +147,10 @@ class GitAdapter extends BaseScmAdapter {
 
         if (shouldPush()) {
             def branch = gitCurrentBranch()
-            if (extension.git.pushToBranchPrefix) {
-                branch = "HEAD:${extension.git.pushToBranchPrefix}${branch}"
+            if (extension.git.pushToBranchPrefix.isPresent()) {
+                branch = "HEAD:${extension.git.pushToBranchPrefix.get()}${branch}"
             }
-            exec(['git', 'push', '--porcelain', extension.git.pushToRemote, branch] + extension.git.pushOptions, directory: workingDirectory, errorMessage: 'Failed to push to remote', errorPatterns: ['[rejected]', 'error: ', 'fatal: '])
+            exec(['git', 'push', '--porcelain', extension.git.pushToRemote.get().toString(), branch] + extension.git.pushOptions.get(), directory: workingDirectory, errorMessage: 'Failed to push to remote', errorPatterns: ['[rejected]', 'error: ', 'fatal: '])
         }
     }
 
@@ -176,15 +183,15 @@ class GitAdapter extends BaseScmAdapter {
 
     private boolean shouldPush() {
         def shouldPush = false
-        if (extension.git.pushToRemote) {
+        if (extension.git.pushToRemote.get()) {
             exec(['git', 'remote'], directory: workingDirectory).eachLine { line ->
                 Matcher matcher = line =~ ~/^\s*(.*)\s*$/
-                if (matcher.matches() && matcher.group(1) == extension.git.pushToRemote) {
+                if (matcher.matches() && matcher.group(1) == extension.git.pushToRemote.get()) {
                     shouldPush = true
                 }
             }
-            if (!shouldPush && extension.git.pushToRemote != 'origin') {
-                throw new GradleException("Could not push to remote ${extension.git.pushToRemote} as repository has no such remote")
+            if (!shouldPush && extension.git.pushToRemote.get() != 'origin') {
+                throw new GradleException("Could not push to remote ${extension.git.pushToRemote.get()} as repository has no such remote")
             }
         }
 

@@ -11,6 +11,10 @@
 package net.researchgate.release
 
 import org.gradle.api.Project
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Optional
 
 import java.util.regex.Matcher
 import org.gradle.api.GradleException
@@ -31,15 +35,19 @@ class SvnAdapter extends BaseScmAdapter {
         super(project, attributes)
     }
 
-    class SvnConfig {
-        String username
-        String password
-        boolean pinExternals = false
-    }
+    static class SvnConfig {
+        @Internal
+        final Property<String> username
+        @Internal
+        final Property<String> password
+        @Input
+        final Property<Boolean> pinExternals
 
-    @Override
-    Object createNewConfig() {
-        return new SvnConfig();
+        SvnConfig(Project project) {
+            username = project.objects.property(String.class)
+            password = project.objects.property(String.class)
+            pinExternals = project.objects.property(Boolean.class).convention(false)
+        }
     }
 
     @Override
@@ -54,12 +62,12 @@ class SvnAdapter extends BaseScmAdapter {
     void init() {
         String username = findProperty('release.svn.username')
         if (username) {
-            extension.svn.username = username
+            extension.svn.username.set(username)
         }
 
         String password = findProperty('release.svn.password')
         if (password) {
-            extension.svn.password = password
+            extension.svn.password.set(password)
         }
 
         findSvnUrl()
@@ -89,10 +97,10 @@ class SvnAdapter extends BaseScmAdapter {
             }
         }
         if (changes > 0) {
-            warnOrThrow(extension.failOnCommitNeeded, "You have ${changes} un-commited changes.")
+            warnOrThrow(extension.failOnCommitNeeded.get(), "You have ${changes} un-commited changes.")
         }
         if (unknown > 0) {
-            warnOrThrow(extension.failOnUnversionedFiles, "You have ${unknown} un-versioned files.")
+            warnOrThrow(extension.failOnUnversionedFiles.get(), "You have ${unknown} un-versioned files.")
         }
     }
 
@@ -113,7 +121,7 @@ class SvnAdapter extends BaseScmAdapter {
             }
         }
         if (missing > 0) {
-            warnOrThrow(extension.failOnUpdateNeeded, "You are missing ${missing} changes.")
+            warnOrThrow(extension.failOnUpdateNeeded.get(), "You are missing ${missing} changes.")
         }
 
         out = svnExec(['info', attributes.svnUrl as String])
@@ -125,7 +133,7 @@ class SvnAdapter extends BaseScmAdapter {
         }
         if (svnRev != attributes.remoteSvnRev) {
             // warn that there's a difference in local revision versus remote
-            warnOrThrow(extension.failOnUpdateNeeded, "Local revision (${svnRev}) does not match remote (${attributes.remoteSvnRev}), local revision is used in tag creation.")
+            warnOrThrow(extension.failOnUpdateNeeded.get(), "Local revision (${svnRev}) does not match remote (${attributes.remoteSvnRev}), local revision is used in tag creation.")
         }
     }
 
@@ -137,7 +145,7 @@ class SvnAdapter extends BaseScmAdapter {
         String svnTag = tagName()
 
         List<String> commands = ['copy', "${svnUrl}@${svnRev}", "${svnRoot}/tags/${svnTag}", '--parents', '-m', message]
-        if (extension.svn.pinExternals) {
+        if (extension.svn.pinExternals.get()) {
             commands += '--pin-externals'
         }
         svnExec(commands)
@@ -179,11 +187,11 @@ class SvnAdapter extends BaseScmAdapter {
         Map options = [:],
         List<String> commands
     ) {
-        if (extension.svn.username) {
-            if (extension.svn.password) {
-                commands.addAll(0, ['--password', extension.svn.password]);
+        if (extension.svn.username.isPresent()) {
+            if (extension.svn.password.isPresent()) {
+                commands.addAll(0, ['--password', extension.svn.password.get()]);
             }
-            commands.addAll(0, ['--non-interactive', '--no-auth-cache', '--username', extension.svn.username]);
+            commands.addAll(0, ['--non-interactive', '--no-auth-cache', '--username', extension.svn.username.get()]);
         }
         commands.add(0, 'svn');
 

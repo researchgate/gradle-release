@@ -40,7 +40,7 @@ class SvnAdapterTests extends Specification {
 
     def "pin externals - disabled"() {
         given:
-        project.release.svn.pinExternals = false
+        project.extensions.release.svn.pinExternals.set(false)
 
         when:
         svnAdapter.createReleaseTag("my test tag")
@@ -51,7 +51,7 @@ class SvnAdapterTests extends Specification {
 
     def "pin externals - enabled"() {
         given:
-        project.release.svn.pinExternals = true
+        project.extensions.release.svn.pinExternals.set(true)
 
         when:
         svnAdapter.createReleaseTag("my test tag")

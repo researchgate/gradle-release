@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.0.0
+##### Released: 13. May 2022
+* Upgraded to gradle 6
+* Added gradle test kit and refactored tests to use GradleRunner
+* ReleaseExtension fields are gradle properties now
+* gradle adapter config defaults to main instead of master branch
+* Switched default branch to main 
+
 ## 2.5.0
 ##### Released: xx. July 2016
 
@@ -67,7 +75,7 @@
 ### New Features
 
 * COMMON: Possibility to use the release plugin in multiprojects where each project has its own version (#116, thanks christierney)
-    * see [the example](https://github.com/researchgate/gradle-release-examples/tree/master/multi-project-multiple-versions)
+    * see [the example](https://github.com/researchgate/gradle-release-examples/tree/main/multi-project-multiple-versions)
 * GIT: Option ```pushToBranchPrefix``` can now be set to specify a remote branch prefix when committing next version (#140, #113, thanks muryoh)
 
 ### Changes

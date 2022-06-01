@@ -11,138 +11,121 @@
 package net.researchgate.release
 
 import org.gradle.api.Project
+import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.Optional
+import org.gradle.internal.impldep.org.eclipse.jgit.api.Git
 import org.gradle.util.ConfigureUtil
 
+import javax.swing.Action
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
 class ReleaseExtension {
 
-    boolean failOnCommitNeeded = true
+    @Input
+    final Property<Boolean> failOnCommitNeeded = project.objects.property(Boolean.class).convention(true)
 
-    boolean failOnPublishNeeded = true
+    @Input
+    final Property<Boolean> failOnPublishNeeded = project.objects.property(Boolean.class).convention(true)
 
-    boolean failOnSnapshotDependencies = true
+    @Input
+    final Property<Boolean> failOnSnapshotDependencies = project.objects.property(Boolean.class).convention(true)
 
-    boolean failOnUnversionedFiles = true
+    @Input
+    final Property<Boolean> failOnUnversionedFiles = project.objects.property(Boolean.class).convention(true)
 
-    boolean failOnUpdateNeeded = true
+    @Input
+    final Property<Boolean> failOnUpdateNeeded = project.objects.property(Boolean.class).convention(true)
 
-    boolean revertOnFail = true
+    @Input
+    final Property<Boolean> revertOnFail = project.objects.property(Boolean.class).convention(true)
 
-    String preCommitText = ''
+    @Optional
+    @Input
+    final Property<String> pushReleaseVersionBranch = project.objects.property(String.class)
 
-    String preTagCommitMessage = '[Gradle Release Plugin] - pre tag commit: '
+    @Input
+    final Property<String> preCommitText = project.objects.property(String.class).convention('')
 
-    String tagCommitMessage = '[Gradle Release Plugin] - creating tag: '
+    @Input
+    final Property<String> preTagCommitMessage = project.objects.property(String.class).convention('[Gradle Release Plugin] - pre tag commit: ')
 
-    String newVersionCommitMessage = '[Gradle Release Plugin] - new version commit: '
+    @Input
+    final Property<String> tagCommitMessage = project.objects.property(String.class).convention('[Gradle Release Plugin] - creating tag: ')
 
-    String snapshotSuffix = '-SNAPSHOT'
+    @Input
+    final Property<String> newVersionCommitMessage = project.objects.property(String.class).convention('[Gradle Release Plugin] - new version commit: ')
 
-    def pushReleaseVersionBranch = false
+    @Input
+    final Property<String> snapshotSuffix = project.objects.property(String.class).convention('-SNAPSHOT')
 
-    /**
-     * as of 3.0 set this to "$version" by default
-     */
-    String tagTemplate
+    @Input
+    final Property<String> tagTemplate = project.objects.property(String.class).convention('$version')
 
-    String versionPropertyFile = 'gradle.properties'
+    @Input
+    final Property<String> versionPropertyFile = project.objects.property(String.class).convention('gradle.properties')
 
-    List versionProperties = []
+    @Input
+    final ListProperty<String> versionProperties = project.objects.listProperty(String.class).convention([])
 
-    List buildTasks = ['build']
+    @Input
+    final ListProperty<String> buildTasks = project.objects.listProperty(String.class).convention([])
 
-    List ignoredSnapshotDependencies = []
+    @Input
+    final ListProperty<String> ignoredSnapshotDependencies = project.objects.listProperty(String.class).convention([])
 
+    @Input
     Map<String, Closure<String>> versionPatterns = [
         // Increments last number: "2.5-SNAPSHOT" => "2.6-SNAPSHOT"
         /(\d+)([^\d]*$)/: { Matcher m, Project p -> m.replaceAll("${(m[0][1] as int) + 1}${m[0][2]}") }
     ]
 
+    @Nested
+    final GitAdapter.GitConfig git
+
+    @Nested
+    final SvnAdapter.SvnConfig svn
+
+    @Internal
     List<Class<? extends BaseScmAdapter>> scmAdapters = [
         GitAdapter,
         SvnAdapter,
         HgAdapter,
         BzrAdapter
-    ];
+    ]
+
+    @Internal
+    BaseScmAdapter scmAdapter
 
     private Project project
-    private Map<String, Object> attributes
+
+    @Internal
+    Map<String, Object> attributes // General plugin attributes
 
     ReleaseExtension(Project project, Map<String, Object> attributes) {
         this.attributes = attributes
         this.project = project
-        ExpandoMetaClass mc = new ExpandoMetaClass(ReleaseExtension, false, true)
-        mc.initialize()
-        metaClass = mc
+        git = new GitAdapter.GitConfig(project)
+        svn = new SvnAdapter.SvnConfig(project)
     }
 
-    def propertyMissing(String name) {
-        if (isDeprecatedOption(name)) {
-            def value = null
-            if (name == 'includeProjectNameInTag') {
-                value = false
-            }
-
-            return metaClass."$name" = value
-        }
-        BaseScmAdapter adapter = getAdapterForName(name)
-        Object result = adapter?.createNewConfig()
-
-        if (!adapter || !result) {
-            throw new MissingPropertyException(name, this.class)
-        }
-
-        metaClass."$name" = result
+    void git(Closure<GitAdapter.GitConfig> closure) {
+        project.configure(git, closure)
     }
 
-    def propertyMissing(String name, value) {
-        if (isDeprecatedOption(name)) {
-            project.logger?.warn("You are setting the deprecated option '${name}'. The deprecated option will be removed in 3.0")
-            project.logger?.warn("Please upgrade your configuration to use 'tagTemplate'. See https://github.com/researchgate/gradle-release/blob/master/UPGRADE.md#migrate-to-new-tagtemplate-configuration")
-
-            return metaClass."$name" = value
-        }
-        BaseScmAdapter adapter = getAdapterForName(name)
-
-        if (!adapter) {
-            throw new MissingPropertyException(name, this.class)
-        }
-        metaClass."$name" = value
+    void git(org.gradle.api.Action<? super SvnAdapter.SvnConfig> config) {
+        project.configure([git], config)
     }
 
-    def methodMissing(String name, args) {
-        metaClass."$name" = { Closure varClosure ->
-            return ConfigureUtil.configure(varClosure, this."$name")
-        }
-
-        try {
-            return ConfigureUtil.configure(args[0] as Closure, this."$name")
-        } catch (MissingPropertyException ignored) {
-            throw new MissingMethodException(name, this.class, args)
-        }
+    void svn(Closure<SvnAdapter.SvnConfig> closure) {
+        project.configure(svn, closure)
     }
 
-    private boolean isDeprecatedOption(String name) {
-        name == 'includeProjectNameInTag' || name == 'tagPrefix'
-    }
-
-    private BaseScmAdapter getAdapterForName(String name) {
-        BaseScmAdapter adapter = null
-        scmAdapters.find {
-            assert BaseScmAdapter.isAssignableFrom(it)
-
-            Pattern pattern = Pattern.compile("^${name}", Pattern.CASE_INSENSITIVE);
-            if (!pattern.matcher(it.simpleName).find()) {
-                return false
-            }
-
-            adapter = it.getConstructor(Project.class, Map.class).newInstance(project, attributes)
-
-            return true
-        }
-
-        adapter
+    void svn(org.gradle.api.Action<? super SvnAdapter.SvnConfig> config) {
+        project.configure([svn], config)
     }
 }

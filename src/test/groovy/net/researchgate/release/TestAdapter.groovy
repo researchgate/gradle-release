@@ -23,11 +23,6 @@ class TestAdapter extends BaseScmAdapter {
     }
 
     @Override
-    Object createNewConfig() {
-        new TestConfig()
-    }
-
-    @Override
     boolean isSupported(File directory) {
         return true
     }
