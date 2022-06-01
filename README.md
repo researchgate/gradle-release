@@ -1,7 +1,7 @@
 # gradle-release plugin
 
 [![Build Status](https://github.com/researchgate/gradle-release/actions/workflows/tests.yaml/badge.svg)](https://github.com/researchgate/gradle-release/actions/workflows/tests.yaml)
-[![Download](https://plugins.gradle.org/plugin/net.researchgate.release)
+[![Gradle Plugin page](https://plugins.gradle.org/plugin/net.researchgate.release)]
 
 ## Introduction
 
