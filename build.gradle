@@ -15,8 +15,8 @@ plugins {
     id 'org.gradle.java-gradle-plugin'
     id 'org.gradle.groovy'
     id 'maven-publish'
-    id 'net.researchgate.release' version '2.7.0'
-    id "com.jfrog.bintray" version "1.8.4"
+    id 'net.researchgate.release' version '2.8.0'
+    id 'com.gradle.plugin-publish' version '0.18.0'
 }
 
 apply plugin: 'idea'
@@ -42,6 +42,12 @@ gradlePlugin {
             implementationClass = 'net.researchgate.release.ReleasePlugin'
         }
     }
+}
+
+pluginBundle {
+    website = 'https://github.com/researchgate/gradle-release'
+    vcsUrl = 'https://github.com/researchgate/gradle-release'
+    tags = ['release', 'git', 'hg', 'mercurial', 'svn', 'subversion', 'bzr', 'bazaar']
 }
 
 tasks.withType(Test).configureEach {
