@@ -117,7 +117,7 @@ class ReleaseExtension {
         project.configure(git, closure)
     }
 
-    void git(org.gradle.api.Action<? super SvnAdapter.SvnConfig> config) {
+    void git(org.gradle.api.Action<? super GitAdapter.GitConfig> config) {
         project.configure([git], config)
     }
 

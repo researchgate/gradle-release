@@ -152,8 +152,8 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
         project.afterEvaluate {
             def buildTasks = extension.buildTasks.get()
             if (!buildTasks.empty) {
-                project.tasks[buildTasks.first()].mustRunAfter(project.tasks.beforeReleaseBuild)
-                project.tasks.afterReleaseBuild.mustRunAfter(project.tasks[buildTasks.last()])
+                project.tasks.findByPath(buildTasks.first()).mustRunAfter(project.tasks.beforeReleaseBuild)
+                project.tasks.afterReleaseBuild.mustRunAfter(project.tasks.findByPath(buildTasks.last()))
             }
         }
 
