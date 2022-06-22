@@ -39,7 +39,7 @@ gradlePlugin {
     plugins {
         releasePlugin {
             displayName = 'Maven style release plugin for gradle'
-            description = 'Maven style release plugin for gradle that supports git, subversion bazaar and mercurial'
+            description = 'gradle-release is a plugin for providing a Maven-like release process to project using Gradle that supports git, subversion bazaar and mercurial'
             id = 'net.researchgate.release'
             implementationClass = 'net.researchgate.release.ReleasePlugin'
         }
