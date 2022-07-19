@@ -84,7 +84,7 @@ class GitAdapter extends BaseScmAdapter {
         } else {
             releaseBranch = workingBranch
         }
-        if (extension.git.requireBranch.isPresent()) {
+        if (extension.git.requireBranch.isPresent() && extension.git.requireBranch.get()) {
             if (!(workingBranch ==~ extension.git.requireBranch.get())) {
                 throw new GradleException("Current Git branch is \"$workingBranch\" and not \"${ extension.git.requireBranch.get() }\".")
             }
