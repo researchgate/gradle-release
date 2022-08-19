@@ -113,4 +113,22 @@ class GitReleasePluginTests extends Specification {
         then:
         remoteRepo.list().any { it == 'gradle.properties' }
     }
+
+    def 'commitOptions are passed through to git command'() {
+        given:
+        executor.exec(['git', 'checkout', '-B', 'myBranch'], failOnStderr: false, directory: localRepo, env: [:])
+        when:
+        project.release {
+            git {
+                requireBranch.set('myBranch')
+                commitOptions.set(['-s'])
+            }
+        }
+        (project.tasks.commitNewVersion as CommitNewVersion).commitNewVersion()
+        String newestCommit = executor.exec(['git', 'show', 'myBranch', '-s'], failOnStderr: false, directory: remoteRepo, env: [:])
+        executor.exec(['git', 'checkout', 'myBranch'], failOnStderr: false, directory: remoteRepo, env: [:])
+        executor.exec(['git', 'reset', '--hard', 'HEAD'], failOnStderr: false, directory: remoteRepo, env: [:])
+        then:
+        newestCommit.contains("Signed-off-by: Unit Test <unit@test>")
+    }
 }
