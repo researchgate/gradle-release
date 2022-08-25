@@ -259,6 +259,7 @@ configure<ReleaseExtension> {
     ignoredSnapshotDependencies.set(listOf("net.researchgate:gradle-release"))
     with(git) {
         requireBranch.set("master")
+        // to disable branch verification: requireBranch.set(null as String?)
     }
 }
 ```
