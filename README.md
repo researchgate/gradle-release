@@ -104,7 +104,7 @@ Below are some properties of the Release Plugin Convention that can be used to m
 	</tr>
 	<tr>
 		<td>pushReleaseVersionBranch</td>
-		<td>false</td>
+		<td>null</td>
 		<td>(GIT only) If set to the name of a branch, the `release` task will commit the release on this branch, and the next version on the working branch.</td>
 	</tr>
 </table>
@@ -160,7 +160,7 @@ Below are some properties of the Release Plugin Convention that are specific to 
 		<td>Git</td>
 		<td>requireBranch</td>
 		<td>main</td>
-		<td>Defines the branch which releases must be done off of. Eg. set to `release` to require releases are done on the `release` branch (or use a regular expression to allow releases from multiple branches, e.g. `/release|main/`). Set to '' to ignore.</td>
+		<td>Defines the branch which releases must be done off of. Eg. set to `release` to require releases are done on the `release` branch (or use a regular expression to allow releases from multiple branches, e.g. `/release|main/`). Set to null to ignore.</td>
 	</tr>
 	<tr>
 		<td>Git</td>
