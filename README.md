@@ -258,7 +258,7 @@ apply(plugin = "net.researchgate.release")
 configure<ReleaseExtension> {
     ignoredSnapshotDependencies.set(listOf("net.researchgate:gradle-release"))
     with(git) {
-        requireBranch = "master"
+        requireBranch.set("master")
     }
 }
 ```
