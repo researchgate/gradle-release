@@ -164,6 +164,12 @@ Below are some properties of the Release Plugin Convention that are specific to 
 	</tr>
 	<tr>
 		<td>Git</td>
+		<td>commitOptions</td>
+		<td>{empty}</td>
+		<td>Defines an array of options to add to the git adapter during a commit.  Example `commitOptions = ["-s"]`</td>
+	</tr>
+	<tr>
+		<td>Git</td>
 		<td>pushOptions</td>
 		<td>{empty}</td>
 		<td>Defines an array of options to add to the git adapter during a push.  This could be useful to have the vc hooks skipped during a release. Example `pushOptions = ["--no-verify"]`</td>

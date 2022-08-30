@@ -40,6 +40,9 @@ class GitAdapter extends BaseScmAdapter {
         final Property<String> requireBranch
         @Optional
         @Input
+        ListProperty<String> commitOptions
+        @Optional
+        @Input
         final Property<Object> pushToRemote
         @Optional
         @Input
@@ -54,6 +57,7 @@ class GitAdapter extends BaseScmAdapter {
 
         GitConfig(Project project) {
             requireBranch = project.objects.property(String.class).convention('main')
+            commitOptions = project.objects.listProperty(String.class).convention([])
             pushToRemote = project.objects.property(Object.class).convention('origin')
             pushOptions = project.objects.listProperty(String.class).convention([])
             signTag = project.objects.property(Boolean.class).convention(false)
@@ -142,6 +146,7 @@ class GitAdapter extends BaseScmAdapter {
         } else {
             command << '-a'
         }
+        command += extension.git.commitOptions.get()
 
         exec(command, directory: workingDirectory, errorPatterns: ['error: ', 'fatal: '])
 
