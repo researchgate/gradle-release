@@ -160,7 +160,7 @@ Below are some properties of the Release Plugin Convention that are specific to 
 		<td>Git</td>
 		<td>requireBranch</td>
 		<td>main</td>
-		<td>Defines the branch which releases must be done off of. Eg. set to `release` to require releases are done on the `release` branch (or use a regular expression to allow releases from multiple branches, e.g. `/release|main/`). Set to null to ignore.</td>
+		<td>Defines the branch which releases must be done off of. Eg. set to `release` to require releases are done on the `release` branch (or use a regular expression to allow releases from multiple branches, e.g. `/release|main/`). Set to empty string "" to ignore.</td>
 	</tr>
 	<tr>
 		<td>Git</td>

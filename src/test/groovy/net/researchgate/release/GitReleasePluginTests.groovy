@@ -12,6 +12,7 @@ package net.researchgate.release
 
 import net.researchgate.release.cli.Executor
 import net.researchgate.release.tasks.CommitNewVersion
+import net.researchgate.release.tasks.InitScmAdapter
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.plugins.BasePlugin
@@ -130,5 +131,19 @@ class GitReleasePluginTests extends Specification {
         executor.exec(['git', 'reset', '--hard', 'HEAD'], failOnStderr: false, directory: remoteRepo, env: [:])
         then:
         newestCommit.contains("Signed-off-by: Unit Test <unit@test>")
+    }
+
+    def 'accept empty string to ignore requireBranch'() {
+        given:
+        executor.exec(['git', 'checkout', '-B', 'myBranch'], failOnStderr: false, directory: localRepo, env: [:])
+        when:
+        project.release {
+            git {
+                requireBranch.set('')
+            }
+        }
+        (project.tasks.initScmAdapter as InitScmAdapter).initScmAdapter()
+        then:
+        (project.tasks.initScmAdapter as InitScmAdapter).getScmAdapter().class.equals(GitAdapter.class)
     }
 }
