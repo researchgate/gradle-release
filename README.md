@@ -216,7 +216,7 @@ release {
     versionPropertyFile = 'gradle.properties'
     versionProperties = []
     snapshotSuffix = '-SNAPSHOT'
-    buildTasks = ['build']
+    buildTasks = []
     ignoredSnapshotDependencies = []
     versionPatterns = [
         /(\d+)([^\d]*$)/: { Matcher m, Project p -> m.replaceAll("${(m[0][1] as int) + 1}${m[0][2]}") }
