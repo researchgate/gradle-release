@@ -230,17 +230,17 @@ release {
     ]
 
     git {
-        requireBranch = 'main'
-        pushToRemote = 'origin'
-        pushToBranchPrefix = ''
-        commitVersionFileOnly = false
-        signTag = false
+        requireBranch.set('main')
+        pushToRemote.set('origin')
+        pushToBranchPrefix.set('')
+        commitVersionFileOnly.set(false)
+        signTag.set(false)
     }
 
     svn {
-        username = null
-        password = null
-        pinExternals = false   // allows to pin the externals when tagging, requires subversion client >= 1.9.0
+        username.set(null)
+        password.set(null)
+        pinExternals.set(false)   // allows to pin the externals when tagging, requires subversion client >= 1.9.0
     }
 }
 ```
