@@ -26,18 +26,9 @@ class BaseReleaseTask extends DefaultTask {
     @Internal
     Map<String, Object> pluginAttributes
 
-    @Internal
-    Project getRootProject() {
-        def project = getProject()
-        if (project.getParent() != null) {
-            return project.getParent()
-        }
-        return project
-    }
-
     BaseReleaseTask() {
         group = RELEASE_GROUP
-        extension = getRootProject().extensions.getByName('release') as ReleaseExtension
+        extension = project.extensions.getByName('release') as ReleaseExtension
         pluginAttributes = extension.attributes
     }
 
@@ -128,7 +119,7 @@ class BaseReleaseTask extends DefaultTask {
     }
 
     String findProperty(String key, Object defaultVal = null, String deprecatedKey = null) {
-        Project project = getRootProject()
+        Project project = project
         def property = System.getProperty(key) ?: project.hasProperty(key) ? project.property(key) : null
 
         if (!property && deprecatedKey) {

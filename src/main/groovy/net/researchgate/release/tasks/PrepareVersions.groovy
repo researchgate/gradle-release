@@ -13,9 +13,8 @@ class PrepareVersions extends BaseReleaseTask {
 
     @TaskAction
     def prepareVersions() {
-        Project rootProject = getRootProject()
         String versionPropertyFilepath = extension.versionPropertyFile.get()
-        File rootVersionFile = rootProject.file(versionPropertyFilepath)
+        File rootVersionFile = project.file(versionPropertyFilepath)
         if (rootVersionFile.file) {
             return
         }

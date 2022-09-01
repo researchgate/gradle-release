@@ -17,7 +17,7 @@ class PreTagCommit extends BaseReleaseTask {
 
     @TaskAction
     void preTagCommit() {
-        BaseScmAdapter scmAdapter = ((ReleaseExtension) getRootProject().extensions.getByName("release")).scmAdapter
+        BaseScmAdapter scmAdapter = ((ReleaseExtension) project.extensions.getByName("release")).scmAdapter
         Map<String, Object> projectAttributes = extension.attributes
         if (projectAttributes.usesSnapshot || projectAttributes.versionModified || projectAttributes.propertiesFileCreated) {
             // should only be committed if the project was using a snapshot version.
