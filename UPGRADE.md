@@ -1,5 +1,14 @@
 # Upgrade instructions
 
+## 2 to 3
+
+* Minimum gradle version is now 6.0.0
+* Release extension and svn/git configuration fields are now of type Property
+* Replaced dynamic property handling in grovvy with fields (git / svn in release extension)
+* Removed pushToCurrentBranch configuration
+* Removed tagPrefix configuration that got replaced by tagTemplate
+* Release related tasks are now classes
+
 ## 2.0 to 2.1
 
 ### Location of git configuration changed
