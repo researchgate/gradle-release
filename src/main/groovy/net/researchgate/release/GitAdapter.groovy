@@ -10,7 +10,6 @@
 
 package net.researchgate.release
 
-import com.sun.org.apache.xpath.internal.operations.Bool
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.provider.ListProperty

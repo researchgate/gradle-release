@@ -183,7 +183,7 @@ class PluginHelper {
         System.in.newReader().readLine() ?: defaultValue
     }
 
-    private static boolean promptYesOrNo(String message, boolean defaultValue = false) {
+    protected static boolean promptYesOrNo(String message, boolean defaultValue = false) {
         String defaultStr = defaultValue ? 'Y' : 'n'
         String consoleVal = readLine("${message} (Y|n)", defaultStr)
         if (consoleVal) {
