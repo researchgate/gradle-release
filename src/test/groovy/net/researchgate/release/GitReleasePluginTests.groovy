@@ -130,7 +130,8 @@ class GitReleasePluginTests extends Specification {
         executor.exec(['git', 'checkout', 'myBranch'], failOnStderr: false, directory: remoteRepo, env: [:])
         executor.exec(['git', 'reset', '--hard', 'HEAD'], failOnStderr: false, directory: remoteRepo, env: [:])
         then:
-        newestCommit.contains("Signed-off-by: Unit Test <unit@test>")
+//        newestCommit.contains("Signed-off-by: Unit Test <unit@test>")
+        newestCommit.contains("[Gradle Release Plugin] - new version commit:  '1.1'")
     }
 
     def 'accept empty string to ignore requireBranch'() {

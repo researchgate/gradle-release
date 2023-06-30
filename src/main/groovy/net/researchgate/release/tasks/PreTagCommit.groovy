@@ -22,8 +22,8 @@ class PreTagCommit extends BaseReleaseTask {
         if (projectAttributes.usesSnapshot || projectAttributes.versionModified || projectAttributes.propertiesFileCreated) {
             // should only be committed if the project was using a snapshot version.
             String message = extension.preTagCommitMessage.get() + " '${tagName()}'."
-            if (extension.preCommitText) {
-                message = "${extension.preCommitText.get()} ${message}"
+            if (extension.preCommitText.get()) {
+                message = "${extension.preCommitText.get()} - ${message}"
             }
             if (projectAttributes.propertiesFileCreated) {
                 scmAdapter.add(findPropertiesFile(project))
