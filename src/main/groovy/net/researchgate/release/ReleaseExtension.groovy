@@ -49,16 +49,16 @@ class ReleaseExtension {
     final Property<String> pushReleaseVersionBranch = project.objects.property(String.class)
 
     @Input
-    final Property<String> preCommitText = project.objects.property(String.class).convention('')
+    final Property<String> preCommitText = project.objects.property(String.class).convention('[Gradle Release Plugin]')
 
     @Input
-    final Property<String> preTagCommitMessage = project.objects.property(String.class).convention('[Gradle Release Plugin] - pre tag commit: ')
+    final Property<String> preTagCommitMessage = project.objects.property(String.class).convention('pre tag commit: ')
 
     @Input
-    final Property<String> tagCommitMessage = project.objects.property(String.class).convention('[Gradle Release Plugin] - creating tag: ')
+    final Property<String> tagCommitMessage = project.objects.property(String.class).convention('creating tag: ')
 
     @Input
-    final Property<String> newVersionCommitMessage = project.objects.property(String.class).convention('[Gradle Release Plugin] - new version commit: ')
+    final Property<String> newVersionCommitMessage = project.objects.property(String.class).convention('new version commit: ')
 
     @Input
     final Property<String> snapshotSuffix = project.objects.property(String.class).convention('-SNAPSHOT')

@@ -12,9 +12,9 @@ class CreateReleaseTag extends BaseReleaseTask {
 
     @TaskAction
     void createReleaseTag() {
-        def message = extension.tagCommitMessage.get() + " '${tagName()}'."
+        String message = extension.tagCommitMessage.get() + " '${tagName()}'."
         if (extension.preCommitText.get()) {
-            message = "${extension.preCommitText.get()} ${message}"
+            message = "${extension.preCommitText.get()} - ${message}"
         }
         scmAdapter.createReleaseTag(message)
     }

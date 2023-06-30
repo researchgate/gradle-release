@@ -14,7 +14,7 @@ class CommitNewVersion extends BaseReleaseTask {
     def commitNewVersion() {
         String message = extension.newVersionCommitMessage.get() + " '${tagName()}'."
         if (extension.preCommitText.get()) {
-            message = "${extension.preCommitText.get()} ${message}"
+            message = "${extension.preCommitText.get()} - ${message}"
         }
         getScmAdapter().commit(message)
     }
