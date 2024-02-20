@@ -1,3 +1,5 @@
+import org.gradle.api.internal.classpath.ModuleRegistry
+
 buildscript {
     repositories {
         maven {
@@ -33,6 +35,10 @@ dependencies {
     testCompile "cglib:cglib-nodep:3.2.8"
     testImplementation gradleTestKit()
     testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
+
+    // work-around for https://github.com/gradle/gradle/issues/16774
+    testRuntimeOnly(files(project.services.get(ModuleRegistry).getModule('gradle-tooling-api-builders').classpath.asFiles.first()))
+    testRuntimeOnly('com.google.guava:guava:27.1-android')
 }
 
 gradlePlugin {
