@@ -28,13 +28,19 @@ import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.BasePlugin
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.GradleBuild
 import org.gradle.api.tasks.TaskState
+import org.gradle.build.event.BuildEventsListenerRegistry
+import org.gradle.tooling.events.OperationCompletionListener
+import org.gradle.tooling.events.task.TaskFailureResult
 import org.gradle.util.GradleVersion
 
-class ReleasePlugin extends PluginHelper implements Plugin<Project> {
+import javax.inject.Inject
 
+abstract class ReleasePlugin extends PluginHelper implements Plugin<Project> {
     static final String RELEASE_GROUP = 'Release'
 
     private BaseScmAdapter scmAdapter
@@ -74,7 +80,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
                 "${p}updateVersion" as String,
                 "${p}commitNewVersion" as String
             ]
-            
+
             // Gradle 6 workaround (https://github.com/gradle/gradle/issues/12872)
             buildName = project.name + "-release"
         }
@@ -119,7 +125,7 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
                         "${p}afterReleaseBuild" as String
                 ].flatten()
             }
-            
+
             // Gradle 6 workaround (https://github.com/gradle/gradle/issues/12872)
             buildName = project.name + "-release"
         }
@@ -161,18 +167,40 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
             }
         }
 
-        project.gradle.taskGraph.afterTask { Task task, TaskState state ->
-            if (state.failure && task.name == "release") {
-                try {
-                    createScmAdapter()
-                } catch (Exception ignored) {}
-                if (scmAdapter && extension.revertOnFail && project.file(extension.versionPropertyFile)?.exists()) {
-                    log.error('Release process failed, reverting back any changes made by Release Plugin.')
-                    scmAdapter.revert()
-                } else {
-                    log.error('Release process failed, please remember to revert any uncommitted changes made by the Release Plugin.')
+        if (GradleVersion.current() < GradleVersion.version('6.1')) {
+            project.gradle.taskGraph.afterTask { Task task, TaskState state ->
+                if (state.failure && task.name == 'release') {
+                    revert()
                 }
             }
+        } else {
+            objects.newInstance(BuildEventsListenerRegistryProvider)
+                  .buildEventsListenerRegistry
+                  .onTaskCompletion(providers.provider {
+                      { finishEvent ->
+                          if ((finishEvent.result instanceof TaskFailureResult) && finishEvent.descriptor.taskPath.endsWith(':release')) {
+                              revert()
+                          }
+                      } as OperationCompletionListener
+                  })
+        }
+    }
+
+    @Inject
+    abstract protected ObjectFactory getObjects();
+
+    @Inject
+    abstract protected ProviderFactory getProviders();
+
+    protected revert() {
+        try {
+            createScmAdapter()
+        } catch (Exception ignored) {}
+        if (scmAdapter && extension.revertOnFail.get() && project.file(extension.versionPropertyFile)?.exists()) {
+            log.error('Release process failed, reverting back any changes made by Release Plugin.')
+            scmAdapter.revert()
+        } else {
+            log.error('Release process failed, please remember to revert any uncommitted changes made by the Release Plugin.')
         }
     }
 
