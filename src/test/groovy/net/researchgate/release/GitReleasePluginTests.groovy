@@ -126,7 +126,7 @@ class GitReleasePluginTests extends Specification {
             }
         }
         (project.tasks.commitNewVersion as CommitNewVersion).commitNewVersion()
-        String newestCommit = executor.exec(['git', 'show', 'myBranch', '-s'], failOnStderr: false, directory: remoteRepo, env: [:])
+        String newestCommit = executor.exec(['git', 'show', 'myBranch', '-s', '--pretty=medium'], failOnStderr: false, directory: remoteRepo, env: [:])
         executor.exec(['git', 'checkout', 'myBranch'], failOnStderr: false, directory: remoteRepo, env: [:])
         executor.exec(['git', 'reset', '--hard', 'HEAD'], failOnStderr: false, directory: remoteRepo, env: [:])
         then:
