@@ -31,6 +31,7 @@ import org.gradle.api.Task
 import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.tasks.GradleBuild
 import org.gradle.api.tasks.TaskState
+import org.gradle.util.GradleVersion
 
 class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
@@ -104,7 +105,10 @@ class ReleasePlugin extends PluginHelper implements Plugin<Project> {
             startParameter.projectProperties.putAll(project.getGradle().startParameter.projectProperties)
             startParameter.projectProperties.put('release.releasing', "true")
             startParameter.projectDir = project.projectDir
-            startParameter.settingsFile = project.getGradle().startParameter.settingsFile
+            if (GradleVersion.current() < GradleVersion.version("9.0")) {
+                // Setting custom settings file for the build has been deprecated.
+                startParameter.settingsFile = project.getGradle().startParameter.settingsFile
+            }
             startParameter.gradleUserHomeDir = project.getGradle().startParameter.gradleUserHomeDir
             buildName = project.name
 
