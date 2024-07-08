@@ -31,6 +31,7 @@ import org.gradle.api.Task
 import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.tasks.GradleBuild
 import org.gradle.api.tasks.TaskState
+import org.gradle.util.GradleVersion
 
 class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
