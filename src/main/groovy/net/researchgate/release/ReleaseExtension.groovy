@@ -95,7 +95,8 @@ class ReleaseExtension {
         GitAdapter,
         SvnAdapter,
         HgAdapter,
-        BzrAdapter
+        BzrAdapter,
+        ManualAdapter
     ]
 
     @Internal
