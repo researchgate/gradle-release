@@ -10,6 +10,7 @@
 
 package net.researchgate.release
 
+import net.researchgate.release.tasks.SnapshotVersion
 import net.researchgate.release.tasks.UnSnapshotVersion
 import net.researchgate.release.tasks.UpdateVersion
 import org.gradle.api.plugins.BasePlugin
@@ -101,6 +102,18 @@ class ReleasePluginTests extends Specification {
         (project.tasks.unSnapshotVersion as UnSnapshotVersion).unSnapshotVersion()
         then:
         project.version == '1.4-dev'
+    }
+
+    def 'version is properly snapshoted when using default snapshot suffix'() {
+        given:
+        def testVersionPropertyFile = project.file('gradle.properties')
+        testVersionPropertyFile.withWriter { w ->
+            w.writeLine 'version=1.3'
+        }
+        when:
+        (project.tasks.snapshotVersion as SnapshotVersion).snapshotVersion()
+        then:
+        project.version == '1.3-SNAPSHOT'
     }
 
     def 'snapshot version should be updated to new snapshot version with default snapshot suffix'() {
