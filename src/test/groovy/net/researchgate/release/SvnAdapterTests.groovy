@@ -18,13 +18,16 @@ class SvnAdapterTests extends Specification {
     Project project
     SvnAdapter svnAdapter
 
+    private mockExecutor = Mock(Executor)
+
     def setup() {
         project = ProjectBuilder.builder().withName('ReleasePluginTest').build()
         project.apply plugin: ReleasePlugin
         project.version = '1.0.0'
 
-        svnAdapter = new SvnAdapter(project, [:])
-        svnAdapter.executor = Mock(Executor)
+        def pluginHelper = new PluginHelper(project, project.extensions['release'] as ReleaseExtension, [:])
+        svnAdapter = new SvnAdapter(pluginHelper)
+        pluginHelper.cacheablePluginHelper.executor = mockExecutor
         svnAdapter.attributes.svnUrl  = 'svn://server/repo'
         svnAdapter.attributes.svnRev  = 123
         svnAdapter.attributes.svnRoot = '/root'
@@ -35,28 +38,28 @@ class SvnAdapterTests extends Specification {
         svnAdapter.createReleaseTag("my test tag")
 
         then:
-        1 * svnAdapter.executor.exec(_, ['svn', 'copy', 'svn://server/repo@123', '/root/tags/1.0.0', '--parents', '-m', 'my test tag'])
+        1 * mockExecutor.exec(_, ['svn', 'copy', 'svn://server/repo@123', '/root/tags/1.0.0', '--parents', '-m', 'my test tag'])
     }
 
     def "pin externals - disabled"() {
         given:
-        project.extensions.release.svn.pinExternals.set(false)
+        (project.extensions['release'] as ReleaseExtension).svn.pinExternals.set(false)
 
         when:
         svnAdapter.createReleaseTag("my test tag")
 
         then:
-        1 * svnAdapter.executor.exec(_, ['svn', 'copy', 'svn://server/repo@123', '/root/tags/1.0.0', '--parents', '-m', 'my test tag'])
+        1 * mockExecutor.exec(_, ['svn', 'copy', 'svn://server/repo@123', '/root/tags/1.0.0', '--parents', '-m', 'my test tag'])
     }
 
     def "pin externals - enabled"() {
         given:
-        project.extensions.release.svn.pinExternals.set(true)
+        (project.extensions['release'] as ReleaseExtension).svn.pinExternals.set(true)
 
         when:
         svnAdapter.createReleaseTag("my test tag")
 
         then:
-        1 * svnAdapter.executor.exec(_, ['svn', 'copy', 'svn://server/repo@123', '/root/tags/1.0.0', '--parents', '-m', 'my test tag', '--pin-externals'])
+        1 * mockExecutor.exec(_, ['svn', 'copy', 'svn://server/repo@123', '/root/tags/1.0.0', '--parents', '-m', 'my test tag', '--pin-externals'])
     }
 }

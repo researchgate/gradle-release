@@ -10,15 +10,22 @@
 
 package net.researchgate.release
 
+import groovy.transform.CompileStatic
 import org.gradle.api.GradleException
-import org.gradle.api.Project
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
-abstract class BaseScmAdapter extends PluginHelper {
+abstract class BaseScmAdapter<C extends Cacheable> {
 
-    BaseScmAdapter(Project project, Map<String, Object> attributes) {
-        this.project = project
-        this.attributes = attributes
-        extension = project.extensions['release'] as ReleaseExtension
+    protected final PluginHelper pluginHelper
+    protected final C cacheableScmAdapter
+
+    protected final Logger log
+
+    BaseScmAdapter(PluginHelper pluginHelper, C cacheableScmAdapter) {
+        this.pluginHelper = pluginHelper
+        this.cacheableScmAdapter = cacheableScmAdapter
+        log = pluginHelper.project.logger ?: LoggerFactory.getLogger(this.class)
     }
 
     abstract boolean isSupported(File directory)
@@ -35,7 +42,9 @@ abstract class BaseScmAdapter extends PluginHelper {
 
     abstract void commit(String message)
 
-    abstract void revert()
+    void revert() {
+        cacheableScmAdapter.revert()
+    }
 
     void checkoutMergeToReleaseBranch() {
         throw new GradleException("Checkout and merge is supported only for GIT projects")
@@ -43,5 +52,70 @@ abstract class BaseScmAdapter extends PluginHelper {
 
     void checkoutMergeFromReleaseBranch() {
         throw new GradleException("Checkout and merge is supported only for GIT projects")
+    }
+
+    ReleaseExtension getExtension() {
+        pluginHelper.extension
+    }
+
+    Map<String, Object> getAttributes() {
+        pluginHelper.attributes
+    }
+
+    File getPropertiesFile() {
+        pluginHelper.propertiesFile
+    }
+
+    String exec(Map options = [:], List<String> commands) {
+        pluginHelper.exec(options, commands)
+    }
+
+    String findProperty(String key, Object defaultVal = null, String deprecatedKey = null) {
+        pluginHelper.findProperty(key, defaultVal, deprecatedKey)
+    }
+
+    String tagName() {
+        pluginHelper.tagName()
+    }
+
+    void updateVersionProperty(String newVersion) {
+        pluginHelper.updateVersionProperty(newVersion)
+    }
+
+    void warnOrThrow(boolean doThrow, String message) {
+        pluginHelper.warnOrThrow(doThrow, message)
+    }
+
+    C toCacheable() {
+        cacheableScmAdapter
+    }
+
+    /**
+     * Serializable to be cached by Gradle.
+     */
+    @CompileStatic
+    static abstract class Cacheable implements Externalizable {
+
+        PluginHelper.Cacheable cacheablePluginHelper
+
+        @Override
+        void writeExternal(ObjectOutput objectOutput) throws IOException {
+            objectOutput.writeObject(cacheablePluginHelper)
+        }
+
+        @Override
+        void readExternal(ObjectInput objectInput) throws IOException, ClassNotFoundException {
+            cacheablePluginHelper = objectInput.readObject() as PluginHelper.Cacheable
+        }
+
+        abstract void revert()
+
+        File getPropertiesFile() {
+            cacheablePluginHelper.propertiesFile
+        }
+
+        String exec(Map options = [:], List<String> commands) {
+            cacheablePluginHelper.exec(options, commands)
+        }
     }
 }

@@ -31,6 +31,8 @@ class GitReleasePluginTests extends Specification {
 
     private Executor executor
 
+    private PluginHelper pluginHelper
+
     def setup() {
         testDir.mkdirs()
 
@@ -54,7 +56,8 @@ class GitReleasePluginTests extends Specification {
         this.executor.exec(['git', 'add', 'somename.txt'], failOnStderr: true, directory: localRepo, env: [:])
         this.executor.exec(['git', 'commit', "-m", "test", 'somename.txt'], failOnStderr: true, directory: localRepo, env: [:])
 
-        releasePlugin.createScmAdapter()
+        pluginHelper = new PluginHelper(project, project.extensions['release'] as ReleaseExtension)
+        releasePlugin.createScmAdapter(pluginHelper)
 
         def props = project.file("gradle.properties")
         props.withWriter { it << "version=${project.version}" }
@@ -69,7 +72,7 @@ class GitReleasePluginTests extends Specification {
         given:
         project.release.git.requireBranch.set('myBranch')
         when:
-        (new GitAdapter(project, [:])).init()
+        (new GitAdapter(pluginHelper)).init()
         then:
         GradleException ex = thrown()
         ex.message == 'Current Git branch is "master" and not "myBranch".'
@@ -79,7 +82,7 @@ class GitReleasePluginTests extends Specification {
         given:
         project.release.git.requireBranch.set(/myBranch|master/)
         when:
-        (new GitAdapter(project, [:])).init()
+        (new GitAdapter(pluginHelper)).init()
         then:
         noExceptionThrown()
     }

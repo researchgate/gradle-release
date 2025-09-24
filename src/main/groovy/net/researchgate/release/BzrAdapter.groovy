@@ -10,16 +10,16 @@
 
 package net.researchgate.release
 
+import groovy.transform.CompileStatic
 import org.gradle.api.GradleException
-import org.gradle.api.Project
 
-class BzrAdapter extends BaseScmAdapter {
+class BzrAdapter extends BaseScmAdapter<Cacheable> {
 
     private static final String ERROR = 'ERROR'
     private static final String DELIM = '\n  * '
 
-    BzrAdapter(Project project, Map<String, Object> attributes) {
-        super(project, attributes)
+    BzrAdapter(PluginHelper pluginHelper) {
+        super(pluginHelper, new Cacheable(cacheablePluginHelper: pluginHelper.toCacheable()))
     }
 
     @Override
@@ -120,8 +120,12 @@ class BzrAdapter extends BaseScmAdapter {
         exec(['bzr', 'add', file.path], errorMessage: "Error adding file ${file.name}", errorPatterns: [ERROR])
     }
 
-    @Override
-    void revert() {
-        exec(['bzr', 'revert', findPropertiesFile().name], errorMessage: 'Error reverting changes made by the release plugin.', errorPatterns: [ERROR])
+    @CompileStatic
+    static class Cacheable extends BaseScmAdapter.Cacheable {
+
+        @Override
+        void revert() {
+            exec(['bzr', 'revert', propertiesFile.name], errorMessage: 'Error reverting changes made by the release plugin.', errorPatterns: [ERROR])
+        }
     }
 }

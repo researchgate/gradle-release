@@ -11,6 +11,7 @@
 package net.researchgate.release
 
 import groovy.text.SimpleTemplateEngine
+import groovy.transform.CompileStatic
 import net.researchgate.release.cli.Executor
 import org.apache.tools.ant.BuildException
 import org.gradle.api.GradleException
@@ -23,32 +24,46 @@ class PluginHelper {
     private static final String LINE_SEP = System.getProperty('line.separator')
     private static final String PROMPT = "${LINE_SEP}??>"
 
-    protected Project project
+    private final Project project
+    private final ReleaseExtension extension
+    private final Map<String, Object> attributes
 
-    protected ReleaseExtension extension
+    protected final Cacheable cacheablePluginHelper
 
-    protected Executor executor
+    private final Logger log
 
-    protected Map<String, Object> attributes = [:]
+    PluginHelper(Project project, ReleaseExtension extension, Map<String, Object> attributes = [:]) {
+        this.project = project
+        this.extension = extension
+        this.attributes = attributes
 
-    /**
-     * Retrieves SLF4J {@link Logger} instance.
-     *
-     * The logger is taken from the {@link Project} instance if it's initialized already
-     * or from SLF4J {@link LoggerFactory} if it's not.
-     *
-     * @return SLF4J {@link Logger} instance
-     */
-    Logger getLog() { project?.logger ?: LoggerFactory.getLogger(this.class) }
+        cacheablePluginHelper = new Cacheable(project, extension)
+        log = project.logger ?: LoggerFactory.getLogger(this.class)
+    }
 
     boolean useAutomaticVersion() {
         findProperty('release.useAutomaticVersion', null, 'gradle.release.useAutomaticVersion') == 'true'
     }
 
+    Cacheable toCacheable() {
+        cacheablePluginHelper
+    }
+
+    Project getProject() {
+        project
+    }
+
+    ReleaseExtension getExtension() {
+        extension
+    }
+
+    Map<String, Object> getAttributes() {
+        attributes
+    }
+
     /**
      * Executes command specified and retrieves its "stdout" output.
      *
-     * @param failOnStderr whether execution should fail if there's any "stderr" output produced, "true" by default.
      * @param commands commands to execute
      * @return command "stdout" output
      */
@@ -56,19 +71,11 @@ class PluginHelper {
         Map options = [:],
         List<String> commands
     ) {
-        initExecutor()
-        options['directory'] = options['directory'] ?: project.rootDir
-        executor.exec(options, commands)
+        cacheablePluginHelper.exec(options, commands)
     }
 
-    private void initExecutor() {
-        if (!executor) {
-            executor = new Executor(log)
-        }
-    }
-
-    File findPropertiesFile() {
-        File propertiesFile = project.file(extension.versionPropertyFile)
+    File findOrCreatePropertiesFile() {
+        File propertiesFile = cacheablePluginHelper.propertiesFile
         if (!propertiesFile.file) {
             if (!isVersionDefined()) {
                 project.version = getReleaseVersion('1.0.0')
@@ -87,6 +94,10 @@ class PluginHelper {
             }
         }
         propertiesFile
+    }
+
+    File getPropertiesFile() {
+        cacheablePluginHelper.propertiesFile
     }
 
     protected void writeVersion(File file, String key, version) {
@@ -162,7 +173,8 @@ class PluginHelper {
             attributes.versionModified = true
             project.subprojects?.each { it.version = newVersion }
             List<String> versionProperties = extension.versionProperties.get() + 'version'
-            versionProperties.each { writeVersion(findPropertiesFile(), it, project.version) }
+            findOrCreatePropertiesFile()
+            versionProperties.each { writeVersion(propertiesFile, it, project.version) }
         }
     }
 
@@ -191,5 +203,61 @@ class PluginHelper {
         }
 
         defaultValue
+    }
+
+    /**
+     * Serializable to be cached by Gradle.
+     */
+    @CompileStatic
+    static class Cacheable implements Externalizable {
+
+        private File projectRootDir
+        private File propertiesFile
+
+        private Logger log
+
+        protected Executor executor
+
+        Cacheable(Project project, ReleaseExtension extension) {
+            projectRootDir = project.rootDir
+            propertiesFile = project.file(extension.versionPropertyFile)
+            log = project.logger
+        }
+
+        Cacheable() {
+            // no-arg constructor for Externalizable
+            log = LoggerFactory.getLogger(this.class)
+        }
+
+        @Override
+        void writeExternal(ObjectOutput objectOutput) throws IOException {
+            objectOutput.writeUTF(projectRootDir.path)
+            objectOutput.writeUTF(propertiesFile.path)
+        }
+
+        @Override
+        void readExternal(ObjectInput objectInput) throws IOException, ClassNotFoundException {
+            projectRootDir = new File(objectInput.readUTF())
+            propertiesFile = new File(objectInput.readUTF())
+        }
+
+        File getPropertiesFile() {
+            propertiesFile
+        }
+
+        String exec(
+                Map options = [:],
+                List<String> commands
+        ) {
+            initExecutor()
+            options['directory'] = options['directory'] ?: projectRootDir
+            executor.exec(options, commands)
+        }
+
+        private void initExecutor() {
+            if (!executor) {
+                executor = new Executor(log)
+            }
+        }
     }
 }

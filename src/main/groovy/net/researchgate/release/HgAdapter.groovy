@@ -10,14 +10,14 @@
 
 package net.researchgate.release
 
-import org.gradle.api.Project
+import groovy.transform.CompileStatic
 
-class HgAdapter extends BaseScmAdapter {
+class HgAdapter extends BaseScmAdapter<Cacheable> {
 
     private static final String ERROR = 'abort:'
 
-    HgAdapter(Project project, Map<String, Object> attributes) {
-        super(project, attributes)
+    HgAdapter(PluginHelper pluginHelper) {
+        super(pluginHelper, new Cacheable(cacheablePluginHelper: pluginHelper.toCacheable()))
     }
 
     @Override
@@ -90,12 +90,16 @@ class HgAdapter extends BaseScmAdapter {
         exec(['hg', 'add', file.path], errorMessage: "Error adding file ${file.name}", errorPatterns: [ERROR])
     }
 
-    @Override
-    void revert() {
-        exec(['hg', 'revert', findPropertiesFile().name], errorMessage: 'Error reverting changes made by the release plugin.', errorPatterns: [ERROR])
-    }
-
     private String hgCurrentBranch() {
         exec(['hg', 'branch']).readLines()[0]
+    }
+
+    @CompileStatic
+    static class Cacheable extends BaseScmAdapter.Cacheable {
+
+        @Override
+        void revert() {
+            exec(['hg', 'revert', propertiesFile.name], errorMessage: 'Error reverting changes made by the release plugin.', errorPatterns: [ERROR])
+        }
     }
 }
