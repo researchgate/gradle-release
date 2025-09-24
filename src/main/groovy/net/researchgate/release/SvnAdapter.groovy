@@ -19,7 +19,7 @@ import org.gradle.api.tasks.Optional
 import java.util.regex.Matcher
 import org.gradle.api.GradleException
 
-class SvnAdapter extends BaseScmAdapter {
+class SvnAdapter extends BaseScmAdapter<Cacheable> {
 
     private static final String ERROR = 'Commit failed'
 
@@ -31,8 +31,8 @@ class SvnAdapter extends BaseScmAdapter {
 
     private static final def environment = [LANG: 'C', LC_MESSAGES: 'C', LC_ALL: ''];
 
-    SvnAdapter(Project project, Map<String, Object> attributes) {
-        super(project, attributes)
+    SvnAdapter(PluginHelper pluginHelper) {
+        super(pluginHelper, new Cacheable(pluginHelper.toCacheable()))
     }
 
     static class SvnConfig {
@@ -171,11 +171,6 @@ class SvnAdapter extends BaseScmAdapter {
         svnExec(['add', file.path], errorMessage: "Error adding file ${file.name}", errorPatterns: ['warning:'])
     }
 
-    @Override
-    void revert() {
-        svnExec(['revert', findPropertiesFile().name], errorMessage: 'Error reverting changes made by the release plugin.', errorPatterns: [ERROR])
-    }
-
     /**
      * Adds the executable and optional also username/password
      *
@@ -218,6 +213,18 @@ class SvnAdapter extends BaseScmAdapter {
         }
         if (!attributes.svnUrl || !attributes.initialSvnRev) {
             throw new GradleException('Could not determine root SVN url or revision.')
+        }
+    }
+
+    static class Cacheable extends BaseScmAdapter.Cacheable {
+
+        Cacheable(CacheablePluginHelper cacheablePluginHelper) {
+            super(cacheablePluginHelper)
+        }
+
+        @Override
+        void revert() {
+            svnExec(['revert', propertiesFile.name], errorMessage: 'Error reverting changes made by the release plugin.', errorPatterns: [ERROR])
         }
     }
 }

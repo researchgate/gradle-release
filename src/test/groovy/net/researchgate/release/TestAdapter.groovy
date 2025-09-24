@@ -10,12 +10,10 @@
 
 package net.researchgate.release
 
-import org.gradle.api.Project
-
 class TestAdapter extends BaseScmAdapter {
 
-    TestAdapter(Project project, Map<String, Object> attributes) {
-        super(project, attributes)
+    TestAdapter(PluginHelper pluginHelper) {
+        super(pluginHelper, new Cacheable(pluginHelper.toCacheable()))
     }
 
     class TestConfig {
@@ -53,5 +51,16 @@ class TestAdapter extends BaseScmAdapter {
 
     @Override
     void revert() {
+    }
+
+    static class Cacheable extends BaseScmAdapter.Cacheable {
+
+        Cacheable(CacheablePluginHelper cacheablePluginHelper) {
+            super(cacheablePluginHelper)
+        }
+
+        @Override
+        void revert() {
+        }
     }
 }

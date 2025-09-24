@@ -27,12 +27,12 @@ public class PluginHelperTagNameTests extends Specification {
         project = ProjectBuilder.builder().withName("ReleasePluginTest").withProjectDir(testDir).build()
         project.version = '1.1'
         project.plugins.apply(BasePlugin.class)
-        ReleasePlugin releasePlugin = project.plugins.apply(ReleasePlugin.class)
+        project.plugins.apply(ReleasePlugin.class)
         project.extensions.release.scmAdapters = [TestAdapter]
 
-        releasePlugin.createScmAdapter()
+        ReleasePlugin.createScmAdapter(new PluginHelper(project, project.extensions['release'] as ReleaseExtension))
 
-        helper = new PluginHelper(project: project, extension: project.extensions['release'] as ReleaseExtension)
+        helper = new PluginHelper(project, project.extensions['release'] as ReleaseExtension)
     }
 
     def 'by default the tag name is version'() {

@@ -11,14 +11,15 @@
 package net.researchgate.release
 
 import org.gradle.api.GradleException
-import org.gradle.api.Project
 
-abstract class BaseScmAdapter extends PluginHelper {
+abstract class BaseScmAdapter<C extends Cacheable> {
 
-    BaseScmAdapter(Project project, Map<String, Object> attributes) {
-        this.project = project
-        this.attributes = attributes
-        extension = project.extensions['release'] as ReleaseExtension
+    protected final PluginHelper pluginHelper
+    protected final C cacheableScmAdapter
+
+    BaseScmAdapter(PluginHelper pluginHelper, C cacheableScmAdapter) {
+        this.pluginHelper = pluginHelper
+        this.cacheableScmAdapter = cacheableScmAdapter
     }
 
     abstract boolean isSupported(File directory)
@@ -35,7 +36,9 @@ abstract class BaseScmAdapter extends PluginHelper {
 
     abstract void commit(String message)
 
-    abstract void revert()
+    void revert() {
+        cacheableScmAdapter.revert()
+    }
 
     void checkoutMergeToReleaseBranch() {
         throw new GradleException("Checkout and merge is supported only for GIT projects")
@@ -43,5 +46,53 @@ abstract class BaseScmAdapter extends PluginHelper {
 
     void checkoutMergeFromReleaseBranch() {
         throw new GradleException("Checkout and merge is supported only for GIT projects")
+    }
+
+    ReleaseExtension getExtension() {
+        pluginHelper.extension
+    }
+
+    Map<String, Object> getAttributes() {
+        pluginHelper.attributes
+    }
+
+    File getPropertiesFile() {
+        pluginHelper.propertiesFile
+    }
+
+    String exec(Map options = [:], List<String> commands) {
+        pluginHelper.exec(options, commands)
+    }
+
+    void warnOrThrow(boolean doThrow, String message) {
+        pluginHelper.warnOrThrow(doThrow, message)
+    }
+
+    C toCacheable() {
+        cacheableScmAdapter
+    }
+
+    /**
+     * Abstract class and subclasses must be serializable to be cached by Gradle.
+     *
+     * <p>Mark any fields that cannot be serialized as {@code transient} and handle {@code null} values (when deserialized).
+     */
+    static abstract class Cacheable implements Serializable {
+
+        protected final CacheablePluginHelper cacheablePluginHelper
+
+        Cacheable(CacheablePluginHelper cacheablePluginHelper) {
+            this.cacheablePluginHelper = cacheablePluginHelper
+        }
+
+        abstract void revert()
+
+        File getPropertiesFile() {
+            cacheablePluginHelper.propertiesFile
+        }
+
+        void exec(Map options = [:], List<String> commands) {
+            cacheablePluginHelper.exec(options, commands)
+        }
     }
 }

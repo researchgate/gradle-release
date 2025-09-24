@@ -23,7 +23,7 @@ class SvnAdapterTests extends Specification {
         project.apply plugin: ReleasePlugin
         project.version = '1.0.0'
 
-        svnAdapter = new SvnAdapter(project, [:])
+        svnAdapter = new SvnAdapter(new PluginHelper(project, project.extensions['release'] as ReleaseExtension, [:]))
         svnAdapter.executor = Mock(Executor)
         svnAdapter.attributes.svnUrl  = 'svn://server/repo'
         svnAdapter.attributes.svnRev  = 123

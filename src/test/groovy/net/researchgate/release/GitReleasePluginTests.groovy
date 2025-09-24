@@ -48,13 +48,13 @@ class GitReleasePluginTests extends Specification {
         project = ProjectBuilder.builder().withName("GitReleasePluginTest").withProjectDir(localRepo).build()
         project.version = "1.1"
         project.plugins.apply(BasePlugin.class)
-        ReleasePlugin releasePlugin = project.plugins.apply(ReleasePlugin.class)
+        project.plugins.apply(ReleasePlugin.class)
 
         project.file("somename.txt").withWriter {it << "test"}
         this.executor.exec(['git', 'add', 'somename.txt'], failOnStderr: true, directory: localRepo, env: [:])
         this.executor.exec(['git', 'commit', "-m", "test", 'somename.txt'], failOnStderr: true, directory: localRepo, env: [:])
 
-        releasePlugin.createScmAdapter()
+        ReleasePlugin.createScmAdapter(new PluginHelper(project, project.extensions['release'] as ReleaseExtension))
 
         def props = project.file("gradle.properties")
         props.withWriter { it << "version=${project.version}" }

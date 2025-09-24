@@ -30,29 +30,32 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.BasePlugin
-import org.gradle.api.provider.ProviderFactory
+import org.gradle.api.provider.Property
+import org.gradle.api.services.BuildService
+import org.gradle.api.services.BuildServiceParameters
 import org.gradle.api.tasks.GradleBuild
 import org.gradle.api.tasks.TaskState
-import org.gradle.build.event.BuildEventsListenerRegistry
+import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.tooling.events.task.TaskFailureResult
 import org.gradle.util.GradleVersion
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 import javax.inject.Inject
 
-abstract class ReleasePlugin extends PluginHelper implements Plugin<Project> {
+abstract class ReleasePlugin implements Plugin<Project> {
     static final String RELEASE_GROUP = 'Release'
-
-    private BaseScmAdapter scmAdapter
 
     void apply(Project project) {
         if (!project.plugins.hasPlugin(BasePlugin.class)) {
             project.plugins.apply(BasePlugin.class)
         }
-        this.project = project
-        extension = project.extensions.create('release', ReleaseExtension, project, attributes)
+        Map<String, Object> attributes = [:]
+        def extension = project.extensions.create('release', ReleaseExtension, project, attributes)
+        def pluginHelper = new PluginHelper(project, extension, attributes)
 
-        String preCommitText = findProperty('release.preCommitText', null, 'preCommitText')
+        String preCommitText = pluginHelper.findProperty('release.preCommitText', null, 'preCommitText')
         if (preCommitText) {
             extension.preCommitText.convention(preCommitText)
         }
@@ -90,7 +93,7 @@ abstract class ReleasePlugin extends PluginHelper implements Plugin<Project> {
         project.task('afterReleaseBuild', group: RELEASE_GROUP,
                 description: 'Runs immediately after the build when doing a release') {}
         project.task('createScmAdapter', group: RELEASE_GROUP,
-                description: 'Finds the correct SCM plugin') doLast this.&createScmAdapter
+                description: 'Finds the correct SCM plugin') doLast { createScmAdapter(pluginHelper) }
 
         project.tasks.create('initScmAdapter', InitScmAdapter)
         project.tasks.create('checkCommitNeeded', CheckCommitNeeded.class)
@@ -170,33 +173,42 @@ abstract class ReleasePlugin extends PluginHelper implements Plugin<Project> {
         if (GradleVersion.current() < GradleVersion.version('6.1')) {
             project.gradle.taskGraph.afterTask { Task task, TaskState state ->
                 if (state.failure && task.name == 'release') {
-                    revert()
+                    BaseScmAdapter scmAdapter = null
+                    try {
+                        scmAdapter = createScmAdapter(pluginHelper)
+                    } catch (Exception ignored) {}
+                    revert(
+                            scmAdapter?.toCacheable(),
+                            extension.revertOnFail.get(),
+                            project.file(extension.versionPropertyFile),
+                            project.logger ?: LoggerFactory.getLogger(this.class),
+                    )
                 }
             }
         } else {
+            def revertOnFailedReleaseTaskCompletionListenerProvider = project.gradle.sharedServices
+                    .registerIfAbsent('revertOnFailedRelease', RevertOnFailedReleaseTaskCompletionListener.class) { spec ->
+                        BaseScmAdapter scmAdapter = null
+                        try {
+                            scmAdapter = createScmAdapter(pluginHelper)
+                        } catch (Exception ignored) {}
+                        spec.parameters.scmAdapter.set(scmAdapter?.toCacheable())
+                    }
+
             objects.newInstance(BuildEventsListenerRegistryProvider)
                   .buildEventsListenerRegistry
-                  .onTaskCompletion(providers.provider {
-                      { finishEvent ->
-                          if ((finishEvent.result instanceof TaskFailureResult) && finishEvent.descriptor.taskPath.endsWith(':release')) {
-                              revert()
-                          }
-                      } as OperationCompletionListener
-                  })
+                  .onTaskCompletion(revertOnFailedReleaseTaskCompletionListenerProvider)
         }
     }
 
     @Inject
     abstract protected ObjectFactory getObjects();
 
-    @Inject
-    abstract protected ProviderFactory getProviders();
-
-    protected revert() {
-        try {
-            createScmAdapter()
-        } catch (Exception ignored) {}
-        if (scmAdapter && extension.revertOnFail.get() && project.file(extension.versionPropertyFile)?.exists()) {
+    protected static void revert(BaseScmAdapter.Cacheable scmAdapter,
+                                 boolean revertOnFail,
+                                 File versionPropertyFile,
+                                 Logger log) {
+        if (scmAdapter && revertOnFail && versionPropertyFile?.exists()) {
             log.error('Release process failed, reverting back any changes made by Release Plugin.')
             scmAdapter.revert()
         } else {
@@ -204,27 +216,24 @@ abstract class ReleasePlugin extends PluginHelper implements Plugin<Project> {
         }
     }
 
-    void createScmAdapter() {
-        scmAdapter = findScmAdapter()
-        extension.scmAdapter = scmAdapter
-    }
-
-    void checkUpdateNeeded() {
-        scmAdapter.checkUpdateNeeded()
+    static BaseScmAdapter createScmAdapter(PluginHelper pluginHelper) {
+        def scmAdapter = findScmAdapter(pluginHelper)
+        pluginHelper.extension.scmAdapter = scmAdapter
+        scmAdapter
     }
 
     /**
      * Recursively look for the type of the SCM we are dealing with, if no match is found look in parent directory
      * @param directory the directory to start from
      */
-    protected BaseScmAdapter findScmAdapter() {
+    protected static BaseScmAdapter findScmAdapter(PluginHelper pluginHelper) {
         BaseScmAdapter adapter
-        File projectPath = project.projectDir.canonicalFile
+        File projectPath = pluginHelper.project.projectDir.canonicalFile
 
-        extension.scmAdapters.find {
+        pluginHelper.extension.scmAdapters.find {
             assert BaseScmAdapter.isAssignableFrom(it)
 
-            BaseScmAdapter instance = it.getConstructor(Project.class, Map.class).newInstance(project, attributes)
+            BaseScmAdapter instance = it.getConstructor(Project.class, Map.class).newInstance(pluginHelper)
             if (instance.isSupported(projectPath)) {
                 adapter = instance
                 return true
@@ -239,5 +248,19 @@ abstract class ReleasePlugin extends PluginHelper implements Plugin<Project> {
         }
 
         adapter
+    }
+
+    protected abstract class RevertOnFailedReleaseTaskCompletionListener
+            implements BuildService<Params>, OperationCompletionListener {
+        interface Params extends BuildServiceParameters {
+            Property<BaseScmAdapter.Cacheable> getScmAdapter();
+        }
+
+        @Override
+        void onFinish(FinishEvent finishEvent) {
+            if ((finishEvent.result instanceof TaskFailureResult) && finishEvent.descriptor.taskPath.endsWith(':release')) {
+                parameters.scmAdapter.get().revert()
+            }
+        }
     }
 }

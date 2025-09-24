@@ -20,7 +20,7 @@ import org.gradle.api.tasks.Optional
 
 import java.util.regex.Matcher
 
-class GitAdapter extends BaseScmAdapter {
+class GitAdapter extends BaseScmAdapter<Cacheable> {
 
     private static final String LINE = '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
 
@@ -29,10 +29,10 @@ class GitAdapter extends BaseScmAdapter {
     private static final String AHEAD = 'ahead'
     private static final String BEHIND = 'behind'
 
+    private final String versionPropertyFilePath
+
     private String workingBranch
     private String releaseBranch
-
-    private File workingDirectory
 
     static class GitConfig {
 
@@ -66,8 +66,13 @@ class GitAdapter extends BaseScmAdapter {
         }
     }
 
-    GitAdapter(Project project, Map<String, Object> attributes) {
-        super(project, attributes)
+    GitAdapter(PluginHelper pluginHelper) {
+        super(pluginHelper, new Cacheable(pluginHelper.toCacheable()))
+        versionPropertyFilePath = propertiesFile.path
+    }
+
+    File getWorkingDirectory() {
+        cacheableScmAdapter.workingDirectory
     }
 
     @Override
@@ -76,7 +81,7 @@ class GitAdapter extends BaseScmAdapter {
             return directory.parentFile? isSupported(directory.parentFile) : false
         }
 
-        workingDirectory = directory
+        cacheableScmAdapter.workingDirectory = directory
         true
     }
 
@@ -142,7 +147,7 @@ class GitAdapter extends BaseScmAdapter {
     void commit(String message) {
         List<String> command = ['git', 'commit', '-m', message]
         if (extension.git.commitVersionFileOnly.get()) {
-            command << project.file(extension.versionPropertyFile.get())
+            command << versionPropertyFilePath
         } else {
             command << '-a'
         }
@@ -162,12 +167,6 @@ class GitAdapter extends BaseScmAdapter {
     @Override
     void add(File file) {
         exec(['git', 'add', file.path], directory: workingDirectory, errorMessage: "Error adding file ${file.name}", errorPatterns: ['error: ', 'fatal: '])
-    }
-
-    @Override
-    void revert() {
-        // Revert changes on gradle.properties
-        exec(['git', 'checkout', findPropertiesFile().name], directory: workingDirectory, errorMessage: 'Error reverting changes made by the release plugin.')
     }
 
     @Override
@@ -236,5 +235,20 @@ class GitAdapter extends BaseScmAdapter {
             remoteStatus[BEHIND] = behindMatcher[0][1]
         }
         remoteStatus
+    }
+
+    static class Cacheable extends BaseScmAdapter.Cacheable {
+
+        protected File workingDirectory
+
+        Cacheable(CacheablePluginHelper cacheablePluginHelper) {
+            super(cacheablePluginHelper)
+        }
+
+        @Override
+        void revert() {
+            // Revert changes on gradle.properties
+            exec(['git', 'checkout', propertiesFile.name], directory: workingDirectory, errorMessage: 'Error reverting changes made by the release plugin.')
+        }
     }
 }
