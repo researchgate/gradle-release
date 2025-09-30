@@ -21,10 +21,8 @@ jobs:
           distribution: adopt
           architecture: x64
 
-      - name: Validate Gradle wrapper
-        uses: gradle/wrapper-validation-action@e6e38bacfdf1a337459f332974bb2327a31aaf4b
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@48b5f213c81028ace310571dc5ec0fbbca0b2947 # v4
 
       - name: Build with Gradle
-        uses: gradle/gradle-build-action@v2.4.2
-        with:
-          arguments: check
+        run: ./gradlew check
