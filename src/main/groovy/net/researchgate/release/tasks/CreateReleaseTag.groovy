@@ -12,7 +12,7 @@ class CreateReleaseTag extends BaseReleaseTask {
 
     @TaskAction
     void createReleaseTag() {
-        def message = extension.tagCommitMessage.get() + " '${tagName()}'."
+        def message = extension.tagCommitMessage.get() + " ${tagName()}."
         if (extension.preCommitText.get()) {
             message = "${extension.preCommitText.get()} ${message}"
         }
