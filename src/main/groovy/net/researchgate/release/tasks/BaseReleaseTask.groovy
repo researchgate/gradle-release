@@ -115,7 +115,8 @@ class BaseReleaseTask extends DefaultTask {
                 "name"   : project.name
         ]
         tagName = engine.createTemplate(extension.tagTemplate.get()).make(binding).toString()
-        return tagName
+        String finalTagName = extension.wrapVersionWithSingleQuote.get() ? "'${tagName}'" : "${tagName}"
+        return finalTagName
     }
 
     String findProperty(String key, Object defaultVal = null, String deprecatedKey = null) {

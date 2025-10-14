@@ -67,17 +67,23 @@ class GitReleasePluginTests extends Specification {
 
     def 'when requireBranch is configured then throw exception when different branch'() {
         given:
+        // Ensure we're on a known branch (master) for this test
+        this.executor.exec(['git', 'checkout', '-B', 'master'], failOnStderr: false, directory: localRepo, env: [:])
+        
+        // Get the actual current branch name
+        def currentBranch = this.executor.exec(['git', 'branch', '--show-current'], failOnStderr: false, directory: localRepo, env: [:]).trim()
+        
         project.release.git.requireBranch.set('myBranch')
         when:
         (new GitAdapter(project, [:])).init()
         then:
         GradleException ex = thrown()
-        ex.message == 'Current Git branch is "master" and not "myBranch".'
+        ex.message == "Current Git branch is \"${currentBranch}\" and not \"myBranch\"."
     }
 
     def 'when requireBranch is configured using a regex that matches current branch then don\'t throw exception'() {
         given:
-        project.release.git.requireBranch.set(/myBranch|master/)
+        project.release.git.requireBranch.set(/myBranch|master|main/)
         when:
         (new GitAdapter(project, [:])).init()
         then:
