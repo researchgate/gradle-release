@@ -64,7 +64,7 @@ class ReleaseExtension {
     final Property<String> snapshotSuffix = project.objects.property(String.class).convention('-SNAPSHOT')
 
     @Input
-    final Property<Boolean> wrapVersionWithSingleQuote = project.objects.property(Boolean.class).convention(true)
+    final Property<Boolean> wrapVersionWithSingleQuote = project.objects.property(Boolean.class).convention(false)
 
     @Input
     final Property<String> tagTemplate = project.objects.property(String.class).convention('$version')
