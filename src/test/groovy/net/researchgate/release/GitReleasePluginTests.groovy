@@ -37,7 +37,7 @@ class GitReleasePluginTests extends Specification {
         executor = new Executor()
 
         // create remote repository
-        this.executor.exec(['git', 'init', 'GitReleasePluginTestRemote'], failOnStderr: true, directory: testDir, env: [:])
+        this.executor.exec(['git', 'init', '--initial-branch=master', 'GitReleasePluginTestRemote'], failOnStderr: true, directory: testDir, env: [:])
         // suppress errors while pushing
         this.executor.exec(['git', 'config', '--add', 'receive.denyCurrentBranch', 'ignore'], failOnStderr: true, directory: remoteRepo, env: [:])
 
