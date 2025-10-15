@@ -204,7 +204,7 @@ class GitAdapter extends BaseScmAdapter {
     }
 
     private String gitCurrentBranch() {
-        def matches = exec(['git', 'branch', '--no-color'], directory: workingDirectory).readLines().grep(~/\s*\*.*/)
+        def matches = exec(['git', 'branch', '--no-color', '--no-column'], directory: workingDirectory).readLines().grep(~/\s*\*.*/)
         if (!matches.isEmpty()) {
             matches[0].trim() - (~/^\*\s+/)
         } else {
