@@ -24,21 +24,27 @@ import net.researchgate.release.tasks.PreTagCommit
 import net.researchgate.release.tasks.PrepareVersions
 import net.researchgate.release.tasks.UnSnapshotVersion
 import net.researchgate.release.tasks.UpdateVersion
+import org.gradle.StartParameter
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.file.ProjectLayout
+import org.gradle.api.invocation.Gradle
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.provider.ProviderFactory
-import org.gradle.api.tasks.GradleBuild
 import org.gradle.api.tasks.TaskState
 import org.gradle.build.event.BuildEventsListenerRegistry
 import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.tooling.events.task.TaskFailureResult
+import org.gradle.tooling.GradleConnector
 import org.gradle.util.GradleVersion
 
 import javax.inject.Inject
+
+import static org.gradle.api.logging.configuration.ShowStacktrace.ALWAYS
+import static org.gradle.api.logging.configuration.ShowStacktrace.ALWAYS_FULL
 
 abstract class ReleasePlugin extends PluginHelper implements Plugin<Project> {
     static final String RELEASE_GROUP = 'Release'
@@ -61,28 +67,29 @@ abstract class ReleasePlugin extends PluginHelper implements Plugin<Project> {
         String p = project.path
         p = !p.endsWith(Project.PATH_SEPARATOR) ? p + Project.PATH_SEPARATOR : p
 
-        project.task('release', description: 'Verify project, release, and update version to next.', group: RELEASE_GROUP, type: GradleBuild) {
-            startParameter = project.getGradle().startParameter.newInstance()
-
-            tasks = [
-                "${p}createScmAdapter" as String,
-                "${p}initScmAdapter" as String,
-                "${p}checkCommitNeeded" as String,
-                "${p}checkUpdateNeeded" as String,
-                "${p}checkoutMergeToReleaseBranch" as String,
-                "${p}unSnapshotVersion" as String,
-                "${p}confirmReleaseVersion" as String,
-                "${p}checkSnapshotDependencies" as String,
-                "${p}runBuildTasks" as String,
-                "${p}preTagCommit" as String,
-                "${p}createReleaseTag" as String,
-                "${p}checkoutMergeFromReleaseBranch" as String,
-                "${p}updateVersion" as String,
-                "${p}commitNewVersion" as String
-            ]
-
-            // Gradle 6 workaround (https://github.com/gradle/gradle/issues/12872)
-            buildName = project.name + "-release"
+        project.task('release', description: 'Verify project, release, and update version to next.', group: RELEASE_GROUP) {
+            def projectDirectory = layout.projectDirectory.asFile
+            def startParameter = gradle.startParameter
+            doLast {
+                launchGradle(
+                        projectDirectory,
+                        startParameter,
+                        "${p}createScmAdapter",
+                        "${p}initScmAdapter",
+                        "${p}checkCommitNeeded",
+                        "${p}checkUpdateNeeded",
+                        "${p}checkoutMergeToReleaseBranch",
+                        "${p}unSnapshotVersion",
+                        "${p}confirmReleaseVersion",
+                        "${p}checkSnapshotDependencies",
+                        "${p}runBuildTasks",
+                        "${p}preTagCommit",
+                        "${p}createReleaseTag",
+                        "${p}checkoutMergeFromReleaseBranch",
+                        "${p}updateVersion",
+                        "${p}commitNewVersion"
+                )
+            }
         }
 
         project.task('beforeReleaseBuild', group: RELEASE_GROUP,
@@ -104,32 +111,25 @@ abstract class ReleasePlugin extends PluginHelper implements Plugin<Project> {
         project.tasks.create('unSnapshotVersion', UnSnapshotVersion.class)
         project.tasks.create('confirmReleaseVersion', ConfirmReleaseVersion.class)
         project.tasks.create('checkSnapshotDependencies', CheckSnapshotDependencies.class)
-        project.tasks.create('runBuildTasks', GradleBuild) {
-            group: RELEASE_GROUP
-            description: 'Runs the build process in a separate gradle run.'
-            startParameter = project.getGradle().startParameter.newInstance()
-            startParameter.projectProperties.putAll(project.getGradle().startParameter.projectProperties)
-            startParameter.projectProperties.put('release.releasing', "true")
-            startParameter.projectDir = project.projectDir
-            if (GradleVersion.current() < GradleVersion.version("9.0")) {
-                // Setting custom settings file for the build has been deprecated.
-                startParameter.settingsFile = project.getGradle().startParameter.settingsFile
-            }
-            startParameter.gradleUserHomeDir = project.getGradle().startParameter.gradleUserHomeDir
-            buildName = project.name
+        project.tasks.create('runBuildTasks') {
+            group = RELEASE_GROUP
+            description = 'Runs the build process in a separate gradle run.'
 
-            project.afterEvaluate {
-                tasks = [
+            def projectDirectory = layout.projectDirectory.asFile
+            def startParameter = gradle.startParameter
+            doLast {
+                startParameter = startParameter.newInstance()
+                startParameter.projectProperties.put('release.releasing', "true")
+                launchGradle(
+                        projectDirectory,
+                        startParameter,
                         "${p}beforeReleaseBuild" as String,
-                        extension.buildTasks.get().collect { it },
+                        *extension.buildTasks.get(),
                         "${p}afterReleaseBuild" as String
-                ].flatten()
+                )
             }
-
-            // Gradle 6 workaround (https://github.com/gradle/gradle/issues/12872)
-            buildName = project.name + "-release"
-        }
-        project.tasks.create('preTagCommit', PreTagCommit.class)
+       }
+       project.tasks.create('preTagCommit', PreTagCommit.class)
         project.tasks.create('createReleaseTag', CreateReleaseTag.class)
         project.tasks.create('checkoutMergeFromReleaseBranch', CheckoutMergeFromReleaseBranch) {
             onlyIf {
@@ -191,6 +191,93 @@ abstract class ReleasePlugin extends PluginHelper implements Plugin<Project> {
 
     @Inject
     abstract protected ProviderFactory getProviders();
+
+    @Inject
+    abstract protected ProjectLayout getLayout();
+
+    @Inject
+    abstract protected Gradle getGradle();
+
+    private static void launchGradle(File projectDirectory, StartParameter startParameter, String... tasks) {
+        GradleConnector
+              .newConnector()
+              .forProjectDirectory(projectDirectory)
+              .connect()
+              .withCloseable { projectConnection ->
+                  def buildLauncher = projectConnection
+                        .newBuild()
+                        .forTasks(tasks)
+                        .setStandardInput(System.in)
+                        .setStandardOutput(System.out)
+                        .setStandardError(System.err)
+                  if (GradleVersion.current() >= GradleVersion.version("7.4")) {
+                      // work-around until https://github.com/researchgate/gradle-release/issues/346 is properly fixed,
+                      // then the setting can be translated like for the others
+                      buildLauncher.addArguments("--no-configuration-cache")
+                  }
+                  buildLauncher.addArguments("-Dorg.gradle.logging.level=${startParameter.logLevel}")
+                  if (startParameter.showStacktrace == ALWAYS_FULL) {
+                      buildLauncher.addArguments("--full-stacktrace")
+                  } else if (startParameter.showStacktrace == ALWAYS) {
+                      buildLauncher.addArguments("--stacktrace")
+                  }
+                  buildLauncher
+                        .addArguments("--console=${startParameter.consoleOutput}")
+                        .addArguments("--warning-mode=${startParameter.warningMode}")
+                        .addArguments((startParameter.parallelProjectExecutionEnabled) ? "--parallel" : "--no-parallel")
+                        .addArguments("--max-workers=${startParameter.maxWorkerCount}")
+                  startParameter.excludedTaskNames.forEach {
+                      buildLauncher.addArguments("-x", it)
+                  }
+                  startParameter.projectProperties.forEach { key, value ->
+                      buildLauncher.addArguments("-P$key=$value")
+                  }
+                  startParameter.systemPropertiesArgs.forEach { key, value ->
+                      buildLauncher.addArguments("-D$key=$value")
+                  }
+                  buildLauncher.addArguments("--gradle-user-home=${startParameter.gradleUserHomeDir}")
+                  if ((GradleVersion.current() < GradleVersion.version("9.0")) && (startParameter.settingsFile != null)) {
+                      buildLauncher.addArguments("--settings-file=${startParameter.settingsFile}")
+                  }
+                  if ((GradleVersion.current() < GradleVersion.version("9.0")) && (startParameter.buildFile != null)) {
+                      buildLauncher.addArguments("--build-file=${startParameter.buildFile}")
+                  }
+                  startParameter.initScripts.forEach {
+                      buildLauncher.addArguments("--init-script=$it")
+                  }
+                  if (startParameter.rerunTasks) {
+                      buildLauncher.addArguments("--rerun-tasks")
+                  }
+                  if (startParameter.profile) {
+                      buildLauncher.addArguments("--profile")
+                  }
+                  if (startParameter.continueOnFailure) {
+                      buildLauncher.addArguments("--continue")
+                  }
+                  if (startParameter.offline) {
+                      buildLauncher.addArguments("--offline")
+                  }
+                  if (startParameter.projectCacheDir != null) {
+                      buildLauncher.addArguments("--project-cache-dir=${startParameter.projectCacheDir}")
+                  }
+                  if (startParameter.refreshDependencies) {
+                      buildLauncher.addArguments("--refresh-dependencies")
+                  }
+                  if (startParameter.configureOnDemand) {
+                      buildLauncher.addArguments("--configure-on-demand")
+                  }
+                  startParameter.includedBuilds.forEach {
+                      buildLauncher.addArguments("--include-build=$it")
+                  }
+                  if (startParameter.buildScan) {
+                      buildLauncher.addArguments("--scan")
+                  }
+                  if (startParameter.noBuildScan) {
+                      buildLauncher.addArguments("--no-scan")
+                  }
+                  buildLauncher.run()
+              }
+    }
 
     protected revert() {
         try {
