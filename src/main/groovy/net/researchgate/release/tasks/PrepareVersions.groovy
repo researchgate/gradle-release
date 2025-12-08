@@ -36,7 +36,7 @@ class PrepareVersions extends BaseReleaseTask {
         }
 
         if (useAutomaticVersion() || promptYesOrNo("[$propertiesFile.canonicalPath] not found, create it with version = ${project.version}")) {
-            writeVersion(propertiesFile, 'version', project.version)
+            writeVersion(propertiesFile, extension.versionPropertyFileEncoding.get(), 'version', project.version)
             extension.attributes.propertiesFileCreated = true
         } else {
             log.debug "[$propertiesFile.canonicalPath] was not found, and user opted out of it being created. Throwing exception."
