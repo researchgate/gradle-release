@@ -79,7 +79,7 @@ class PluginHelper {
             }
 
             if (useAutomaticVersion() || promptYesOrNo("[$propertiesFile.canonicalPath] not found, create it with version = ${project.version}")) {
-                writeVersion(propertiesFile, 'version', project.version)
+                writeVersion(propertiesFile, extension.versionPropertyFileEncoding.get(), 'version', project.version)
                 attributes.propertiesFileCreated = true
             } else {
                 log.debug "[$propertiesFile.canonicalPath] was not found, and user opted out of it being created. Throwing exception."
@@ -89,13 +89,13 @@ class PluginHelper {
         propertiesFile
     }
 
-    protected void writeVersion(File file, String key, version) {
+    protected void writeVersion(File file, String versionPropertyFileEncoding, String key, version) {
         try {
             if (!file.file) {
-                project.ant.echo(file: file, message: "$key=$version")
+                project.ant.echo(file: file, encoding: versionPropertyFileEncoding, message: "$key=$version")
             } else {
                 // we use replace here as other ant tasks escape and modify the whole file
-                project.ant.replaceregexp(file: file, byline: true) {
+                project.ant.replaceregexp(file: file, byline: true, encoding: versionPropertyFileEncoding) {
                     regexp(pattern: "^(\\s*)$key((\\s*[=|:]\\s*)|(\\s+)).+\$")
                     substitution(expression: "\\1$key\\2$version")
                 }
@@ -162,7 +162,7 @@ class PluginHelper {
             attributes.versionModified = true
             project.subprojects?.each { it.version = newVersion }
             List<String> versionProperties = extension.versionProperties.get() + 'version'
-            versionProperties.each { writeVersion(findPropertiesFile(), it, project.version) }
+            versionProperties.each { writeVersion(findPropertiesFile(), extension.versionPropertyFileEncoding.get(), it, project.version) }
         }
     }
 

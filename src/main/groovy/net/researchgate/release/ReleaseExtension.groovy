@@ -70,6 +70,9 @@ class ReleaseExtension {
     final Property<String> versionPropertyFile = project.objects.property(String.class).convention('gradle.properties')
 
     @Input
+    final Property<String> versionPropertyFileEncoding = project.objects.property(String.class).convention('ISO-8859-1')
+
+    @Input
     final ListProperty<String> versionProperties = project.objects.listProperty(String.class).convention([])
 
     @Input

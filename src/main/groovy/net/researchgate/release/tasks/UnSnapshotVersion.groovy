@@ -33,7 +33,7 @@ class UnSnapshotVersion extends BaseReleaseTask {
         }
 
         Properties properties = new Properties()
-        propertiesFile.withReader { properties.load(it) }
+        propertiesFile.withReader(extension.versionPropertyFileEncoding.get()) { properties.load(it) }
 
         assert properties.version, "[$propertiesFile.canonicalPath] contains no 'version' property"
         assert extension.versionPatterns.keySet().any { (properties.version =~ it).find() },
