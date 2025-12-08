@@ -214,6 +214,7 @@ release {
     newVersionCommitMessage = '[Gradle Release Plugin] - new version commit: '
     tagTemplate = '${version}'
     versionPropertyFile = 'gradle.properties'
+    versionPropertyFileEncoding = 'ISO-8859-1'
     versionProperties = []
     snapshotSuffix = '-SNAPSHOT'
     buildTasks = []
