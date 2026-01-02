@@ -68,7 +68,7 @@ class BaseReleaseTask extends DefaultTask {
             }
 
             if (useAutomaticVersion() || promptYesOrNo("[$propertiesFile.canonicalPath] not found, create it with version = ${project.version}")) {
-                writeVersion(propertiesFile, 'version', project.version)
+                writeVersion(propertiesFile, extension.versionPropertyFileEncoding.get(), 'version', project.version)
                 projectAttributes.propertiesFileCreated = true
             } else {
                 log.debug "[$propertiesFile.canonicalPath] was not found, and user opted out of it being created. Throwing exception."
@@ -78,13 +78,13 @@ class BaseReleaseTask extends DefaultTask {
         propertiesFile
     }
 
-    protected void writeVersion(File file, String key, version) {
+    protected void writeVersion(File file, String versionPropertyFileEncoding, String key, version) {
         try {
             if (!file.file) {
-                getProject().ant.echo(file: file, message: "$key=$version")
+                getProject().ant.echo(file: file, encoding: versionPropertyFileEncoding, message: "$key=$version")
             } else {
                 // we use replace here as other ant tasks escape and modify the whole file
-                getProject().ant.replaceregexp(file: file, byline: true) {
+                getProject().ant.replaceregexp(file: file, byline: true, encoding: versionPropertyFileEncoding) {
                     regexp(pattern: "^(\\s*)$key((\\s*[=|:]\\s*)|(\\s+)).+\$")
                     substitution(expression: "\\1$key\\2$version")
                 }
