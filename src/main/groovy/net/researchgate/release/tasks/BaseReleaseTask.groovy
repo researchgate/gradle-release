@@ -2,6 +2,7 @@ package net.researchgate.release.tasks
 
 import groovy.text.SimpleTemplateEngine
 import net.researchgate.release.BaseScmAdapter
+import net.researchgate.release.PluginHelper
 import net.researchgate.release.ReleaseExtension
 import net.researchgate.release.ReleasePlugin
 import org.apache.tools.ant.BuildException
@@ -35,7 +36,7 @@ class BaseReleaseTask extends DefaultTask {
     @Internal
     BaseScmAdapter getScmAdapter() {
         if (extension.scmAdapter == null) {
-            project.getPlugins().getPlugin(ReleasePlugin.class).createScmAdapter()
+            project.getPlugins().getPlugin(ReleasePlugin.class).createScmAdapter(new PluginHelper(project, extension))
         }
         return extension.scmAdapter
     }

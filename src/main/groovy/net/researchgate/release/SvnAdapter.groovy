@@ -10,6 +10,7 @@
 
 package net.researchgate.release
 
+import groovy.transform.CompileStatic
 import org.gradle.api.Project
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
@@ -19,7 +20,7 @@ import org.gradle.api.tasks.Optional
 import java.util.regex.Matcher
 import org.gradle.api.GradleException
 
-class SvnAdapter extends BaseScmAdapter {
+class SvnAdapter extends BaseScmAdapter<Cacheable> {
 
     private static final String ERROR = 'Commit failed'
 
@@ -31,11 +32,14 @@ class SvnAdapter extends BaseScmAdapter {
 
     private static final def environment = [LANG: 'C', LC_MESSAGES: 'C', LC_ALL: ''];
 
-    SvnAdapter(Project project, Map<String, Object> attributes) {
-        super(project, attributes)
+    SvnAdapter(PluginHelper pluginHelper) {
+        super(pluginHelper, new Cacheable(
+                cacheablePluginHelper: pluginHelper.toCacheable(),
+                svn: pluginHelper.extension.svn,
+        ))
     }
 
-    static class SvnConfig {
+    static class SvnConfig implements Serializable {
         @Internal
         final Property<String> username
         @Internal
@@ -171,33 +175,11 @@ class SvnAdapter extends BaseScmAdapter {
         svnExec(['add', file.path], errorMessage: "Error adding file ${file.name}", errorPatterns: ['warning:'])
     }
 
-    @Override
-    void revert() {
-        svnExec(['revert', findPropertiesFile().name], errorMessage: 'Error reverting changes made by the release plugin.', errorPatterns: [ERROR])
-    }
-
-    /**
-     * Adds the executable and optional also username/password
-     *
-     * @param options
-     * @param commands
-     * @return
-     */
     private String svnExec(
         Map options = [:],
         List<String> commands
     ) {
-        if (extension.svn.username.isPresent()) {
-            if (extension.svn.password.isPresent()) {
-                commands.addAll(0, ['--password', extension.svn.password.get()]);
-            }
-            commands.addAll(0, ['--non-interactive', '--no-auth-cache', '--username', extension.svn.username.get()]);
-        }
-        commands.add(0, 'svn');
-
-        options['env'] = environment;
-
-        exec(options, commands)
+        cacheableScmAdapter.svnExec(options, commands)
     }
 
     private void findSvnUrl() {
@@ -218,6 +200,53 @@ class SvnAdapter extends BaseScmAdapter {
         }
         if (!attributes.svnUrl || !attributes.initialSvnRev) {
             throw new GradleException('Could not determine root SVN url or revision.')
+        }
+    }
+
+    @CompileStatic
+    static class Cacheable extends BaseScmAdapter.Cacheable {
+
+        SvnConfig svn
+
+        @Override
+        void writeExternal(ObjectOutput objectOutput) throws IOException {
+            super.writeExternal(objectOutput)
+            objectOutput.writeObject(svn)
+        }
+
+        @Override
+        void readExternal(ObjectInput objectInput) throws IOException, ClassNotFoundException {
+            super.readExternal(objectInput)
+            svn = objectInput.readObject() as SvnConfig
+        }
+
+        @Override
+        void revert() {
+            svnExec(['revert', propertiesFile.name], errorMessage: 'Error reverting changes made by the release plugin.', errorPatterns: [ERROR])
+        }
+
+        /**
+         * Adds the executable and optional also username/password
+         *
+         * @param options
+         * @param commands
+         * @return
+         */
+        private String svnExec(
+                Map options = [:],
+                List<String> commands
+        ) {
+            if (svn.username.isPresent()) {
+                if (svn.password.isPresent()) {
+                    commands.addAll(0, ['--password', svn.password.get()]);
+                }
+                commands.addAll(0, ['--non-interactive', '--no-auth-cache', '--username', svn.username.get()]);
+            }
+            commands.add(0, 'svn');
+
+            options['env'] = environment;
+
+            exec(options, commands)
         }
     }
 }

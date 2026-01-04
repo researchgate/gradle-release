@@ -62,7 +62,7 @@ class GitReleasePluginCreateReleaseTagTests extends GitSpecification {
         project = new ProjectBuilder().withProjectDir(localDir).build()
         project.plugins.apply(BasePlugin.class)
         project.plugins.apply(ReleasePlugin.class)
-        helper = new PluginHelper(project: project, extension: project.extensions['release'] as ReleaseExtension)
+        helper = new PluginHelper(project, project.extensions['release'] as ReleaseExtension)
     }
 
     def 'createReleaseTag should create tag and push to remote'() {

@@ -36,10 +36,9 @@ class ReleasePluginTests extends Specification {
             w.write 'version=1.2\n'
         }
         project.plugins.apply(BasePlugin.class)
-        ReleasePlugin releasePlugin = project.plugins.apply(ReleasePlugin.class)
-        project.extensions.release.scmAdapters = [TestAdapter]
+        ReleasePlugin releasePlugin = project.plugins.apply(TestReleasePlugin.class)
 
-        releasePlugin.createScmAdapter()
+        releasePlugin.createScmAdapter(new PluginHelper(project, project.extensions['release'] as ReleaseExtension))
     }
 
     def 'plugin is successfully applied'() {

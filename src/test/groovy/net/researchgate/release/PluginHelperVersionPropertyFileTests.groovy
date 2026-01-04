@@ -20,7 +20,7 @@ public class PluginHelperVersionPropertyFileTests extends Specification {
 
     Project project
 
-    PluginHelper helper
+    ReleasePlugin releasePlugin
 
     File testDir = new File("build/tmp/test/${getClass().simpleName}")
 
@@ -28,14 +28,14 @@ public class PluginHelperVersionPropertyFileTests extends Specification {
         project = ProjectBuilder.builder().withName("ReleasePluginTest").withProjectDir(testDir).build()
         project.version = '1.1'
         project.plugins.apply(BasePlugin.class)
-        ReleasePlugin releasePlugin = project.plugins.apply(ReleasePlugin.class)
-        project.extensions.release.scmAdapters = [TestAdapter]
-        releasePlugin.createScmAdapter()
-
-        helper = new PluginHelper(project: project, extension: project.extensions['release'] as ReleaseExtension)
+        releasePlugin = project.plugins.apply(TestReleasePlugin.class)
 
         def props = project.file("gradle.properties")
         props.withWriter {it << "version=${project.version}"}
+    }
+
+    PluginHelper getHelper() {
+        new PluginHelper(project, project.extensions['release'] as ReleaseExtension)
     }
 
     def cleanup() {
@@ -44,7 +44,7 @@ public class PluginHelperVersionPropertyFileTests extends Specification {
 
     def 'should find gradle.properties by default'() {
         expect:
-        helper.findPropertiesFile().name == 'gradle.properties'
+        helper.propertiesFile.name == 'gradle.properties'
     }
 
     def 'should find properties from convention'() {
@@ -55,7 +55,7 @@ public class PluginHelperVersionPropertyFileTests extends Specification {
             versionPropertyFile.set('custom.properties')
         }
         expect:
-        helper.findPropertiesFile().name == 'custom.properties'
+        helper.propertiesFile.name == 'custom.properties'
     }
 
     def 'by default should update `version` property from props file'() {
