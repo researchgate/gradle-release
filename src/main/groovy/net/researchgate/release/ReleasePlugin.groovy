@@ -23,6 +23,7 @@ import net.researchgate.release.tasks.InitScmAdapter
 import net.researchgate.release.tasks.PreTagCommit
 import net.researchgate.release.tasks.PrepareVersions
 import net.researchgate.release.tasks.UnSnapshotVersion
+import net.researchgate.release.tasks.SnapshotVersion
 import net.researchgate.release.tasks.UpdateVersion
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
@@ -71,6 +72,7 @@ abstract class ReleasePlugin extends PluginHelper implements Plugin<Project> {
                 "${p}checkUpdateNeeded" as String,
                 "${p}checkoutMergeToReleaseBranch" as String,
                 "${p}unSnapshotVersion" as String,
+                "${p}snapshotVersion" as String,
                 "${p}confirmReleaseVersion" as String,
                 "${p}checkSnapshotDependencies" as String,
                 "${p}runBuildTasks" as String,
@@ -102,6 +104,7 @@ abstract class ReleasePlugin extends PluginHelper implements Plugin<Project> {
             }
         }
         project.tasks.create('unSnapshotVersion', UnSnapshotVersion.class)
+        project.tasks.create('snapshotVersion', SnapshotVersion.class)
         project.tasks.create('confirmReleaseVersion', ConfirmReleaseVersion.class)
         project.tasks.create('checkSnapshotDependencies', CheckSnapshotDependencies.class)
         project.tasks.create('runBuildTasks', GradleBuild) {
