@@ -1,27 +1,13 @@
 import org.gradle.api.internal.classpath.ModuleRegistry
 
-buildscript {
-    repositories {
-        maven {
-            url "https://plugins.gradle.org/m2/"
-        }
-    }
-    dependencies {
-        classpath 'nu.studer:gradle-plugindev-plugin:4.1'
-        classpath 'org.codehaus.groovy:groovy-backports-compat23:2.4.6'
-        classpath 'net.researchgate:gradle-release:2.7.0'
-    }
-}
-
 plugins {
-    id 'org.gradle.java-gradle-plugin'
-    id 'org.gradle.groovy'
+    id 'java-gradle-plugin'
+    id 'groovy'
     id 'maven-publish'
-    id 'net.researchgate.release' version '2.8.0'
+    id 'idea'
+    id 'net.researchgate.release' version '3.1.0'
     id 'com.gradle.plugin-publish' version '0.18.0'
 }
-
-apply plugin: 'idea'
 
 group='net.researchgate'
 
@@ -30,15 +16,19 @@ repositories {
 }
 
 dependencies {
-    testCompile("org.spockframework:spock-core:2.1-groovy-2.5") { exclude group: 'org.codehaus.groovy' }
-    testCompile "org.eclipse.jgit:org.eclipse.jgit:5.0.3.201809091024-r"
-    testCompile "cglib:cglib-nodep:3.2.8"
+    testImplementation("org.spockframework:spock-core:2.3-groovy-2.5") {
+        exclude group: 'org.codehaus.groovy'
+    }
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
+
+    testImplementation "org.eclipse.jgit:org.eclipse.jgit:5.0.3.201809091024-r"
+    testImplementation "cglib:cglib-nodep:3.2.8"
+
     testImplementation gradleTestKit()
-    testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
 
     // work-around for https://github.com/gradle/gradle/issues/16774
     testRuntimeOnly(files(project.services.get(ModuleRegistry).getModule('gradle-tooling-api-builders').classpath.asFiles.first()))
-    testRuntimeOnly('com.google.guava:guava:27.1-android')
+    testRuntimeOnly('com.google.guava:guava:32.0.1-jre')
 }
 
 gradlePlugin {
@@ -66,11 +56,11 @@ tasks.withType(Test).configureEach {
 
 release {
     git {
-        requireBranch = '(main|\\d+\\.\\d+)'
+        requireBranch.set('(main|\\d+\\.\\d+)')
     }
 }
 
-wrapper.gradleVersion = '6.9.2'
+wrapper.gradleVersion = '6.9.4'
 
 updateVersion.doFirst {
     def file = file('README.md')
