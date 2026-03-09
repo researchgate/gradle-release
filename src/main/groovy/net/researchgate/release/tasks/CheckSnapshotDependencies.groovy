@@ -22,10 +22,10 @@ class CheckSnapshotDependencies extends BaseReleaseTask {
 
         project.allprojects.each { project ->
             def snapshotDependencies = [] as Set
-            project.configurations.each { cfg ->
+            project.configurations.toList().each { cfg ->
                 snapshotDependencies += cfg.dependencies?.matching(matcher)?.collect(collector)
             }
-            project.buildscript.configurations.each { cfg ->
+            project.buildscript.configurations.toList().each { cfg ->
                 snapshotDependencies += cfg.dependencies?.matching(matcher)?.collect(collector)
             }
             if (snapshotDependencies.size() > 0) {
