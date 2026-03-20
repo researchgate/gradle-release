@@ -63,7 +63,7 @@ class GitReleasePluginCheckUpdateNeededTests extends GitSpecification {
         when:
         BuildResult result = GradleRunner.create()
                 .withProjectDir(localDir)
-                .withGradleVersion('6.9.2')
+                .withGradleVersion(System.properties.get('gradleVersion') as String)
                 .withArguments('checkUpdateNeeded')
                 .withPluginClasspath()
                 .buildAndFail()
@@ -79,7 +79,7 @@ class GitReleasePluginCheckUpdateNeededTests extends GitSpecification {
         when:
         BuildResult result = GradleRunner.create()
                 .withProjectDir(localDir)
-                .withGradleVersion('6.9.2')
+                .withGradleVersion(System.properties.get('gradleVersion') as String)
                 .withArguments('checkUpdateNeeded')
                 .withPluginClasspath()
                 .buildAndFail()

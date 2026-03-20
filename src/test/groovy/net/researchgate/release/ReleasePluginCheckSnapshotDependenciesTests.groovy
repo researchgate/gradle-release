@@ -42,7 +42,7 @@ public class ReleasePluginCheckSnapshotDependenciesTests extends Specification {
         given:
         project.configurations { custom }
         project.dependencies {
-            compile 'my1:my1:1.1.1'
+            implementation 'my1:my1:1.1.1'
             custom 'my2:my2:1.1.1'
         }
         project.buildscript.dependencies {
@@ -57,7 +57,7 @@ public class ReleasePluginCheckSnapshotDependenciesTests extends Specification {
 
     def 'when SNAPSHOT in plugin provide cfg then exception'() {
         given:
-        project.dependencies { compile 'my:my:1.1.1-SNAPSHOT' }
+        project.dependencies { implementation 'my:my:1.1.1-SNAPSHOT' }
         when:
         (project.tasks.checkSnapshotDependencies as CheckSnapshotDependencies).checkSnapshotDependencies()
         then:
@@ -101,11 +101,11 @@ public class ReleasePluginCheckSnapshotDependenciesTests extends Specification {
         given:
         def proj1 = ProjectBuilder.builder().withParent(project).withName("proj1").build()
         proj1.apply plugin: 'java'
-        proj1.dependencies { compile 'my1:my1:1.1.1-SNAPSHOT' }
+        proj1.dependencies { implementation 'my1:my1:1.1.1-SNAPSHOT' }
 
         def proj2 = ProjectBuilder.builder().withParent(project).withName("proj2").build()
         proj2.apply plugin: 'java'
-        proj2.dependencies { compile 'my2:my2:1.1.1' }
+        proj2.dependencies { implementation 'my2:my2:1.1.1' }
 
         when:
         (project.tasks.checkSnapshotDependencies as CheckSnapshotDependencies).checkSnapshotDependencies()
@@ -119,12 +119,12 @@ public class ReleasePluginCheckSnapshotDependenciesTests extends Specification {
         given:
         def proj1 = ProjectBuilder.builder().withParent(project).withName("proj1").build()
         proj1.apply plugin: 'java'
-        proj1.dependencies { compile 'my1:my1:1.1.1' }
+        proj1.dependencies { implementation 'my1:my1:1.1.1' }
         proj1.buildscript.dependencies { classpath 'my2:my2:1.1.1-SNAPSHOT' }
 
         def proj2 = ProjectBuilder.builder().withParent(project).withName("proj2").build()
         proj2.apply plugin: 'java'
-        proj2.dependencies { compile 'my3:my3:1.1.1-SNAPSHOT' }
+        proj2.dependencies { implementation 'my3:my3:1.1.1-SNAPSHOT' }
         proj2.buildscript.dependencies { classpath 'my4:my4:1.1.1-SNAPSHOT' }
 
         when:
@@ -139,8 +139,8 @@ public class ReleasePluginCheckSnapshotDependenciesTests extends Specification {
     def 'when same SNAPSHOT in several configurations then show one in exception'() {
         given:
         project.dependencies {
-            compile 'my:my:1.1.1-SNAPSHOT'
-            runtime 'my:my:1.1.1-SNAPSHOT'
+            implementation 'my:my:1.1.1-SNAPSHOT'
+            runtimeOnly 'my:my:1.1.1-SNAPSHOT'
         }
         when:
         (project.tasks.checkSnapshotDependencies as CheckSnapshotDependencies).checkSnapshotDependencies()
@@ -152,8 +152,8 @@ public class ReleasePluginCheckSnapshotDependenciesTests extends Specification {
     def 'when same SNAPSHOT in several configurations - including buildscript - then show one in exception'() {
         given:
         project.dependencies {
-            compile 'my:my:1.1.1-SNAPSHOT'
-            runtime 'my:my:1.1.1-SNAPSHOT'
+            implementation 'my:my:1.1.1-SNAPSHOT'
+            runtimeOnly 'my:my:1.1.1-SNAPSHOT'
         }
         project.buildscript.dependencies {
             classpath 'my:my:1.1.1-SNAPSHOT'
@@ -168,8 +168,8 @@ public class ReleasePluginCheckSnapshotDependenciesTests extends Specification {
     def 'when few SNAPSHOT deps in several configurations then show all in exception'() {
         given:
         project.dependencies {
-            compile 'my1:my1:1.1.1-SNAPSHOT'
-            runtime 'my2:my2:1.1.1-SNAPSHOT'
+            implementation 'my1:my1:1.1.1-SNAPSHOT'
+            runtimeOnly 'my2:my2:1.1.1-SNAPSHOT'
         }
         when:
         (project.tasks.checkSnapshotDependencies as CheckSnapshotDependencies).checkSnapshotDependencies()
@@ -195,8 +195,8 @@ public class ReleasePluginCheckSnapshotDependenciesTests extends Specification {
   def 'when few SNAPSHOT deps in several configurations - including buildscript - then show all in exception'() {
         given:
         project.dependencies {
-            compile 'my1:my1:1.1.1-SNAPSHOT'
-            runtime 'my2:my2:1.1.1-SNAPSHOT'
+            implementation 'my1:my1:1.1.1-SNAPSHOT'
+            runtimeOnly 'my2:my2:1.1.1-SNAPSHOT'
         }
         project.buildscript.dependencies {
             classpath 'my3:my3:1.1.1-SNAPSHOT'

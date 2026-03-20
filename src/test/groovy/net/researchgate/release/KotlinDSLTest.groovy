@@ -67,7 +67,7 @@ class KotlinDSLTest extends GitSpecification {
         when: 'calling release task'
         BuildResult result = GradleRunner.create()
                 .withProjectDir(localDir)
-                .withGradleVersion('6.9.2')
+                .withGradleVersion(System.properties.get('gradleVersion') as String)
                 .withArguments('release', '-Prelease.useAutomaticVersion=true', '-s')
                 .withPluginClasspath()
                 .build()
