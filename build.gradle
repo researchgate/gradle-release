@@ -30,9 +30,9 @@ repositories {
 }
 
 dependencies {
-    testCompile("org.spockframework:spock-core:2.1-groovy-2.5") { exclude group: 'org.codehaus.groovy' }
-    testCompile "org.eclipse.jgit:org.eclipse.jgit:5.0.3.201809091024-r"
-    testCompile "cglib:cglib-nodep:3.2.8"
+    testImplementation("org.spockframework:spock-core:2.1-groovy-2.5") { exclude group: 'org.codehaus.groovy' }
+    testImplementation "org.eclipse.jgit:org.eclipse.jgit:5.0.3.201809091024-r"
+    testImplementation "cglib:cglib-nodep:3.2.8"
     testImplementation gradleTestKit()
     testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
 
@@ -62,6 +62,7 @@ tasks.withType(Test).configureEach {
     dependsOn tasks.jar
     useJUnitPlatform()
     systemProperties.put('currentVersion', project.version)
+    systemProperties.put('gradleVersion', project.findProperty('gradleVersion') ?: '6.9.2')
 }
 
 release {
@@ -70,7 +71,7 @@ release {
     }
 }
 
-wrapper.gradleVersion = '6.9.2'
+wrapper.gradleVersion = '7.6.4'
 
 updateVersion.doFirst {
     def file = file('README.md')

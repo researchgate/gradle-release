@@ -9,20 +9,34 @@ on:
 jobs:
   tests:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - java-version: '8'
+            gradle-version: '6.9.2'
+          - java-version: '8'
+            gradle-version: '7.6.4'
+          - java-version: '8'
+            gradle-version: '8.12'
+          - java-version: '17'
+            gradle-version: '9.0'
 
     steps:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Set up JDK 11
+      - name: Set up JDK ${{ matrix.java-version }}
         uses: actions/setup-java@v3
         with:
-          java-version: 11
-          distribution: adopt
+          java-version: ${{ matrix.java-version }}
+          distribution: temurin
           architecture: x64
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@48b5f213c81028ace310571dc5ec0fbbca0b2947 # v4
 
       - name: Build with Gradle
-        run: ./gradlew check
+        uses: gradle/gradle-build-action@v2.4.2
+        with:
+          arguments: check -PgradleVersion=${{ matrix.gradle-version }}
