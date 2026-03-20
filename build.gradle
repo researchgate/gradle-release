@@ -65,6 +65,8 @@ tasks.withType(Test).configureEach {
     systemProperties.put('gradleVersion', project.findProperty('gradleVersion') ?: '6.9.2')
 }
 
+processResources.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
 release {
     git {
         requireBranch = '(main|\\d+\\.\\d+)'
