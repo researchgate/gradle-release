@@ -30,7 +30,7 @@ repositories {
 }
 
 dependencies {
-    testImplementation("org.spockframework:spock-core:2.1-groovy-2.5") { exclude group: 'org.codehaus.groovy' }
+    testImplementation("org.spockframework:spock-core:2.3-groovy-3.0") { exclude group: 'org.codehaus.groovy' }
     testImplementation "org.eclipse.jgit:org.eclipse.jgit:5.0.3.201809091024-r"
     testImplementation "cglib:cglib-nodep:3.2.8"
     testImplementation gradleTestKit()
