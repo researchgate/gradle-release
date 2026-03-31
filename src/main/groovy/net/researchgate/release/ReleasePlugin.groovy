@@ -164,7 +164,7 @@ abstract class ReleasePlugin implements Plugin<Project> {
             }
         }
 
-        if (GradleVersion.current() < GradleVersion.version('6.1')) {
+        if (GradleVersion.current() < GradleVersion.version('7.0')) {
             project.gradle.taskGraph.afterTask { Task task, TaskState state ->
                 if (state.failure && task.name == 'release') {
                     BaseScmAdapter scmAdapter = null

@@ -111,7 +111,6 @@ public class PluginHelperVersionPropertyFileTests extends Specification {
             versionProperties.set(['version1', 'version2'])
         }
         when:
-        (project.tasks.initScmAdapter as InitScmAdapter).initScmAdapter()
         helper.updateVersionProperty('2.6')
         def lines = project.file("gradle.properties").readLines()
         then:
@@ -131,7 +130,6 @@ public class PluginHelperVersionPropertyFileTests extends Specification {
             it << "  another.prop.version =  1.1\n"
         }
         when:
-        (project.tasks.initScmAdapter as InitScmAdapter).initScmAdapter()
         helper.updateVersionProperty('3.1')
         def lines = project.file("gradle.properties").readLines()
         then:

@@ -29,14 +29,13 @@ repositories {
 }
 
 dependencies {
-    testImplementation("org.spockframework:spock-core:2.3-groovy-3.0") { exclude group: 'org.codehaus.groovy' }
+    testImplementation("org.spockframework:spock-core:2.3-groovy-2.5") { exclude group: 'org.codehaus.groovy' }
     testImplementation "org.eclipse.jgit:org.eclipse.jgit:5.0.3.201809091024-r"
     testImplementation "cglib:cglib-nodep:3.2.8"
     testImplementation gradleTestKit()
     testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
 
     testRuntimeOnly('com.google.guava:guava:27.1-android')
-
 }
 
 gradlePlugin {
@@ -71,7 +70,7 @@ release {
     }
 }
 
-wrapper.gradleVersion = '7.6.4'
+wrapper.gradleVersion = '6.9.4'
 
 updateVersion.doFirst {
     def file = file('README.md')
