@@ -63,6 +63,11 @@ tasks.withType(Test).configureEach {
     javaLauncher = javaToolchains.launcherFor {
         languageVersion = JavaLanguageVersion.of(project.findProperty('javaVersion') ?Integer.valueOf(project.findProperty('javaVersion')): 8)
     }
+    if (project.findProperty('javaVersion') && Integer.valueOf(project.findProperty('javaVersion')) >= 9) {
+        jvmArgs '--add-opens', 'java.base/java.lang=ALL-UNNAMED'
+        jvmArgs '--add-opens', 'java.base/java.lang.reflect=ALL-UNNAMED'
+        jvmArgs '--add-opens', 'java.base/java.io=ALL-UNNAMED'
+    }
 }
 
 processResources.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
