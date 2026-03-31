@@ -59,7 +59,10 @@ tasks.withType(Test).configureEach {
     dependsOn tasks.jar
     useJUnitPlatform()
     systemProperties.put('currentVersion', project.version)
-    systemProperties.put('gradleVersion', project.findProperty('gradleVersion') ?: '6.9.2')
+    systemProperties.put('gradleVersion', project.findProperty('gradleVersion') ?: '6.9.4')
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(project.findProperty('javaVersion') ?Integer.valueOf(project.findProperty('javaVersion')): 8)
+    }
 }
 
 processResources.duplicatesStrategy = DuplicatesStrategy.EXCLUDE

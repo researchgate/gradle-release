@@ -39,4 +39,4 @@ jobs:
       - name: Build with Gradle
         uses: gradle/gradle-build-action@v2.4.2
         with:
-          arguments: check -PgradleVersion=${{ matrix.gradle-version }}
+          arguments: check -PgradleVersion=${{ matrix.gradle-version }} -PjavaVersion=${{ matrix.java-version }}
