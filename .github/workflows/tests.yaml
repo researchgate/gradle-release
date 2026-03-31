@@ -14,13 +14,13 @@ jobs:
       matrix:
         include:
           - java-version: '8'
-            gradle-version: '6.9.2'
+            gradle-version: '6.9.4'
           - java-version: '8'
-            gradle-version: '7.6.4'
+            gradle-version: '7.6.6'
           - java-version: '8'
-            gradle-version: '8.12'
+            gradle-version: '8.14.4'
           - java-version: '17'
-            gradle-version: '9.0'
+            gradle-version: '9.4.1'
 
     steps:
       - name: Checkout
