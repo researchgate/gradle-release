@@ -44,3 +44,11 @@ jobs:
 
       - name: Build with Gradle
         run: ./gradlew check -PgradleVersion=${{ matrix.gradle-version }} -PjavaVersion=${{ matrix.java-version }}
+
+      - name: Upload Test Report
+        uses: actions/upload-artifact@v7
+        if: always() # always run even if the previous step fails
+        with:
+          name: junit-test-results
+          path: '**/build/test-results/test/TEST-*.xml'
+          retention-days: 1
