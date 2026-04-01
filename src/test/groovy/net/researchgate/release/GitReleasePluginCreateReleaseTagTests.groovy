@@ -71,7 +71,7 @@ class GitReleasePluginCreateReleaseTagTests extends GitSpecification {
         when:
         BuildResult result = GradleRunner.create()
                 .withProjectDir(localDir)
-                .withGradleVersion('6.9.2')
+                .withGradleVersion(System.properties.get('gradleVersion') as String)
                 .withArguments('createReleaseTag')
                 .withPluginClasspath()
                 .build()
@@ -90,7 +90,7 @@ class GitReleasePluginCreateReleaseTagTests extends GitSpecification {
         when:
         BuildResult result = GradleRunner.create()
                 .withProjectDir(localDir)
-                .withGradleVersion('6.9.2')
+                .withGradleVersion(System.properties.get('gradleVersion') as String)
                 .withArguments('createReleaseTag')
                 .withPluginClasspath()
                 .buildAndFail()
@@ -122,7 +122,7 @@ class GitReleasePluginCreateReleaseTagTests extends GitSpecification {
         when:
         BuildResult result = GradleRunner.create()
                 .withProjectDir(localDir)
-                .withGradleVersion('6.9.2')
+                .withGradleVersion(System.properties.get('gradleVersion') as String)
                 .withArguments('createReleaseTag')
                 .withPluginClasspath()
                 .build()
@@ -156,7 +156,7 @@ class GitReleasePluginCreateReleaseTagTests extends GitSpecification {
         when:
         BuildResult result = GradleRunner.create()
                 .withProjectDir(localDir)
-                .withGradleVersion('6.9.2')
+                .withGradleVersion(System.properties.get('gradleVersion') as String)
                 .withArguments('createReleaseTag')
                 .withPluginClasspath()
                 .buildAndFail()
@@ -191,7 +191,7 @@ class GitReleasePluginCreateReleaseTagTests extends GitSpecification {
         when:
         BuildResult result = GradleRunner.create()
                 .withProjectDir(localDir)
-                .withGradleVersion('6.9.2')
+                .withGradleVersion(System.properties.get('gradleVersion') as String)
                 .withArguments('createReleaseTag')
                 .withPluginClasspath()
                 .build()

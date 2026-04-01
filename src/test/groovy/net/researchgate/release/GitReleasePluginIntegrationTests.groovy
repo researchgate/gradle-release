@@ -76,7 +76,7 @@ class GitReleasePluginIntegrationTests extends GitSpecification {
         when: 'calling release task'
         BuildResult result = GradleRunner.create()
                 .withProjectDir(localDir)
-                .withGradleVersion('6.0.1')
+                .withGradleVersion(System.properties.get('gradleVersion') as String)
                 .withArguments('release', '-Prelease.useAutomaticVersion=true', '-s')
                 .withPluginClasspath()
                 .build()
