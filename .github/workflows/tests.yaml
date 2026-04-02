@@ -29,7 +29,7 @@ jobs:
       - name: Set up JDK ${{ matrix.java-version }}
         uses: actions/setup-java@v5
         with:
-          java-version: 8
+          java-version: ${{ matrix.java-version }}
           distribution: temurin
           architecture: x64
 
@@ -49,6 +49,6 @@ jobs:
         uses: actions/upload-artifact@v7
         if: always() # always run even if the previous step fails
         with:
-          name: junit-test-results-${{ matrix.gradle-version }}
+          name: junit-test-results
           path: '**/build/test-results/test/TEST-*.xml'
           retention-days: 1
