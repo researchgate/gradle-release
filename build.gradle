@@ -1,28 +1,17 @@
 
-buildscript {
-    repositories {
-        maven {
-            url "https://plugins.gradle.org/m2/"
-        }
-    }
-    dependencies {
-        classpath 'nu.studer:gradle-plugindev-plugin:4.1'
-        classpath 'org.codehaus.groovy:groovy-backports-compat23:2.4.6'
-        classpath 'net.researchgate:gradle-release:2.7.0'
-    }
-}
-
 plugins {
-    id 'org.gradle.java-gradle-plugin'
-    id 'org.gradle.groovy'
+    id 'java-gradle-plugin'
+    id 'groovy'
     id 'maven-publish'
-    id 'net.researchgate.release' version '2.8.0'
+    id 'idea'
+    id 'net.researchgate.release' version '3.1.0'
     id 'com.gradle.plugin-publish' version '0.18.0'
 }
 
-apply plugin: 'idea'
-
 group='net.researchgate'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 repositories {
     mavenCentral()
@@ -32,10 +21,9 @@ dependencies {
     testImplementation("org.spockframework:spock-core:2.3-groovy-2.5") { exclude group: 'org.codehaus.groovy' }
     testImplementation "org.eclipse.jgit:org.eclipse.jgit:5.0.3.201809091024-r"
     testImplementation "cglib:cglib-nodep:3.2.8"
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
     testImplementation gradleTestKit()
-    testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
-
-    testRuntimeOnly('com.google.guava:guava:27.1-android')
+    testRuntimeOnly('com.google.guava:guava:32.0.1-jre')
 }
 
 gradlePlugin {
@@ -74,7 +62,7 @@ processResources.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
 release {
     git {
-        requireBranch = '(main|\\d+\\.\\d+)'
+        requireBranch.set('(main|\\d+\\.\\d+)')
     }
 }
 
