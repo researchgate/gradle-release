@@ -12,6 +12,9 @@ import org.gradle.api.internal.classpath.ModuleRegistry
 
 group='net.researchgate'
 
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
 repositories {
     mavenCentral()
 }
