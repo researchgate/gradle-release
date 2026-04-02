@@ -8,6 +8,8 @@ plugins {
     id 'com.gradle.plugin-publish' version '0.18.0'
 }
 
+import org.gradle.api.internal.classpath.ModuleRegistry
+
 group='net.researchgate'
 
 repositories {
