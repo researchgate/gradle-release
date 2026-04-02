@@ -13,23 +13,40 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # Gradle 6
           - java-version: '8'
             gradle-version: '6.9.4'
+          - java-version: '11'
+            gradle-version: '6.9.4'
+
+          # Gradle 7
           - java-version: '8'
             gradle-version: '7.6.6'
-          - java-version: '8'
+          - java-version: '11'
+            gradle-version: '7.6.6'
+
+          # Gradle 8
+          - java-version: '11'
             gradle-version: '8.14.4'
           - java-version: '17'
+            gradle-version: '8.14.4'
+
+          # Gradle 9 (Upcoming/Modern)
+          - java-version: '17'
+            gradle-version: '9.4.1'
+          - java-version: '21'
             gradle-version: '9.4.1'
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Set up JDK ${{ matrix.java-version }}
+      - name: Set up JDKs
         uses: actions/setup-java@v5
         with:
-          java-version: ${{ matrix.java-version }}
+          java-version: |
+            ${{ matrix.java-version }}
+            8
           distribution: temurin
           architecture: x64
 
