@@ -21,7 +21,7 @@ class PreTagCommit extends BaseReleaseTask {
         Map<String, Object> projectAttributes = extension.attributes
         if (projectAttributes.usesSnapshot || projectAttributes.versionModified || projectAttributes.propertiesFileCreated) {
             // should only be committed if the project was using a snapshot version.
-            String message = extension.preTagCommitMessage.get() + " '${tagName()}'."
+            String message = extension.preTagCommitMessage.get() + " ${tagName()}."
             if (extension.preCommitText.get()) {
                 message = "${extension.preCommitText.get()} ${message}"
             }

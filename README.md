@@ -146,6 +146,12 @@ Below are some properties of the Release Plugin Convention that can be used to c
 		<td>-SNAPSHOT</td>
 		<td>The version suffix used by the project's version (If used)</td>
 	</tr>
+	<tr>
+		<td>wrapVersionWithSingleQuote</td>
+		<td>true</td>
+		<td>The version is enclosed with single quotes in the commit message [Gradle Release Plugin] - new version commit: '1.6.7-SNAPSHOT' instead of [Gradle Release Plugin] - new version commit: 1.6.7-SNAPSHOT.</td>
+	</tr>
+
 </table>
 
 Below are some properties of the Release Plugin Convention that are specific to version control.<br>
