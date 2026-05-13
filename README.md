@@ -180,6 +180,24 @@ Below are some properties of the Release Plugin Convention that are specific to 
 	    <td>false</td>
 	    <td>Adds `-s` parameter to the tag command</td>
 	</tr>
+	<tr>
+	    <td>Git</td>
+	    <td>pushToRemote</td>
+	    <td>origin</td>
+	    <td>The remote to push commits and tags to. Set to <code>false</code> to disable pushing entirely.</td>
+	</tr>
+	<tr>
+	    <td>Git</td>
+	    <td>pushToBranchPrefix</td>
+	    <td>{empty}</td>
+	    <td>Branch prefix prepended when pushing with <code>pushReleaseVersionBranch</code>. E.g. <code>refs/for/</code> for Gerrit.</td>
+	</tr>
+	<tr>
+	    <td>Git</td>
+	    <td>commitVersionFileOnly</td>
+	    <td>false</td>
+	    <td>When true, only the version property file is staged before release commits (instead of all modified files).</td>
+	</tr>
 </table>
 
 To set any of these properties to false, add a "release" configuration to your project's ```build.gradle``` file. Eg. To ignore un-versioned files, you would add the following to your ```build.gradle``` file:
@@ -235,6 +253,7 @@ release {
         pushToRemote.set('origin')
         pushToBranchPrefix.set('')
         commitVersionFileOnly.set(false)
+        commitOptions.set([])
         signTag.set(false)
     }
 
@@ -250,17 +269,10 @@ release {
 
 ``` build.gradle.kts
 import net.researchgate.release.ReleaseExtension
-repositories {
-    maven {
-      url 'https://plugins.gradle.org/m2/'
-    }
-  }
-  dependencies {
-    classpath 'net.researchgate:gradle-release:3.1.0'
-  }
 
-apply(plugin = "base")
-apply(plugin = "net.researchgate.release")
+plugins {
+    id("net.researchgate.release") version "3.1.0"
+}
 
 configure<ReleaseExtension> {
     ignoredSnapshotDependencies.set(listOf("net.researchgate:gradle-release"))
