@@ -37,7 +37,7 @@ buildscript {
     }
   }
   dependencies {
-    classpath 'net.researchgate:gradle-release:3.1.0'
+    classpath 'net.researchgate:gradle-release:3.2.0'
   }
 }
 
@@ -48,7 +48,7 @@ apply plugin: 'net.researchgate.release'
 
 ```groovy
 plugins {
-  id 'net.researchgate.release' version '3.1.0'
+  id 'net.researchgate.release' version '3.2.0'
 }
 ```
 
