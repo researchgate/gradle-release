@@ -1,7 +1,7 @@
 # Changelog
 
 ## 3.2.0
-##### Released: 18. June 2026
+##### Released: 30. September 2026
 
 ### New Features
 
