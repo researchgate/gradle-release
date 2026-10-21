@@ -27,15 +27,17 @@ jobs:
 
           # Gradle 8
           - java-version: '11'
-            gradle-version: '8.14.4'
+            gradle-version: '8.14.6'
           - java-version: '17'
-            gradle-version: '8.14.4'
+            gradle-version: '8.14.6'
 
-          # Gradle 9 (Upcoming/Modern)
+          # Gradle 9
           - java-version: '17'
-            gradle-version: '9.4.1'
+            gradle-version: '9.8.2'
           - java-version: '21'
-            gradle-version: '9.4.1'
+            gradle-version: '9.8.2'
+          - java-version: '25'
+            gradle-version: '9.8.2'
 
     steps:
       - name: Checkout
